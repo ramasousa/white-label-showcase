@@ -1,0 +1,1756 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BaaS White Label — Arquitetura Frontend</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #111318;
+    --surface2: #181b22;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #f0f2f7;
+    --muted: #6b7280;
+    --subtle: #374151;
+    --red: #e8294a;
+    --red-dim: rgba(232,41,74,0.12);
+    --red-glow: rgba(232,41,74,0.25);
+    --blue: #3b82f6;
+    --blue-dim: rgba(59,130,246,0.12);
+    --green: #22d3a5;
+    --green-dim: rgba(34,211,165,0.1);
+    --amber: #f59e0b;
+    --amber-dim: rgba(245,158,11,0.1);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167,139,250,0.1);
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Instrument Sans', sans-serif;
+    --display: 'Syne', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.65;
+    min-height: 100vh;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.4;
+  }
+
+  /* ── LAYOUT ── */
+  .wrapper { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 0;
+    scrollbar-width: none;
+  }
+  .sidebar::-webkit-scrollbar { display: none; }
+
+  .sidebar-logo {
+    padding: 0 24px 28px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+  .sidebar-logo-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--red-dim);
+    border: 1px solid var(--red-glow);
+    border-radius: 6px;
+    padding: 6px 12px;
+    margin-bottom: 12px;
+  }
+  .sidebar-logo-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--red);
+    box-shadow: 0 0 8px var(--red);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .sidebar-logo-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--red);
+    font-weight: 600;
+  }
+  .sidebar-title {
+    font-family: var(--display);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .sidebar-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-family: var(--mono);
+  }
+
+  .nav-section-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 24px;
+    margin-bottom: 8px;
+    margin-top: 20px;
+  }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 24px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    border-left: 2px solid transparent;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+  .nav-item.active { color: var(--red); border-left-color: var(--red); background: var(--red-dim); }
+  .nav-item-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--subtle);
+    min-width: 20px;
+  }
+
+  /* ── MAIN ── */
+  .main { flex: 1; overflow-x: hidden; }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 80px 64px 64px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -120px; right: -120px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(232,41,74,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 24px;
+  }
+  .hero-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+  .tag-red { background: var(--red-dim); color: var(--red); border: 1px solid var(--red-glow); }
+  .tag-blue { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(59,130,246,0.3); }
+  .tag-green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(34,211,165,0.3); }
+  .tag-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); }
+  .tag-purple { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,0.3); }
+
+  .hero h1 {
+    font-family: var(--display);
+    font-size: clamp(32px, 4vw, 52px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -1px;
+    margin-bottom: 16px;
+  }
+  .hero h1 em { font-style: normal; color: var(--red); }
+  .hero-desc {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 640px;
+    line-height: 1.7;
+    margin-bottom: 36px;
+  }
+  .hero-meta {
+    display: flex; gap: 32px; flex-wrap: wrap;
+  }
+  .hero-meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .hero-meta-label { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+  .hero-meta-val { font-size: 13px; color: var(--text); font-weight: 500; }
+
+  /* ── SECTION ── */
+  .section {
+    padding: 64px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section:last-child { border-bottom: none; }
+
+  .section-header {
+    display: flex; align-items: baseline; gap: 16px;
+    margin-bottom: 36px;
+  }
+  .section-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--red);
+    letter-spacing: 1px;
+    font-weight: 600;
+  }
+  .section-title-text {
+    font-family: var(--display);
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  .section-bar {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    margin-left: 8px;
+  }
+
+  .section-intro {
+    font-size: 15px;
+    color: var(--muted);
+    line-height: 1.8;
+    max-width: 720px;
+    margin-bottom: 40px;
+  }
+
+  /* ── CARDS ── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .card:hover { border-color: var(--border2); transform: translateY(-2px); }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .card.red::before { background: linear-gradient(90deg, var(--red), transparent); }
+  .card.blue::before { background: linear-gradient(90deg, var(--blue), transparent); }
+  .card.green::before { background: linear-gradient(90deg, var(--green), transparent); }
+  .card.amber::before { background: linear-gradient(90deg, var(--amber), transparent); }
+  .card.purple::before { background: linear-gradient(90deg, var(--purple), transparent); }
+
+  .card-icon { font-size: 22px; margin-bottom: 12px; }
+  .card-title {
+    font-family: var(--display);
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  .card-body { font-size: 13.5px; color: var(--muted); line-height: 1.7; }
+
+  /* ── CODE BLOCK ── */
+  .code-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 20px 0;
+  }
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .code-header-dots { display: flex; gap: 6px; }
+  .code-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .code-dot.r { background: #ff5f57; }
+  .code-dot.y { background: #ffbd2e; }
+  .code-dot.g { background: #28c840; }
+  .code-lang {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  pre {
+    padding: 20px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.8;
+    color: #c9d1d9;
+  }
+  .kw { color: #ff7b72; }
+  .str { color: #a5d6ff; }
+  .cm { color: #6e7681; font-style: italic; }
+  .fn { color: #d2a8ff; }
+  .num { color: #f8cc7c; }
+  .key { color: #79c0ff; }
+  .val { color: #a5d6ff; }
+  .op { color: #ff7b72; }
+
+  /* ── FLOW DIAGRAM ── */
+  .flow {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    margin: 24px 0;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 2;
+    color: var(--muted);
+    overflow-x: auto;
+  }
+  .flow-title {
+    font-family: var(--display);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 16px;
+    letter-spacing: 0.5px;
+  }
+  .flow-highlight { color: var(--green); font-weight: 600; }
+  .flow-red { color: var(--red); font-weight: 600; }
+  .flow-blue { color: var(--blue); }
+  .flow-amber { color: var(--amber); }
+  .flow-purple { color: var(--purple); }
+
+  /* ── DECISION BOX ── */
+  .decision-box {
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin: 24px 0;
+    border: 1px solid;
+  }
+  .decision-box.green { background: var(--green-dim); border-color: rgba(34,211,165,0.25); }
+  .decision-box.amber { background: var(--amber-dim); border-color: rgba(245,158,11,0.25); }
+  .decision-box.red { background: var(--red-dim); border-color: var(--red-glow); }
+  .decision-box.blue { background: var(--blue-dim); border-color: rgba(59,130,246,0.25); }
+  .decision-box-title {
+    font-family: var(--display);
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .decision-box.green .decision-box-title { color: var(--green); }
+  .decision-box.amber .decision-box-title { color: var(--amber); }
+  .decision-box.red .decision-box-title { color: var(--red); }
+  .decision-box.blue .decision-box-title { color: var(--blue); }
+  .decision-box p { font-size: 14px; color: var(--muted); line-height: 1.7; }
+
+  /* ── STEP LIST ── */
+  .step-list { display: flex; flex-direction: column; gap: 16px; margin: 24px 0; }
+  .step {
+    display: flex; gap: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    align-items: flex-start;
+    transition: border-color 0.2s;
+  }
+  .step:hover { border-color: var(--border2); }
+  .step-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--red);
+    min-width: 28px;
+    padding-top: 2px;
+  }
+  .step-content h4 {
+    font-family: var(--display);
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+  .step-content p { font-size: 13.5px; color: var(--muted); line-height: 1.6; }
+
+  /* ── TOKEN FLOW ── */
+  .token-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 28px 0;
+  }
+  .token-step {
+    display: flex;
+    gap: 0;
+    align-items: stretch;
+  }
+  .token-line {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 40px;
+    min-width: 40px;
+  }
+  .token-circle {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .token-circle.red { background: var(--red-dim); border: 1.5px solid var(--red); color: var(--red); }
+  .token-circle.blue { background: var(--blue-dim); border: 1.5px solid var(--blue); color: var(--blue); }
+  .token-circle.green { background: var(--green-dim); border: 1.5px solid var(--green); color: var(--green); }
+  .token-circle.amber { background: var(--amber-dim); border: 1.5px solid var(--amber); color: var(--amber); }
+  .token-connector {
+    width: 1.5px;
+    flex: 1;
+    min-height: 20px;
+    background: var(--border2);
+    margin: 4px 0;
+  }
+  .token-body {
+    flex: 1;
+    padding: 4px 0 24px 20px;
+  }
+  .token-body h4 {
+    font-family: var(--display);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .token-body p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .token-body .code-inline {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 7px;
+    color: var(--green);
+    margin: 0 2px;
+  }
+
+  /* ── DESIGN TOKEN GRID ── */
+  .token-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .token-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .token-swatch {
+    width: 100%; height: 36px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+  }
+  .token-name { font-family: var(--mono); font-size: 10.5px; color: var(--muted); }
+  .token-val { font-family: var(--mono); font-size: 12px; color: var(--text); font-weight: 600; margin-top: 2px; }
+
+  /* ── ARCH DIAGRAM ── */
+  .arch-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 24px 0;
+  }
+  .arch-layer {
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .arch-layer:last-child { border-bottom: none; }
+  .arch-layer-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 600;
+    min-width: 140px;
+  }
+  .arch-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .arch-chip {
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .layer-shell .arch-layer-label { color: var(--red); }
+  .layer-shell { background: var(--red-dim); }
+  .layer-shell .arch-chip { background: rgba(232,41,74,0.15); color: var(--red); border: 1px solid var(--red-glow); }
+
+  .layer-mfe .arch-layer-label { color: var(--blue); }
+  .layer-mfe { background: var(--blue-dim); }
+  .layer-mfe .arch-chip { background: rgba(59,130,246,0.15); color: var(--blue); border: 1px solid rgba(59,130,246,0.3); }
+
+  .layer-core .arch-layer-label { color: var(--green); }
+  .layer-core { background: var(--green-dim); }
+  .layer-core .arch-chip { background: rgba(34,211,165,0.12); color: var(--green); border: 1px solid rgba(34,211,165,0.3); }
+
+  .layer-cloud .arch-layer-label { color: var(--amber); }
+  .layer-cloud { background: var(--amber-dim); }
+  .layer-cloud .arch-chip { background: rgba(245,158,11,0.15); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); }
+
+  /* ── COMPARISON TABLE ── */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 24px 0;
+    font-size: 13.5px;
+  }
+  .compare-table th {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--muted);
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border2);
+  }
+  .compare-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
+    vertical-align: top;
+    line-height: 1.6;
+  }
+  .compare-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .compare-table td:first-child { color: var(--text); font-weight: 500; }
+  .compare-table .win { color: var(--green); font-weight: 600; }
+  .compare-table .neutral { color: var(--amber); }
+  .compare-table .loss { color: var(--red); }
+
+  /* ── VERDICT ── */
+  .verdict {
+    background: linear-gradient(135deg, rgba(34,211,165,0.06) 0%, rgba(59,130,246,0.06) 100%);
+    border: 1px solid rgba(34,211,165,0.2);
+    border-radius: 16px;
+    padding: 36px 40px;
+    margin: 32px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .verdict::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(34,211,165,0.1), transparent 70%);
+    pointer-events: none;
+  }
+  .verdict-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .verdict h3 {
+    font-family: var(--display);
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 14px;
+  }
+  .verdict p { font-size: 14px; color: var(--muted); line-height: 1.8; max-width: 680px; }
+
+  /* ── INLINE LABEL ── */
+  .label {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-right: 6px;
+  }
+  .label-red { background: var(--red-dim); color: var(--red); }
+  .label-blue { background: var(--blue-dim); color: var(--blue); }
+  .label-green { background: var(--green-dim); color: var(--green); }
+  .label-amber { background: var(--amber-dim); color: var(--amber); }
+
+  /* ── DIVIDER ── */
+  .divider { height: 1px; background: var(--border); margin: 36px 0; }
+
+  /* ── SUBTITLE ── */
+  h3.sub {
+    font-family: var(--display);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 32px 0 16px;
+    letter-spacing: -0.3px;
+  }
+  h3.sub .accent { color: var(--red); }
+
+  p { line-height: 1.75; color: var(--muted); margin-bottom: 12px; }
+  strong { color: var(--text); font-weight: 600; }
+
+  /* ── FOOTER ── */
+  .footer {
+    padding: 32px 64px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    background: var(--surface);
+  }
+  .footer-left { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .footer-right { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .footer-red { color: var(--red); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .section { padding: 40px 24px; }
+    .hero { padding: 48px 24px 40px; }
+    .footer { padding: 24px; }
+  }
+
+  /* ── SCROLL-IN ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .section { animation: fadeUp 0.5s ease both; }
+
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <!-- ─── SIDEBAR ─── -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-badge">
+        <div class="sidebar-logo-dot"></div>
+        <span class="sidebar-logo-label">Confidencial</span>
+      </div>
+      <div class="sidebar-title">BaaS White Label<br>Frontend Architecture</div>
+      <div class="sidebar-sub">Bradesco as a Service · 2026</div>
+    </div>
+
+    <div class="nav-section-label">Visão Geral</div>
+    <a href="#overview" class="nav-item active"><span class="nav-item-num">00</span>Contexto & Decisões</a>
+
+    <div class="nav-section-label">Arquitetura</div>
+    <a href="#stack" class="nav-item"><span class="nav-item-num">01</span>Stack & MFE</a>
+    <a href="#whitelabel" class="nav-item"><span class="nav-item-num">02</span>White Label & Design Tokens</a>
+    <a href="#auth" class="nav-item"><span class="nav-item-num">03</span>Autenticação B2B2X</a>
+    <a href="#tokens" class="nav-item"><span class="nav-item-num">04</span>Fluxo de Tokens</a>
+    <a href="#session" class="nav-item"><span class="nav-item-num">05</span>Sessão & Lifecycle</a>
+
+    <div class="nav-section-label">Deploy & Infra</div>
+    <a href="#deploy" class="nav-item"><span class="nav-item-num">06</span>Deploy dos MFEs</a>
+    <a href="#cloud" class="nav-item"><span class="nav-item-num">07</span>AWS vs Azure · Decisão</a>
+    <a href="#aarin" class="nav-item"><span class="nav-item-num">08</span>Aarin como Desenvolvedora</a>
+
+    <div class="nav-section-label">Evolução</div>
+    <a href="#novos" class="nav-item"><span class="nav-item-num">09</span>Novos Produtos Pós-Entrega</a>
+    <a href="#resumo" class="nav-item"><span class="nav-item-num">10</span>Arquitetura Completa</a>
+  </nav>
+
+  <!-- ─── MAIN ─── -->
+  <div class="main">
+
+    <!-- ── HERO ── -->
+    <div class="hero">
+      <div class="hero-eyebrow">
+        <span class="hero-tag tag-red">BaaS · Bradesco</span>
+        <span class="hero-tag tag-blue">Frontend White Label</span>
+        <span class="hero-tag tag-green">Crédito · B2B2X</span>
+      </div>
+      <h1>Arquitetura Frontend<br><em>White Label</em> de Crédito</h1>
+      <p class="hero-desc">Documento técnico completo de arquitetura para a plataforma de crédito white label do Bradesco as a Service — cobrindo stack, autenticação B2B2X, fluxo de tokens, design system, deploy de micro frontends e decisão de cloud.</p>
+      <div class="hero-meta">
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Papel</span>
+          <span class="hero-meta-val">Head de Tecnologia · BaaS</span>
+        </div>
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Unidade</span>
+          <span class="hero-meta-val">Bradesco / Aarin (intragrupo)</span>
+        </div>
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Produtos</span>
+          <span class="hero-meta-val">4 produtos de crédito</span>
+        </div>
+        <div class="hero-meta-item">
+          <span class="hero-meta-label">Versão</span>
+          <span class="hero-meta-val">1.0 · Maio 2026</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 00 OVERVIEW ── -->
+    <section class="section" id="overview">
+      <div class="section-header">
+        <span class="section-num">00</span>
+        <span class="section-title-text">Contexto & Decisões Principais</span>
+        <div class="section-bar"></div>
+      </div>
+
+      <p class="section-intro">Este documento consolida as decisões arquiteturais para a plataforma de crédito white label do BaaS, cobrindo os quatro produtos iniciais e o modelo de evolução pós-entrega. O princípio fundamental: o frontend white label é um <strong>produto de plataforma</strong>, não um projeto de UI.</p>
+
+      <div class="card-grid">
+        <div class="card red">
+          <div class="card-icon">💳</div>
+          <div class="card-title">Produtos de Crédito</div>
+          <div class="card-body">Capital de Giro, Crédito Emergencial, Mais Prazo e Antecipação de Recebíveis — cada um como um Micro Frontend independente e versionado.</div>
+        </div>
+        <div class="card blue">
+          <div class="card-icon">🏗️</div>
+          <div class="card-title">Modelo B2B2X</div>
+          <div class="card-body">Bradesco (plataforma) → Parceiro B (distribui) → Cliente X (contrata crédito). Dois pares de confiança distintos, com autenticação delegada por Token Exchange.</div>
+        </div>
+        <div class="card green">
+          <div class="card-icon">🎨</div>
+          <div class="card-title">White Label por Parceiro</div>
+          <div class="card-body">Identidade visual, logo, favicon, cores, tipografia e fluxos configuráveis por parceiro via Portal — sem rebuild de código.</div>
+        </div>
+        <div class="card amber">
+          <div class="card-icon">🔌</div>
+          <div class="card-title">Extensibilidade</div>
+          <div class="card-body">Novos produtos são adicionados como módulos remotos no Module Federation — o Shell descobre produtos via API, sem hardcode e sem redesploy.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 01 STACK ── -->
+    <section class="section" id="stack">
+      <div class="section-header">
+        <span class="section-num">01</span>
+        <span class="section-title-text">Stack Tecnológica & Arquitetura MFE</span>
+        <div class="section-bar"></div>
+      </div>
+
+      <p class="section-intro">React é a escolha correta e está alinhado com o que a Squad 4 (Experience & Ecosystem) já definiu para os Micro Frontends. A arquitetura usa Module Federation para isolamento por produto.</p>
+
+      <div class="decision-box green">
+        <div class="decision-box-title">✔ Decisão: React 18 + TypeScript</div>
+        <p>Ecossistema de theming runtime mais maduro (CSS Custom Properties + Emotion), Module Federation estabelecido, maior pool de talentos no mercado de fintechs, biblioteca de componentes acessíveis (Radix UI). Angular seria justificado apenas se o parceiro estratégico principal exigisse code-sharing com sua base Angular existente.</p>
+      </div>
+
+      <h3 class="sub">Stack Completa</h3>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-header-dots">
+            <div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div>
+          </div>
+          <span class="code-lang">stack.json</span>
+        </div>
+        <pre><span class="cm">// Camada de Build & Composição</span>
+<span class="key">"build"</span>:    <span class="str">"Vite 5"</span>                   <span class="cm">// build do Shell e dos MFEs individuais</span>
+<span class="key">"mfe"</span>:      <span class="str">"Module Federation (Webpack 5)"</span> <span class="cm">// composição runtime dos módulos</span>
+<span class="key">"ts"</span>:       <span class="str">"TypeScript 5.4"</span>           <span class="cm">// tipagem estrita em todo o monorepo</span>
+
+<span class="cm">// Camada de UI</span>
+<span class="key">"styling"</span>:  <span class="str">"Styled Components + CSS Custom Properties"</span>  <span class="cm">// theming runtime</span>
+<span class="key">"a11y"</span>:     <span class="str">"Radix UI Primitives"</span>      <span class="cm">// componentes acessíveis sem opinião visual</span>
+<span class="key">"icons"</span>:    <span class="str">"Lucide React"</span>             <span class="cm">// consistente e tree-shakeable</span>
+
+<span class="cm">// Camada de Estado & Dados</span>
+<span class="key">"local-state"</span>:  <span class="str">"Zustand"</span>               <span class="cm">// estado local do MFE, sem vazamento entre parceiros</span>
+<span class="key">"server-state"</span>: <span class="str">"TanStack Query v5"</span>     <span class="cm">// cache, refetch, optimistic updates</span>
+<span class="key">"routing"</span>:      <span class="str">"React Router v6"</span>       <span class="cm">// navegação intra-MFE</span>
+
+<span class="cm">// Testes</span>
+<span class="key">"unit"</span>:     <span class="str">"Vitest + Testing Library"</span>
+<span class="key">"e2e"</span>:      <span class="str">"Playwright"</span>
+<span class="key">"visual"</span>:   <span class="str">"Storybook + Chromatic"</span>     <span class="cm">// regressão visual por parceiro</span></pre>
+      </div>
+
+      <h3 class="sub">Arquitetura de <span class="accent">Micro Frontends</span></h3>
+
+      <div class="arch-diagram">
+        <div class="arch-layer layer-shell">
+          <span class="arch-layer-label">🔴 Shell App (Host)</span>
+          <div class="arch-chips">
+            <span class="arch-chip">Carrega tema do parceiro</span>
+            <span class="arch-chip">Gerencia sessão / UCT</span>
+            <span class="arch-chip">Roteamento entre MFEs</span>
+            <span class="arch-chip">Injeta PartnerContext</span>
+            <span class="arch-chip">Descobre produtos via API</span>
+          </div>
+        </div>
+        <div class="arch-layer layer-mfe">
+          <span class="arch-layer-label">🔵 Módulos Remotos (MFEs)</span>
+          <div class="arch-chips">
+            <span class="arch-chip">MFE: Capital de Giro</span>
+            <span class="arch-chip">MFE: Crédito Emergencial</span>
+            <span class="arch-chip">MFE: Mais Prazo</span>
+            <span class="arch-chip">MFE: Antecipação de Recebíveis</span>
+            <span class="arch-chip">MFE: [novo produto]</span>
+          </div>
+        </div>
+        <div class="arch-layer layer-core">
+          <span class="arch-layer-label">🟢 Core Platform (S1)</span>
+          <div class="arch-chips">
+            <span class="arch-chip">OAuth2 + mTLS + IAM</span>
+            <span class="arch-chip">Partner Config API</span>
+            <span class="arch-chip">Token Exchange RFC 8693</span>
+            <span class="arch-chip">Multi-tenant</span>
+            <span class="arch-chip">Rate Limit</span>
+          </div>
+        </div>
+        <div class="arch-layer layer-cloud">
+          <span class="arch-layer-label">🟡 Infraestrutura</span>
+          <div class="arch-chips">
+            <span class="arch-chip">CloudFront (CDN dos MFEs)</span>
+            <span class="arch-chip">S3 (artefatos versionados)</span>
+            <span class="arch-chip">Azure APIM (APIs bancárias)</span>
+            <span class="arch-chip">Redis (token revocation)</span>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="sub">Contrato de Interface dos MFEs</h3>
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-header-dots">
+            <div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div>
+          </div>
+          <span class="code-lang">TypeScript · CreditProductMFE.ts</span>
+        </div>
+        <pre><span class="cm">// Contrato que TODO MFE de produto deve implementar</span>
+<span class="cm">// Garante que novos produtos se encaixem sem alterar o Shell</span>
+
+<span class="kw">interface</span> <span class="fn">CreditProductMFE</span> {
+  <span class="cm">// Metadados declarativos do produto</span>
+  <span class="key">productId</span>:    <span class="str">string</span>;
+  <span class="key">productName</span>:  <span class="str">string</span>;
+  <span class="key">version</span>:      <span class="str">string</span>;               <span class="cm">// semver</span>
+  <span class="key">capabilities</span>: <span class="str">ProductCapability[]</span>;  <span class="cm">// simulate | apply | track | renegotiate</span>
+
+  <span class="cm">// Ciclo de vida — controlado pelo Shell</span>
+  <span class="fn">mount</span>(<span class="key">container</span>: HTMLElement, <span class="key">ctx</span>: PartnerContext): <span class="kw">void</span>;
+  <span class="fn">unmount</span>(): <span class="kw">void</span>;
+
+  <span class="cm">// Reatividade a eventos da plataforma</span>
+  <span class="fn">onSessionExpired</span>(): <span class="kw">void</span>;
+  <span class="fn">onThemeChange</span>(<span class="key">theme</span>: PartnerTheme): <span class="kw">void</span>;
+  <span class="fn">onPartnerConfigUpdate</span>(<span class="key">config</span>: PartnerConfig): <span class="kw">void</span>;
+}
+
+<span class="kw">interface</span> <span class="fn">PartnerContext</span> {
+  <span class="key">partnerId</span>:     <span class="str">string</span>;
+  <span class="key">partnerTenant</span>: <span class="str">string</span>;
+  <span class="key">theme</span>:         <span class="fn">PartnerTheme</span>;
+  <span class="key">accessToken</span>:   <span class="str">string</span>;   <span class="cm">// UCT — User Context Token</span>
+  <span class="key">sessionId</span>:     <span class="str">string</span>;
+  <span class="key">correlationId</span>: <span class="str">string</span>;   <span class="cm">// rastreabilidade ponta a ponta</span>
+  <span class="key">locale</span>:        <span class="str">string</span>;   <span class="cm">// pt-BR | en-US | es-419</span>
+}</pre>
+      </div>
+    </section>
+
+    <!-- ── 02 WHITE LABEL ── -->
+    <section class="section" id="whitelabel">
+      <div class="section-header">
+        <span class="section-num">02</span>
+        <span class="section-title-text">White Label & Design Tokens</span>
+        <div class="section-bar"></div>
+      </div>
+
+      <p class="section-intro">A customização opera em três camadas com profundidades crescentes. O ponto crítico: o theming é <strong>runtime via CSS Custom Properties</strong> — o parceiro configura e vê o resultado imediatamente, sem rebuild ou redesploy.</p>
+
+      <h3 class="sub">Camada 1 — Design Tokens (Self-Service)</h3>
+      <p>Via painel no Portal do Parceiro. Disponível para qualquer parceiro. Impacto visual completo na identidade da jornada.</p>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-header-dots">
+            <div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div>
+          </div>
+          <span class="code-lang">JSON · partner-config · banco-xpto</span>
+        </div>
+        <pre>{
+  <span class="key">"partnerId"</span>: <span class="str">"banco-xpto"</span>,
+  <span class="key">"brand"</span>: {
+    <span class="cm">// Identidade visual</span>
+    <span class="key">"primaryColor"</span>:    <span class="str">"#0055A4"</span>,
+    <span class="key">"secondaryColor"</span>:  <span class="str">"#FF6600"</span>,
+    <span class="key">"surfaceColor"</span>:    <span class="str">"#F4F7FA"</span>,
+    <span class="key">"textColor"</span>:       <span class="str">"#1A1F2E"</span>,
+    <span class="key">"errorColor"</span>:      <span class="str">"#D32F2F"</span>,
+    <span class="key">"successColor"</span>:    <span class="str">"#1B8A5A"</span>,
+
+    <span class="cm">// Tipografia</span>
+    <span class="key">"fontFamily"</span>:      <span class="str">"'Nunito', sans-serif"</span>,
+    <span class="key">"fontUrl"</span>:         <span class="str">"https://fonts.googleapis.com/css2?family=Nunito"</span>,
+    <span class="key">"headingWeight"</span>:   <span class="num">700</span>,
+
+    <span class="cm">// Forma & espaço</span>
+    <span class="key">"borderRadius"</span>:    <span class="str">"12px"</span>,
+    <span class="key">"borderRadiusSm"</span>:  <span class="str">"6px"</span>,
+    <span class="key">"shadowElevation"</span>: <span class="str">"0 4px 24px rgba(0,0,0,0.08)"</span>,
+
+    <span class="cm">// Assets</span>
+    <span class="key">"logoUrl"</span>:         <span class="str">"https://cdn.parceiro.com/logo.svg"</span>,
+    <span class="key">"logoUrlDark"</span>:     <span class="str">"https://cdn.parceiro.com/logo-dark.svg"</span>,
+    <span class="key">"faviconUrl"</span>:      <span class="str">"https://cdn.parceiro.com/favicon.ico"</span>,
+    <span class="key">"appName"</span>:         <span class="str">"Crédito XPTO"</span>,
+    <span class="key">"appTagline"</span>:      <span class="str">"Seu crédito, do seu jeito"</span>
+  },
+  <span class="cm">// Quais produtos o parceiro ativou</span>
+  <span class="key">"products"</span>: [<span class="str">"capital-giro"</span>, <span class="str">"mais-prazo"</span>, <span class="str">"antecipacao-recebiveis"</span>],
+
+  <span class="cm">// Feature flags por parceiro</span>
+  <span class="key">"features"</span>: {
+    <span class="key">"showSimulator"</span>:       <span class="kw">true</span>,
+    <span class="key">"showContractPdf"</span>:     <span class="kw">true</span>,
+    <span class="key">"showInstallments"</span>:    <span class="kw">false</span>,
+    <span class="key">"allowRenegotiation"</span>:  <span class="kw">true</span>
+  }
+}</pre>
+      </div>
+
+      <h3 class="sub">Como os Tokens São Injetados (Runtime)</h3>
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-header-dots">
+            <div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div>
+          </div>
+          <span class="code-lang">TypeScript · Shell App · applyTheme.ts</span>
+        </div>
+        <pre><span class="cm">// Shell carrega tema ao inicializar — zero rebuild</span>
+<span class="kw">async function</span> <span class="fn">applyPartnerTheme</span>(<span class="key">partnerId</span>: <span class="str">string</span>) {
+  <span class="kw">const</span> config = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`/v1/partners/<span class="key">${partnerId}</span>/config`</span>);
+  <span class="kw">const</span> { brand } = <span class="kw">await</span> config.<span class="fn">json</span>();
+
+  <span class="kw">const</span> root = document.documentElement;
+
+  <span class="cm">// Injeta como CSS Custom Properties — herança automática em todos os MFEs</span>
+  root.style.<span class="fn">setProperty</span>(<span class="str">'--color-primary'</span>,    brand.primaryColor);
+  root.style.<span class="fn">setProperty</span>(<span class="str">'--color-secondary'</span>,  brand.secondaryColor);
+  root.style.<span class="fn">setProperty</span>(<span class="str">'--color-surface'</span>,    brand.surfaceColor);
+  root.style.<span class="fn">setProperty</span>(<span class="str">'--font-family'</span>,      brand.fontFamily);
+  root.style.<span class="fn">setProperty</span>(<span class="str">'--border-radius'</span>,    brand.borderRadius);
+  root.style.<span class="fn">setProperty</span>(<span class="str">'--shadow-elevation'</span>, brand.shadowElevation);
+
+  <span class="cm">// Carrega fonte do parceiro dinamicamente</span>
+  <span class="kw">if</span> (brand.fontUrl) {
+    <span class="kw">const</span> link = document.<span class="fn">createElement</span>(<span class="str">'link'</span>);
+    link.rel = <span class="str">'stylesheet'</span>;
+    link.href = brand.fontUrl;
+    document.head.<span class="fn">appendChild</span>(link);
+  }
+
+  <span class="cm">// Favicon</span>
+  document.<span class="fn">querySelector</span>(<span class="str">'link[rel="icon"]'</span>).href = brand.faviconUrl;
+  document.title = brand.appName;
+}</pre>
+      </div>
+
+      <h3 class="sub">Camada 2 — Configuração de Produtos</h3>
+      <p>Configuração de quais produtos estão ativos, limites de crédito expostos, campos obrigatórios, copy de textos legais e fluxo de formalização digital. Controlada por contrato comercial com o parceiro, editável via Portal com aprovação.</p>
+
+      <h3 class="sub">Camada 3 — Customização Enterprise (via contrato)</h3>
+      <p>Para parceiros estratégicos: troca de componentes via <strong>slot/composition pattern</strong>, steps adicionais na jornada (ex: validação de dados proprietária do parceiro), copywriting completo customizado e integração de sistemas de score do próprio parceiro.</p>
+
+      <div class="decision-box amber">
+        <div class="decision-box-title">⚠ Regra de Ouro do Design System</div>
+        <p>O Design System interno (componentes base) nunca expõe classes CSS ou DOM interno. Toda customização é via tokens. Isso garante que o Bradesco possa evoluir os componentes sem quebrar os temas dos parceiros.</p>
+      </div>
+    </section>
+
+    <!-- ── 03 AUTH ── -->
+    <section class="section" id="auth">
+      <div class="section-header">
+        <span class="section-num">03</span>
+        <span class="section-title-text">Autenticação B2B2X</span>
+        <div class="section-bar"></div>
+      </div>
+
+      <p class="section-intro">O modelo tem <strong>dois pares de confiança distintos</strong> e isso é a chave para entender toda a arquitetura de auth. O cliente X não tem relação direta com o Bradesco — ele é cliente do parceiro.</p>
+
+      <div class="card-grid">
+        <div class="card blue">
+          <div class="card-icon">🏦</div>
+          <div class="card-title">Par 1: Bradesco ↔ Parceiro (B)</div>
+          <div class="card-body">Confiança de plataforma. OAuth2 Client Credentials + mTLS. O parceiro tem certificado emitido pelo Bradesco. Token de 15 min, renovação automática. Escopo restrito ao partnerId e produtos contratados.</div>
+        </div>
+        <div class="card green">
+          <div class="card-icon">👤</div>
+          <div class="card-title">Par 2: Parceiro (B) ↔ Cliente (X)</div>
+          <div class="card-body">Confiança de produto. O parceiro é o IdP do usuário final. Pode usar biometria, senha, OpenID Connect próprio. O resultado é um token do parceiro que será trocado pelo UCT via Token Exchange.</div>
+        </div>
+      </div>
+
+      <div class="step-list">
+        <div class="step">
+          <div class="step-num">STEP 1</div>
+          <div class="step-content">
+            <h4>Parceiro autentica com a plataforma (M2M)</h4>
+            <p>Usando <strong>client_credentials + mTLS</strong>, o parceiro obtém o <strong>Partner Access Token (PAT)</strong>. TTL: 15 minutos. Escopo: produtos contratados + permissão de token exchange. Renovação automática via background refresh antes da expiração.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 2</div>
+          <div class="step-content">
+            <h4>Parceiro autentica seu cliente final (X) com os sistemas próprios</h4>
+            <p>O parceiro usa a stack de autenticação dele — pode ser biometria do app mobile, login com senha, OpenID Connect interno. O Bradesco não vê esse fluxo. O resultado é um <strong>Partner User Token</strong> que identifica o X no contexto do parceiro.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 3</div>
+          <div class="step-content">
+            <h4>Token Exchange (RFC 8693)</h4>
+            <p>O parceiro chama o endpoint de Token Exchange passando o PAT (autenticação M2M) e o Partner User Token (identidade do X). A plataforma valida o PAT, verifica se o parceiro tem permissão de exchange, e emite o <strong>User Context Token (UCT)</strong>.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 4</div>
+          <div class="step-content">
+            <h4>UCT é usado pelo Shell e pelos MFEs</h4>
+            <p>O Shell recebe o UCT e o mantém <strong>apenas em memória</strong> (nunca em localStorage). Todos os MFEs consomem o UCT via PartnerContext. O UCT identifica X dentro do tenant do parceiro B, com os escopos de crédito autorizados.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 04 TOKEN FLOW ── -->
+    <section class="section" id="tokens">
+      <div class="section-header">
+        <span class="section-num">04</span>
+        <span class="section-title-text">Fluxo Detalhado de Tokens</span>
+        <div class="section-bar"></div>
+      </div>
+
+      <p class="section-intro">Detalhamento técnico completo da emissão, conteúdo, armazenamento e revogação de cada token no ecossistema B2B2X.</p>
+
+      <h3 class="sub">Token Exchange na Prática</h3>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-header-dots">
+            <div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div>
+          </div>
+          <span class="code-lang">HTTP · POST /oauth2/token/exchange</span>
+        </div>
+        <pre><span class="cm"># Parceiro chama com PAT + Partner User Token</span>
+<span class="kw">POST</span> /oauth2/token/exchange
+<span class="key">Authorization</span>: <span class="str">Bearer {PAT}</span>           <span class="cm"># autenticação M2M do parceiro</span>
+<span class="key">Content-Type</span>: application/x-www-form-urlencoded
+
+<span class="key">grant_type</span>=<span class="str">urn:ietf:params:oauth:grant-type:token-exchange</span>
+<span class="key">&subject_token</span>=<span class="str">{partner_user_token}</span>   <span class="cm"># identidade do X no sistema do parceiro</span>
+<span class="key">&subject_token_type</span>=<span class="str">urn:ietf:params:oauth:token-type:access_token</span>
+<span class="key">&requested_token_type</span>=<span class="str">urn:ietf:params:oauth:token-type:access_token</span>
+<span class="key">&scope</span>=<span class="str">credit:read credit:apply credit:simulate</span>
+
+<span class="cm">─────────── RESPOSTA ───────────</span>
+<span class="num">200 OK</span>
+{
+  <span class="key">"access_token"</span>:  <span class="str">"{UCT}"</span>,          <span class="cm"># User Context Token — vai pro Shell</span>
+  <span class="key">"token_type"</span>:    <span class="str">"Bearer"</span>,
+  <span class="key">"expires_in"</span>:    <span class="num">900</span>,              <span class="cm"># 15 minutos</span>
+  <span class="key">"refresh_token"</span>: <span class="str">"{RT}"</span>,           <span class="cm"># HttpOnly Cookie, nunca no body</span>
+  <span class="key">"scope"</span>:         <span class="str">"credit:read credit:apply credit:simulate"</span>
+}</pre>
+      </div>
+
+      <h3 class="sub">Anatomia do UCT (JWT Claims)</h3>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-header-dots">
+            <div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div>
+          </div>
+          <span class="code-lang">JWT · User Context Token · payload</span>
+        </div>
+        <pre>{
+  <span class="cm">// Claims padrão</span>
+  <span class="key">"iss"</span>:           <span class="str">"https://auth.baas.bradesco.com.br"</span>,
+  <span class="key">"aud"</span>:           <span class="str">"credit-api.baas.bradesco.com.br"</span>,
+  <span class="key">"exp"</span>:           <span class="num">1748300000</span>,          <span class="cm"># expiração unix timestamp</span>
+  <span class="key">"jti"</span>:           <span class="str">"f3a1b2c4-..."</span>,      <span class="cm"># ID único — usado para revogação</span>
+
+  <span class="cm">// Identidade delegada</span>
+  <span class="key">"sub"</span>:           <span class="str">"usr_h8x3k2p9"</span>,     <span class="cm"># ID interno anonimizado do X</span>
+  <span class="key">"partner_id"</span>:    <span class="str">"banco-xpto"</span>,
+  <span class="key">"partner_tenant"</span>:<span class="str">"tenant-xpto-prod"</span>, <span class="cm"># isolamento multi-tenant</span>
+  <span class="key">"exchange_chain"</span>:<span class="str">"pat_7f3c..."</span>,     <span class="cm"># rastreabilidade da delegação</span>
+
+  <span class="cm">// Autorização</span>
+  <span class="key">"scope"</span>:         <span class="str">"credit:read credit:apply credit:simulate"</span>,
+  <span class="key">"products"</span>:      [<span class="str">"capital-giro"</span>, <span class="str">"mais-prazo"</span>],
+
+  <span class="cm">// Contexto de risco</span>
+  <span class="key">"session_id"</span>:    <span class="str">"sess_4d2e..."</span>,
+  <span class="key">"correlation_id"</span>:<span class="str">"req_9a1c..."</span>,
+  <span class="key">"device_hint"</span>:   <span class="str">"mobile_app"</span>
+}</pre>
+      </div>
+
+      <h3 class="sub">Estratégia de Storage por Token</h3>
+
+      <table class="compare-table" style="margin-top:16px">
+        <thead>
+          <tr>
+            <th>Token</th>
+            <th>Storage</th>
+            <th>Justificativa</th>
+            <th>TTL</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>UCT (User Context Token)</td>
+            <td class="win">Memória JS apenas</td>
+            <td>XSS não consegue exfiltrar — não persiste entre tabs</td>
+            <td>15 min</td>
+          </tr>
+          <tr>
+            <td>Refresh Token</td>
+            <td class="win">HttpOnly Cookie</td>
+            <td>SameSite=Strict + Secure + Path=/auth — inacessível ao JS</td>
+            <td>8h</td>
+          </tr>
+          <tr>
+            <td>PAT (Partner Access Token)</td>
+            <td class="win">Backend do parceiro</td>
+            <td>Nunca chega ao frontend — gerenciado server-side pelo parceiro</td>
+            <td>15 min</td>
+          </tr>
+          <tr>
+            <td>PKCE code_verifier</td>
+            <td class="neutral">sessionStorage</td>
+            <td>Válido apenas durante o fluxo de auth, descartado após</td>
+            <td>Transient</td>
+          </tr>
+          <tr>
+            <td>localStorage / cookies não-HttpOnly</td>
+            <td class="loss">PROIBIDO</td>
+            <td>Vulnerável a XSS — violação de política de segurança</td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 class="sub">Revogação de Tokens</h3>
+
+      <div class="flow">
+        <div class="flow-title">Cenários de Revogação</div>
+        <span class="flow-red">Logout voluntário do X</span><br>
+        &nbsp;&nbsp;└─ Shell chama <span class="flow-highlight">DELETE /v1/sessions/{session_id}</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─ Core Platform: jti → Redis blacklist (TTL = exp do UCT)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─ Cookie de Refresh Token invalidado com Max-Age=0<br><br>
+        <span class="flow-red">Fraude detectada pelo motor de risco</span><br>
+        &nbsp;&nbsp;└─ Evento Kafka: <span class="flow-highlight">user.session.revoke</span> com { partner_id, sub, jti }<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─ Auth service processa em &lt;200ms → jti no blacklist Redis<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─ Shell recebe evento via SSE → <span class="flow-amber">session:revoked</span> → desmonta MFEs<br><br>
+        <span class="flow-red">Parceiro revoga acesso de usuário (ex: cliente encerrou conta)</span><br>
+        &nbsp;&nbsp;└─ Parceiro chama <span class="flow-highlight">POST /v1/partners/{id}/users/{sub}/revoke</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─ Revogação imediata — todos os UCTs ativos daquele sub invalidados
+      </div>
+    </section>
+
+    <!-- ── 05 SESSION ── -->
+    <section class="section" id="session">
+      <div class="section-header">
+        <span class="section-num">05</span>
+        <span class="section-title-text">Controle de Sessão & Lifecycle</span>
+        <div class="section-bar"></div>
+      </div>
+
+      <p class="section-intro">O Shell é o único responsável pelo ciclo de vida da sessão. Os MFEs são stateless em relação à autenticação — recebem o UCT via contexto e reagem a eventos de sessão.</p>
+
+      <div class="flow">
+        <div class="flow-title">Fluxo de Sessão Completo</div>
+<span class="flow-highlight">Usuário acessa o MFE via parceiro</span>
+  └─ Shell verifica UCT em memória
+       ├─ <span class="flow-highlight">Válido</span> → injeta no PartnerContext → MFE renderiza
+       │
+       ├─ <span class="flow-amber">Expirado</span> → Silent Refresh
+       │    └─ fetch POST /oauth2/token com Refresh Token Cookie (HttpOnly)
+       │         ├─ <span class="flow-highlight">Sucesso</span> → novo UCT em memória → continua
+       │         └─ <span class="flow-red">Falha</span> → dispara evento session:refresh-failed
+       │              └─ Shell chama parceiro via postMessage("auth:required")
+       │                   └─ Parceiro reautentica X e repassa novo UCT
+       │
+       └─ <span class="flow-red">Ausente</span> → redireciona para fluxo de auth do parceiro
+      </div>
+
+      <h3 class="sub">Timeout de Inatividade</h3>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-header-dots">
+            <div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div>
+          </div>
+          <span class="code-lang">TypeScript · Shell · inactivity-monitor.ts</span>
+        </div>
+        <pre><span class="cm">// Timeout configurável por parceiro via PartnerConfig</span>
+<span class="kw">const</span> INACTIVITY_TIMEOUT = partnerConfig.sessionTimeoutMs ?? <span class="num">600_000</span>; <span class="cm">// 10min default</span>
+<span class="kw">const</span> WARN_BEFORE_MS = <span class="num">120_000</span>; <span class="cm">// avisa 2min antes</span>
+
+<span class="kw">let</span> timer: ReturnType&lt;<span class="kw">typeof</span> setTimeout&gt;;
+
+<span class="kw">function</span> <span class="fn">resetTimer</span>() {
+  <span class="fn">clearTimeout</span>(timer);
+  timer = <span class="fn">setTimeout</span>(() => <span class="fn">showExpiryWarning</span>(), INACTIVITY_TIMEOUT - WARN_BEFORE_MS);
+}
+
+<span class="cm">// Monitora eventos de atividade do usuário</span>
+[<span class="str">'mousemove'</span>, <span class="str">'keydown'</span>, <span class="str">'click'</span>, <span class="str">'touchstart'</span>, <span class="str">'scroll'</span>]
+  .<span class="fn">forEach</span>(evt => window.<span class="fn">addEventListener</span>(evt, resetTimer, { passive: <span class="kw">true</span> }));
+
+<span class="kw">function</span> <span class="fn">showExpiryWarning</span>() {
+  <span class="cm">// Emite evento para o MFE ativo mostrar modal de aviso</span>
+  window.<span class="fn">dispatchEvent</span>(<span class="kw">new</span> <span class="fn">CustomEvent</span>(<span class="str">'session:expiry-warning'</span>, {
+    detail: { expiresInMs: WARN_BEFORE_MS }
+  }));
+
+  <span class="cm">// Se usuário não interagir, encerra sessão</span>
+  <span class="fn">setTimeout</span>(() => <span class="fn">terminateSession</span>(<span class="str">'inactivity'</span>), WARN_BEFORE_MS);
+}</pre>
+      </div>
+
+      <h3 class="sub">Comunicação com o Parceiro via postMessage</h3>
+      <p>Quando o Shell é embutido em iframe pelo parceiro, a comunicação de eventos de sessão usa <strong>postMessage com origin validation</strong>:</p>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-header-dots">
+            <div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div>
+          </div>
+          <span class="code-lang">TypeScript · eventos Shell → Parceiro</span>
+        </div>
+        <pre><span class="cm">// Shell → Parceiro (postMessage com origin validado)</span>
+<span class="kw">type</span> ShellToPartnerEvent =
+  | { <span class="key">type</span>: <span class="str">'auth:required'</span> }               <span class="cm">// precisa reautenticar</span>
+  | { <span class="key">type</span>: <span class="str">'session:expired'</span> }              <span class="cm">// sessão expirou</span>
+  | { <span class="key">type</span>: <span class="str">'session:expiry-warning'</span>; <span class="key">expiresInMs</span>: <span class="kw">number</span> }
+  | { <span class="key">type</span>: <span class="str">'credit:applied'</span>; <span class="key">proposalId</span>: <span class="str">string</span> }  <span class="cm">// negócio concluído</span>
+  | { <span class="key">type</span>: <span class="str">'credit:error'</span>; <span class="key">code</span>: <span class="str">string</span> }
+
+<span class="cm">// Parceiro → Shell (para injetar novo token após reauth)</span>
+<span class="kw">type</span> PartnerToShellEvent =
+  | { <span class="key">type</span>: <span class="str">'auth:token-refreshed'</span>; <span class="key">uct</span>: <span class="str">string</span> }
+  | { <span class="key">type</span>: <span class="str">'config:update'</span>; <span class="key">config</span>: PartnerConfig }</pre>
+      </div>
+    </section>
+
+    <!-- ── 06 DEPLOY MFE ── -->
+    <section class="section" id="deploy">
+      <div class="section-header">
+        <span class="section-num">06</span>
+        <span class="section-title-text">Modelo de Deploy dos MFEs</span>
+        <div class="section-bar"></div>
+      </div>
+
+      <p class="section-intro">Cada MFE é um artefato independente com seu próprio ciclo de release. O Shell consome os MFEs em runtime via Module Federation — um MFE pode ser atualizado sem qualquer alteração ou redesploy do Shell.</p>
+
+      <h3 class="sub">Estrutura de Versionamento</h3>
+
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-header-dots">
+            <div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div>
+          </div>
+          <span class="code-lang">CDN · URLs dos MFEs remotos</span>
+        </div>
+        <pre><span class="cm"># Cada MFE tem URL versionada no CDN (CloudFront + S3)</span>
+https://mfe.baas.bradesco.com.br/capital-giro/<span class="num">2.4.1</span>/remoteEntry.js
+https://mfe.baas.bradesco.com.br/mais-prazo/<span class="num">1.9.0</span>/remoteEntry.js
+https://mfe.baas.bradesco.com.br/antecipacao/<span class="num">3.1.2</span>/remoteEntry.js
+https://mfe.baas.bradesco.com.br/credito-emergencial/<span class="num">1.2.0</span>/remoteEntry.js
+
+<span class="cm"># Alias "latest" (controlado pelo Shell registry — nunca apontado diretamente)</span>
+https://mfe.baas.bradesco.com.br/capital-giro/latest/remoteEntry.js
+
+<span class="cm"># O Shell lê as versões ativas via API — não hardcoda URLs</span>
+GET /v1/mfe/registry
+→ {
+    "capital-giro":          "2.4.1",
+    "mais-prazo":            "1.9.0",
+    "antecipacao-recebiveis":"3.1.2",
+    "credito-emergencial":   "1.2.0"
+  }</pre>
+      </div>
+
+      <h3 class="sub">Pipeline de CI/CD por MFE</h3>
+
+      <div class="step-list">
+        <div class="step">
+          <div class="step-num">CI/1</div>
+          <div class="step-content">
+            <h4>Build & Testes Automatizados</h4>
+            <p><code>vitest</code> (unitários) + <code>playwright</code> (e2e no sandbox) + <code>chromatic</code> (regressão visual). Qualquer falha bloqueia o pipeline. Coverage mínimo: 80% nas jornadas críticas.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">CI/2</div>
+          <div class="step-content">
+            <h4>SAST & Dependências</h4>
+            <p>Snyk para vulnerabilidades de dependências + SonarQube para análise estática de segurança. Violações críticas bloqueiam o pipeline — não podem ser suprimidas sem aprovação do Chapter de Segurança Bradesco.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">CD/1</div>
+          <div class="step-content">
+            <h4>Deploy em Staging</h4>
+            <p>Artefato publicado em S3 com prefixo de versão. CloudFront aponta para staging. Smoke tests automatizados executam com parceiro de teste. Revisão manual de UX pelo PM da Squad 4.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">CD/2</div>
+          <div class="step-content">
+            <h4>Canary Release em Produção</h4>
+            <p>Nova versão liberada para 5% do tráfego via CloudFront weighted routing. Monitoramento de error rate, LCP e CLS por 30 minutos. Se métricas OK → progressão para 100%. Se anomalia → rollback automático em &lt;2 minutos.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">CD/3</div>
+          <div class="step-content">
+            <h4>Atualização do MFE Registry</h4>
+            <p>Após 100% do tráfego na nova versão, a API de registry é atualizada. Novos loads do Shell já recebem a nova versão. Versões anteriores permanecem no S3 por 90 dias para rollback manual.</p>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="sub">Webpack Module Federation Config (Shell)</h3>
+      <div class="code-wrap">
+        <div class="code-header">
+          <div class="code-header-dots">
+            <div class="code-dot r"></div><div class="code-dot y"></div><div class="code-dot g"></div>
+          </div>
+          <span class="code-lang">webpack.config.js · Shell Host</span>
+        </div>
+        <pre><span class="kw">const</span> { registry } = <span class="kw">await</span> <span class="fn">fetchMFERegistry</span>(); <span class="cm">// carrega versões ativas</span>
+
+<span class="kw">new</span> <span class="fn">ModuleFederationPlugin</span>({
+  <span class="key">name</span>: <span class="str">'shell'</span>,
+  <span class="key">remotes</span>: {
+    <span class="key">capitalGiro</span>: <span class="str">`capitalGiro@https://mfe.baas.bradesco.com.br/capital-giro/<span class="fn">${registry['capital-giro']}</span>/remoteEntry.js`</span>,
+    <span class="key">maisPrazo</span>:   <span class="str">`maisPrazo@https://mfe.baas.bradesco.com.br/mais-prazo/<span class="fn">${registry['mais-prazo']}</span>/remoteEntry.js`</span>,
+    <span class="cm">// ... outros MFEs</span>
+  },
+  <span class="key">shared</span>: {
+    <span class="key">react</span>:      { <span class="key">singleton</span>: <span class="kw">true</span>, <span class="key">requiredVersion</span>: <span class="str">'^18.0.0'</span> },
+    <span class="key">'react-dom'</span>: { <span class="key">singleton</span>: <span class="kw">true</span>, <span class="key">requiredVersion</span>: <span class="str">'^18.0.0'</span> },
+    <span class="cm">// Design tokens compartilhados — garantem consistência visual</span>
+    <span class="key">'@baas/design-tokens'</span>: { <span class="key">singleton</span>: <span class="kw">true</span> },
+    <span class="key">'@baas/partner-context'</span>: { <span class="key">singleton</span>: <span class="kw">true</span> }
+  }
+})</pre>
+      </div>
+    </section>
+
+    <!-- ── 07 CLOUD ── -->
+    <section class="section" id="cloud">
+      <div class="section-header">
+        <span class="section-num">07</span>
+        <span class="section-title-text">AWS vs Azure — Decisão de Cloud</span>
+        <div class="section-bar"></div>
+      </div>
+
+      <p class="section-intro">Esta é uma decisão estratégica com impacto de longo prazo. A resposta não é "qual cloud é melhor" — é "onde cada camada deve rodar considerando governança, compliance bancário e custo operacional".</p>
+
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Dimensão</th>
+            <th>Camada de Frontend (MFEs / Shell)</th>
+            <th>Camada de APIs (Core Platform / BaaS)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Cloud Natural</td>
+            <td class="win">AWS (Aarin já usa)</td>
+            <td class="win">Azure (Bradesco já usa)</td>
+          </tr>
+          <tr>
+            <td>Serviços-chave</td>
+            <td>S3 + CloudFront + Route 53</td>
+            <td>Azure APIM + AKS + Azure AD B2C</td>
+          </tr>
+          <tr>
+            <td>Dados de clientes</td>
+            <td class="neutral">Não trafega dados sensíveis no CDN</td>
+            <td class="win">Azure — dentro do perímetro regulatório Bradesco</td>
+          </tr>
+          <tr>
+            <td>Compliance Bacen</td>
+            <td class="neutral">Aplica-se parcialmente (artefatos estáticos)</td>
+            <td class="win">Azure — auditoria e controles já mapeados</td>
+          </tr>
+          <tr>
+            <td>Latência</td>
+            <td class="win">AWS CloudFront (melhor CDN global)</td>
+            <td class="neutral">Azure — latência API não é gargalo vs CDN</td>
+          </tr>
+          <tr>
+            <td>Custo operacional</td>
+            <td class="win">Baixo — artefatos estáticos são baratos</td>
+            <td class="neutral">Azure — já pago como parte do contrato Bradesco</td>
+          </tr>
+          <tr>
+            <td>Time operando hoje</td>
+            <td class="win">Aarin tem proficiência em AWS</td>
+            <td class="win">Bradesco TI tem proficiência em Azure</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="verdict">
+        <div class="verdict-label">✦ Decisão Recomendada</div>
+        <h3>Arquitetura Híbrida: AWS para Frontend, Azure para APIs</h3>
+        <p>O frontend (Shell App + MFEs) roda em <strong>AWS CloudFront + S3</strong> — Aarin tem proficiência, custo baixo e melhor CDN do mercado para artefatos estáticos. As APIs do Core Platform, LaaS e CaaS ficam na <strong>Azure</strong>, dentro do perímetro regulatório e de compliance do Bradesco. A comunicação é via HTTPS puro — não há acoplamento de infraestrutura. Esta separação também garante que dados de clientes nunca passem pela AWS.</p>
+      </div>
+
+      <div class="decision-box red">
+        <div class="decision-box-title">⚠ Regra Inegociável: Dados de Clientes Ficam no Azure</div>
+        <p>O CloudFront/S3 serve apenas <strong>artefatos estáticos</strong> (JS, CSS, imagens dos MFEs). Nenhum dado de cliente X trafega ou é armazenado na AWS. As chamadas de API dos MFEs vão diretamente para os endpoints no Azure via HTTPS. Esta separação deve ser auditada pela área de Segurança e Compliance do Bradesco antes do go-live.</p>
+      </div>
+
+      <h3 class="sub">Mapa de Serviços por Cloud</h3>
+
+      <div class="arch-diagram">
+        <div class="arch-layer layer-shell">
+          <span class="arch-layer-label">🟠 AWS (Aarin)</span>
+          <div class="arch-chips">
+            <span class="arch-chip">S3 — artefatos MFE versionados</span>
+            <span class="arch-chip">CloudFront — CDN global</span>
+            <span class="arch-chip">Route 53 — DNS</span>
+            <span class="arch-chip">WAF — proteção da camada de CDN</span>
+            <span class="arch-chip">CodePipeline — CI/CD dos MFEs</span>
+          </div>
+        </div>
+        <div class="arch-layer layer-core">
+          <span class="arch-layer-label">🔵 Azure (Bradesco)</span>
+          <div class="arch-chips">
+            <span class="arch-chip">Azure APIM — API Gateway</span>
+            <span class="arch-chip">AKS — microsserviços</span>
+            <span class="arch-chip">Azure AD B2C — IAM / OAuth2</span>
+            <span class="arch-chip">Azure Redis — token blacklist</span>
+            <span class="arch-chip">Azure Event Hub — Kafka</span>
+            <span class="arch-chip">Azure Monitor — observabilidade</span>
+          </div>
+        </div>
+        <div class="arch-layer layer-mfe">
+          <span class="arch-layer-label">🟢 Fronteira Segura</span>
+          <div class="arch-chips">
+            <span class="arch-chip">HTTPS apenas</span>
+            <span class="arch-chip">CORS restrito a domínios parceiros whitelist</span>
+            <span class="arch-chip">Zero dados de cliente na AWS</span>
+            <span class="arch-chip">CSP Headers nos artefatos</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 08 AARIN ── -->
+    <section class="section" id="aarin">
+      <div class="section-header">
+        <span class="section-num">08</span>
+        <span class="section-title-text">Aarin como Desenvolvedora Intragrupo</span>
+        <div class="section-bar"></div>
+      </div>
+
+      <p class="section-intro">Desenvolver na Aarin é tecnicamente correto — ela já tem DX Score de 78/100 e maturidade em produtos digitais. Mas exige governança clara para evitar que "intragrupo" vire "sem cobrança".</p>
+
+      <div class="card-grid">
+        <div class="card green">
+          <div class="card-icon">✅</div>
+          <div class="card-title">Vantagens da Aarin</div>
+          <div class="card-body">Maturidade em desenvolvimento de produto digital, AWS já operacional, processos ágeis, contratação de perfis tech sem as travas do RH bancário, DX Score superior ao Bradesco hoje.</div>
+        </div>
+        <div class="card red">
+          <div class="card-icon">⚠️</div>
+          <div class="card-title">Riscos a Gerenciar</div>
+          <div class="card-body">Tratamento como fornecedor cativo sem SLAs reais, dados de clientes saindo do perímetro regulatório do Bradesco, padrões de segurança distintos, PI (Propriedade Intelectual) mal definida.</div>
+        </div>
+      </div>
+
+      <h3 class="sub">Modelo de Governança Recomendado</h3>
+
+      <div class="step-list">
+        <div class="step">
+          <div class="step-num">GOV 1</div>
+          <div class="step-content">
+            <h4>SLA Intragrupo Formal com Penalidades Reais</h4>
+            <p>Uptime: 99.9% para o Shell, 99.5% para MFEs individuais. Tempo de deploy de novo MFE: máx. 5 dias úteis da aprovação. Incidentes P1: resposta em 15 minutos, resolução em 2h. Sem penalidade real, o SLA é decorativo.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">GOV 2</div>
+          <div class="step-content">
+            <h4>Pentest e Segurança pela Área Bradesco</h4>
+            <p>SAST/DAST no pipeline da Aarin, mas revisão de pentest e threat modeling pela área de Cibersegurança do Bradesco — não pela Aarin. O desenvolvimento é intragrupo, o perímetro de risco é do banco.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">GOV 3</div>
+          <div class="step-content">
+            <h4>Propriedade Intelectual 100% Bradesco</h4>
+            <p>Todo código produzido, Design System, contratos de API e design tokens pertencem ao Bradesco. A Aarin opera como fábrica de software do grupo, não como detentora do produto. Contrato intragrupo deve ser explícito nisso.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">GOV 4</div>
+          <div class="step-content">
+            <h4>Dados de Clientes: Zero na Aarin</h4>
+            <p>Ambiente de desenvolvimento da Aarin usa dados sintéticos (faker + gerador de CPF de teste). Nenhum ambiente Aarin (dev, staging) toca dados reais de clientes X. Produção roda em infraestrutura do perímetro Bradesco.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 09 NOVOS PRODUTOS ── -->
+    <section class="section" id="novos">
+      <div class="section-header">
+        <span class="section-num">09</span>
+        <span class="section-title-text">Adição de Novos Produtos Pós-Entrega</span>
+        <div class="section-bar"></div>
+      </div>
+
+      <p class="section-intro">Este é o teste definitivo de uma boa arquitetura de plataforma: o custo marginal de adicionar o 5º produto deve ser dramaticamente menor que o do 1º. Com Module Federation + MFE Registry, isso é garantido por design.</p>
+
+      <h3 class="sub">O Que Muda (e o Que Não Muda)</h3>
+
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Componente</th>
+            <th>Novo Produto Requer Alteração?</th>
+            <th>Detalhe</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Shell App</td>
+            <td class="win">Não — zero alteração</td>
+            <td>Descobre produtos via API registry dinamicamente</td>
+          </tr>
+          <tr>
+            <td>MFEs existentes</td>
+            <td class="win">Não — isolados por design</td>
+            <td>Module Federation garante isolamento total</td>
+          </tr>
+          <tr>
+            <td>Design Tokens / Tema</td>
+            <td class="win">Não — herança automática</td>
+            <td>CSS Custom Properties do :root se propagam</td>
+          </tr>
+          <tr>
+            <td>Sistema de Auth</td>
+            <td class="neutral">Só adicionar scope</td>
+            <td>Novo scope "credit:rural:apply" no Authorization Server</td>
+          </tr>
+          <tr>
+            <td>Partner Config API</td>
+            <td class="neutral">Novo produto no catálogo</td>
+            <td>Parceiros ativam via Portal — self-service</td>
+          </tr>
+          <tr>
+            <td>MFE Registry API</td>
+            <td class="neutral">Nova entrada na tabela</td>
+            <td>"credito-rural": "1.0.0" — deploy do artefato no S3</td>
+          </tr>
+          <tr>
+            <td>Novo MFE</td>
+            <td class="loss">Sim — deve ser desenvolvido</td>
+            <td>Implementa interface CreditProductMFE, testes, pipeline</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="decision-box blue">
+        <div class="decision-box-title">📐 Tempo Estimado para Novo Produto</div>
+        <p><strong>MFE simples (jornada linear):</strong> 6–10 semanas da Squad 4 (1 tech lead + 2 devs + 1 QA). <strong>MFE complexo (múltiplos fluxos + integração nova):</strong> 12–16 semanas incluindo Squad LaaS/CaaS para a API. O Shell e os demais MFEs não entram no cálculo — ficam no ar e inalterados durante o desenvolvimento do novo produto.</p>
+      </div>
+    </section>
+
+    <!-- ── 10 RESUMO ── -->
+    <section class="section" id="resumo">
+      <div class="section-header">
+        <span class="section-num">10</span>
+        <span class="section-title-text">Arquitetura Completa — Visão Integrada</span>
+        <div class="section-bar"></div>
+      </div>
+
+      <div class="arch-diagram">
+        <div class="arch-layer" style="background:rgba(232,41,74,0.05); border-bottom:1px solid var(--border);">
+          <span class="arch-layer-label" style="color:var(--muted); min-width:160px;">👤 Parceiro (B)</span>
+          <div class="arch-chips">
+            <span class="arch-chip" style="background:rgba(255,255,255,0.04); color:var(--muted); border:1px solid var(--border);">App/Portal próprio do parceiro</span>
+            <span class="arch-chip" style="background:rgba(255,255,255,0.04); color:var(--muted); border:1px solid var(--border);">Autentica cliente X</span>
+            <span class="arch-chip" style="background:rgba(255,255,255,0.04); color:var(--muted); border:1px solid var(--border);">Chama Token Exchange</span>
+            <span class="arch-chip" style="background:rgba(255,255,255,0.04); color:var(--muted); border:1px solid var(--border);">Recebe UCT → passa para Shell</span>
+          </div>
+        </div>
+        <div class="arch-layer layer-shell">
+          <span class="arch-layer-label">🔴 Shell App · AWS CloudFront</span>
+          <div class="arch-chips">
+            <span class="arch-chip">Tema runtime do parceiro</span>
+            <span class="arch-chip">Sessão / UCT em memória</span>
+            <span class="arch-chip">MFE Registry API</span>
+            <span class="arch-chip">Timeout de inatividade</span>
+            <span class="arch-chip">postMessage com parceiro</span>
+          </div>
+        </div>
+        <div class="arch-layer layer-mfe">
+          <span class="arch-layer-label">🔵 MFEs · AWS S3 + CloudFront</span>
+          <div class="arch-chips">
+            <span class="arch-chip">Capital de Giro v2.4</span>
+            <span class="arch-chip">Crédito Emergencial v1.2</span>
+            <span class="arch-chip">Mais Prazo v1.9</span>
+            <span class="arch-chip">Antecipação Recebíveis v3.1</span>
+            <span class="arch-chip">[+novos produtos]</span>
+          </div>
+        </div>
+        <div class="arch-layer layer-core">
+          <span class="arch-layer-label">🟢 Core Platform · Azure AKS</span>
+          <div class="arch-chips">
+            <span class="arch-chip">OAuth2 + mTLS + Token Exchange</span>
+            <span class="arch-chip">Partner Config API</span>
+            <span class="arch-chip">Redis — token blacklist</span>
+            <span class="arch-chip">Multi-tenant IAM</span>
+            <span class="arch-chip">Rate Limit por parceiro</span>
+            <span class="arch-chip">Kafka — eventos</span>
+          </div>
+        </div>
+        <div class="arch-layer layer-cloud">
+          <span class="arch-layer-label">🟡 Produtos · Azure AKS</span>
+          <div class="arch-chips">
+            <span class="arch-chip">LaaS — Crédito Estruturado (S2)</span>
+            <span class="arch-chip">CaaS — Crédito Composable (S3)</span>
+            <span class="arch-chip">Motor de Score</span>
+            <span class="arch-chip">Formalização Digital</span>
+            <span class="arch-chip">BACEN / LGPD Compliance</span>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="sub">Princípios que Guiam Todas as Decisões</h3>
+
+      <div class="card-grid">
+        <div class="card red">
+          <div class="card-icon">🔒</div>
+          <div class="card-title">Security by Design</div>
+          <div class="card-body">UCT apenas em memória. Refresh Token em HttpOnly Cookie. Zero dados de clientes na AWS. Revogação em tempo real via Redis. Pentest pela área de Cibersegurança Bradesco.</div>
+        </div>
+        <div class="card blue">
+          <div class="card-icon">🧩</div>
+          <div class="card-title">Modularidade Real</div>
+          <div class="card-body">MFEs independentes com contrato tipado. Shell descobre produtos via API. Novos produtos sem redesploy do Shell. Versões anteriores mantidas por 90 dias para rollback.</div>
+        </div>
+        <div class="card green">
+          <div class="card-icon">🎨</div>
+          <div class="card-title">Theming Runtime</div>
+          <div class="card-body">CSS Custom Properties propagados via Shell. Nenhum rebuild para trocar identidade de parceiro. Design Tokens como API — não como código.</div>
+        </div>
+        <div class="card amber">
+          <div class="card-icon">📏</div>
+          <div class="card-title">Contratos Explícitos</div>
+          <div class="card-body">Interface CreditProductMFE obrigatória. API-first entre squads. Versioning semântico nos MFEs. Breaking changes com 90 dias de aviso e migration guide.</div>
+        </div>
+        <div class="card purple">
+          <div class="card-icon">☁️</div>
+          <div class="card-title">Híbrido com Propósito</div>
+          <div class="card-body">AWS para o frontend estático (Aarin, custo baixo, melhor CDN). Azure para APIs e dados (Bradesco, compliance, perímetro regulatório). Não por ideologia, por adequação.</div>
+        </div>
+        <div class="card red">
+          <div class="card-icon">🏭</div>
+          <div class="card-title">Plataforma, não Projeto</div>
+          <div class="card-body">O frontend white label tem OKRs, NPS de parceiros, roadmap próprio e PM dedicado. Não é entregável com prazo de encerramento — é produto contínuo.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── FOOTER ── -->
+    <div class="footer">
+      <div class="footer-left">
+        <span class="footer-red">Bradesco as a Service</span> · Arquitetura Frontend White Label · v1.0 · Mai 2026
+      </div>
+      <div class="footer-right">
+        Head de Tecnologia · BaaS · <span style="color:var(--green)">CONFIDENCIAL · Uso Interno</span>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /wrapper -->
+
+<script>
+  // Highlight nav on scroll
+  const sections = document.querySelectorAll('.section, .hero');
+  const navItems = document.querySelectorAll('.nav-item');
+
+  const ids = ['overview','stack','whitelabel','auth','tokens','session','deploy','cloud','aarin','novos','resumo'];
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navItems.forEach(item => {
+          item.classList.toggle('active', item.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { threshold: 0.2, rootMargin: '-80px 0px -80px 0px' });
+
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) observer.observe(el);
+  });
+</script>
+
+</body>
+</html>

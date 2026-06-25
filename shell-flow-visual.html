@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shell — Fluxo de Inicialização</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --bg: #07090f;
+  --surface: #0f1219;
+  --surface2: #161b26;
+  --border: rgba(255,255,255,0.07);
+  --text: #e8eaf2;
+  --muted: #5a6378;
+  --dim: #2a3044;
+
+  --red:    #e8294a;
+  --blue:   #4d9ef7;
+  --green:  #1fd6a0;
+  --amber:  #f5a623;
+  --purple: #b07ef7;
+  --teal:   #2dd4bf;
+
+  --red-g:    rgba(232,41,74,0.15);
+  --blue-g:   rgba(77,158,247,0.15);
+  --green-g:  rgba(31,214,160,0.12);
+  --amber-g:  rgba(245,166,35,0.12);
+  --purple-g: rgba(176,126,247,0.12);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* noise */
+body::after {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:999;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity:.5;
+}
+
+/* ── HEADER ── */
+.header {
+  padding: 40px 60px 0;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  flex-wrap: wrap; gap: 20px;
+}
+.header-left {}
+.badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--red-g); border: 1px solid rgba(232,41,74,0.3);
+  border-radius: 20px; padding: 5px 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--red); font-weight: 500;
+  margin-bottom: 14px;
+}
+.badge-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--red); box-shadow: 0 0 6px var(--red);
+  animation: blink 2s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1}50%{opacity:.3} }
+
+h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(26px,4vw,44px);
+  font-weight: 800; letter-spacing: -1.5px;
+  line-height: 1.05;
+}
+h1 span { color: var(--red); }
+.subtitle {
+  font-size: 14px; color: var(--muted);
+  margin-top: 10px; line-height: 1.6;
+  max-width: 480px;
+}
+
+/* controls */
+.controls {
+  display: flex; gap: 10px; align-items: center;
+  padding-top: 8px;
+}
+.btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 20px; border-radius: 8px; border: none;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 600;
+  transition: all .2s;
+}
+.btn-primary {
+  background: var(--red); color: #fff;
+}
+.btn-primary:hover { background: #c81f3e; transform:translateY(-1px); }
+.btn-ghost {
+  background: var(--surface2); color: var(--muted);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover { color: var(--text); border-color: var(--dim); }
+
+/* speed */
+.speed-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: var(--muted);
+  letter-spacing: 1px; text-transform: uppercase;
+}
+select.speed-select {
+  background: var(--surface2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 6px 10px; font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  cursor: pointer;
+}
+
+/* ── MAIN CANVAS ── */
+.canvas {
+  padding: 40px 60px 60px;
+  display: flex; gap: 32px; align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+/* ── FLOW COLUMN ── */
+.flow-col { flex: 1; min-width: 340px; }
+
+.flow-section-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.flow-section-title::after {
+  content:''; flex:1; height:1px; background:var(--border);
+}
+
+/* ── STEP CARD ── */
+.step-card {
+  display: flex; gap: 0; margin-bottom: 4px;
+  opacity: 0; transform: translateX(-16px);
+  transition: opacity .4s ease, transform .4s ease;
+  position: relative;
+}
+.step-card.visible {
+  opacity: 1; transform: translateX(0);
+}
+
+.step-spine {
+  display: flex; flex-direction: column; align-items: center;
+  width: 44px; min-width: 44px; padding-top: 4px;
+}
+.step-node {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 500;
+  flex-shrink: 0; position: relative;
+  transition: all .3s;
+  border: 1.5px solid;
+}
+.step-node.idle {
+  background: var(--surface2); border-color: var(--dim); color: var(--muted);
+}
+.step-node.active {
+  animation: nodeActive .4s ease forwards;
+}
+.step-node.done {
+  animation: none;
+}
+@keyframes nodeActive {
+  0%   { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+.step-node.c-red    { background: var(--red-g);    border-color: var(--red);    color: var(--red); }
+.step-node.c-blue   { background: var(--blue-g);   border-color: var(--blue);   color: var(--blue); }
+.step-node.c-green  { background: var(--green-g);  border-color: var(--green);  color: var(--green); }
+.step-node.c-amber  { background: var(--amber-g);  border-color: var(--amber);  color: var(--amber); }
+.step-node.c-purple { background: var(--purple-g); border-color: var(--purple); color: var(--purple); }
+.step-node.c-teal   { background: rgba(45,212,191,.12); border-color: var(--teal); color: var(--teal); }
+
+.step-connector {
+  width: 1.5px; flex: 1; min-height: 16px;
+  background: var(--dim); margin: 4px 0;
+  position: relative; overflow: hidden;
+}
+.step-connector::after {
+  content: '';
+  position: absolute; top: -100%; left: 0; right: 0; bottom: 100%;
+  background: linear-gradient(180deg, transparent, var(--green), transparent);
+  transition: none;
+}
+.step-connector.flowing::after {
+  animation: flow 0.6s ease forwards;
+}
+@keyframes flow {
+  0%   { top:-100%; bottom:100%; }
+  100% { top:100%;  bottom:-100%; }
+}
+
+.step-body {
+  flex: 1; padding: 4px 0 20px 16px;
+}
+.step-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 6px;
+}
+.step-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--muted);
+}
+.step-phase {
+  font-size: 10px; padding: 2px 8px; border-radius: 10px;
+  font-weight: 600; font-family: 'JetBrains Mono', monospace;
+  letter-spacing: .5px;
+}
+.phase-shell   { background:var(--red-g);    color:var(--red);    border:1px solid rgba(232,41,74,.25); }
+.phase-auth    { background:var(--blue-g);   color:var(--blue);   border:1px solid rgba(77,158,247,.25); }
+.phase-theme   { background:var(--amber-g);  color:var(--amber);  border:1px solid rgba(245,166,35,.25); }
+.phase-mfe     { background:var(--green-g);  color:var(--green);  border:1px solid rgba(31,214,160,.25); }
+.phase-product { background:var(--purple-g); color:var(--purple); border:1px solid rgba(176,126,247,.25); }
+
+.step-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px; font-weight: 700; color: var(--text);
+  margin-bottom: 4px; line-height: 1.3;
+}
+.step-desc {
+  font-size: 13px; color: var(--muted); line-height: 1.65;
+}
+.step-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 8px 12px; margin-top: 8px; color: #8fa8d0;
+  line-height: 1.7;
+}
+.step-code .kw { color: #e06c75; }
+.step-code .str { color: #98c379; }
+.step-code .cm { color: var(--muted); font-style:italic; }
+.step-code .fn { color: #61afef; }
+
+.step-result {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 8px; padding: 4px 10px; border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 500;
+  opacity: 0; transition: opacity .3s .2s;
+}
+.step-result.show { opacity: 1; }
+.result-ok   { background: var(--green-g); color: var(--green); border: 1px solid rgba(31,214,160,.3); }
+.result-wait { background: var(--amber-g); color: var(--amber); border: 1px solid rgba(245,166,35,.3); }
+
+/* ── RIGHT PANEL ── */
+.right-panel { width: 320px; min-width: 280px; }
+
+/* timeline */
+.timeline-box {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 20px; margin-bottom: 20px;
+  position: sticky; top: 24px;
+}
+.panel-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 16px;
+}
+
+.timeline-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+  opacity: .35; transition: opacity .3s;
+}
+.timeline-item:last-child { border-bottom: none; }
+.timeline-item.tl-active { opacity: 1; }
+.timeline-item.tl-done   { opacity: .7; }
+
+.tl-icon {
+  width: 28px; height: 28px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; flex-shrink: 0;
+}
+.tl-icon.c-red    { background:var(--red-g); }
+.tl-icon.c-blue   { background:var(--blue-g); }
+.tl-icon.c-amber  { background:var(--amber-g); }
+.tl-icon.c-green  { background:var(--green-g); }
+.tl-icon.c-purple { background:var(--purple-g); }
+
+.tl-label {
+  flex: 1;
+  font-size: 12px; font-weight: 500; color: var(--text);
+}
+.tl-time {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: var(--muted);
+}
+.tl-check {
+  font-size: 12px; opacity: 0; transition: opacity .3s;
+}
+.tl-done .tl-check { opacity: 1; }
+
+/* ── PHONE MOCKUP ── */
+.phone-box {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 20px;
+}
+.phone-wrap {
+  width: 180px; margin: 0 auto;
+  background: #0d1117; border-radius: 28px;
+  border: 2px solid var(--dim);
+  padding: 10px; position: relative;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  overflow: hidden;
+  min-height: 320px;
+}
+.phone-notch {
+  width: 60px; height: 6px; background: var(--dim);
+  border-radius: 3px; margin: 0 auto 10px;
+}
+.phone-screen {
+  border-radius: 18px; overflow: hidden;
+  min-height: 280px; position: relative;
+  transition: background .5s;
+}
+
+/* states */
+.screen-loading {
+  background: #0a0c10;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: 280px; gap: 12px;
+}
+.screen-loading .loader {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 2px solid var(--dim);
+  border-top-color: var(--red);
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.screen-loading .load-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; color: var(--muted);
+  letter-spacing: 1.5px; text-transform: uppercase;
+}
+
+.screen-theme {
+  background: var(--phone-bg, #0055A4);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: 280px; gap: 8px;
+  transition: background .5s;
+}
+.phone-logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px; font-weight: 800; color: #fff;
+  letter-spacing: -0.5px;
+}
+.phone-sub {
+  font-size: 9px; color: rgba(255,255,255,.5);
+  letter-spacing: 1px; text-transform: uppercase;
+}
+
+.screen-product {
+  background: #fff; min-height: 280px;
+  display: flex; flex-direction: column;
+}
+.product-header {
+  padding: 14px 12px 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.product-logo-sm {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px; font-weight: 800;
+  color: var(--phone-color, #0055A4);
+}
+.product-title {
+  font-size: 10px; color: #888; font-weight: 500;
+}
+.product-body { flex: 1; padding: 0 12px 12px; }
+.product-card {
+  background: var(--phone-color, #0055A4);
+  border-radius: 10px; padding: 14px;
+  margin-bottom: 8px;
+}
+.product-card-title {
+  font-size: 9px; color: rgba(255,255,255,.7);
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;
+}
+.product-card-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px; font-weight: 800; color: #fff;
+}
+.product-row {
+  display: flex; gap: 6px; margin-bottom: 6px;
+}
+.product-pill {
+  flex: 1; background: #f5f5f5; border-radius: 6px;
+  padding: 8px 6px; text-align: center;
+  font-size: 9px; color: #555; font-weight: 500;
+}
+.product-pill-val {
+  font-size: 11px; font-weight: 700;
+  color: var(--phone-color, #0055A4);
+  display: block; margin-bottom: 2px;
+}
+.product-btn {
+  width: 100%; padding: 10px;
+  background: var(--phone-color, #0055A4);
+  border: none; border-radius: 8px;
+  color: #fff; font-size: 11px; font-weight: 700;
+  cursor: pointer; margin-top: 4px;
+}
+
+/* screen hidden */
+.phone-state { display: none; }
+.phone-state.active { display: flex; flex-direction: column; }
+
+/* ── LOG ── */
+.log-box {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; overflow: hidden; margin-top: 20px;
+}
+.log-header {
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface2);
+}
+.log-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green);
+  box-shadow: 0 0 6px var(--green); animation: blink 1.5s infinite; }
+.log-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted);
+}
+.log-body {
+  padding: 12px 16px; font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; line-height: 2; max-height: 180px; overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: var(--dim) transparent;
+}
+.log-line { display: flex; gap: 10px; opacity: 0; transition: opacity .3s; }
+.log-line.show { opacity: 1; }
+.log-time { color: var(--muted); min-width: 50px; }
+.log-ok   { color: var(--green); }
+.log-info { color: var(--blue); }
+.log-warn { color: var(--amber); }
+
+/* ── PROGRESS BAR ── */
+.progress-bar-wrap {
+  padding: 0 60px; margin-bottom: 0;
+  display: flex; align-items: center; gap: 16px;
+}
+.progress-track {
+  flex:1; height:3px; background:var(--dim); border-radius:2px; overflow:hidden;
+}
+.progress-fill {
+  height:100%; width:0%; background: linear-gradient(90deg, var(--red), var(--blue));
+  border-radius:2px; transition: width .5s ease;
+  box-shadow: 0 0 8px rgba(77,158,247,.4);
+}
+.progress-label {
+  font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted);
+  min-width:60px; text-align:right;
+}
+
+/* ── SEPARATOR ── */
+.phase-separator {
+  display: flex; align-items: center; gap: 12px;
+  margin: 8px 0 16px;
+}
+.phase-sep-line { flex:1; height:1px; background:var(--border); }
+.phase-sep-label {
+  font-family:'JetBrains Mono',monospace; font-size:9px;
+  letter-spacing:2px; text-transform:uppercase; color:var(--dim);
+}
+
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<div class="header">
+  <div class="header-left">
+    <div class="badge"><div class="badge-dot"></div>BaaS · Shell App</div>
+    <h1>Inicialização do <span>Shell</span><br>& Carregamento de Produto</h1>
+    <p class="subtitle">Fluxo passo a passo de como o Shell inicializa, aplica o tema do parceiro, autentica o usuário e carrega o MFE de crédito.</p>
+  </div>
+  <div class="controls">
+    <span class="speed-label">Velocidade</span>
+    <select class="speed-select" id="speedSelect">
+      <option value="800">Normal</option>
+      <option value="400">Rápido</option>
+      <option value="1600">Lento</option>
+    </select>
+    <button class="btn btn-ghost" id="resetBtn">↺ Resetar</button>
+    <button class="btn btn-primary" id="playBtn">▶ Executar Fluxo</button>
+  </div>
+</div>
+
+<!-- progress -->
+<div style="padding:24px 60px 0">
+  <div class="progress-bar-wrap" style="padding:0">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <span class="progress-label" id="progressLabel">0 / 9</span>
+  </div>
+</div>
+
+<!-- ── CANVAS ── -->
+<div class="canvas">
+
+  <!-- LEFT: FLOW -->
+  <div class="flow-col">
+
+    <!-- FASE 1: SHELL -->
+    <div class="flow-section-title">Fase 1 — Shell inicializa</div>
+
+    <!-- STEP 1 -->
+    <div class="step-card" id="s1">
+      <div class="step-spine">
+        <div class="step-node idle c-red" id="n1">01</div>
+        <div class="step-connector" id="c1"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-header">
+          <span class="step-num">S-01</span>
+          <span class="step-phase phase-shell">SHELL</span>
+        </div>
+        <div class="step-title">Parceiro embute o Shell no app</div>
+        <div class="step-desc">O app do Banco XPTO carrega o Shell via <code>&lt;iframe&gt;</code> ou micro frontend host, passando o <strong>partnerId</strong> como parâmetro inicial.</div>
+        <div class="step-code">
+<span class="cm">// App do parceiro</span>
+&lt;ShellApp
+  <span class="kw">partnerId</span>=<span class="str">"banco-xpto"</span>
+  <span class="kw">onEvent</span>={<span class="fn">handleShellEvent</span>}
+/&gt;
+        </div>
+        <div class="step-result result-ok" id="r1">✓ Shell montado no DOM</div>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step-card" id="s2">
+      <div class="step-spine">
+        <div class="step-node idle c-amber" id="n2">02</div>
+        <div class="step-connector" id="c2"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-header">
+          <span class="step-num">S-02</span>
+          <span class="step-phase phase-theme">TEMA</span>
+        </div>
+        <div class="step-title">Busca configuração do parceiro</div>
+        <div class="step-desc">Shell faz GET na <strong>Partner Config API</strong> usando o partnerId. Recebe cores, tipografia, logo, favicon e quais produtos estão ativos.</div>
+        <div class="step-code">
+GET /v1/partners/<span class="str">banco-xpto</span>/config
+→ { primaryColor: <span class="str">"#0055A4"</span>,
+    logo: <span class="str">"cdn.xpto.com/logo.svg"</span>,
+    products: [<span class="str">"capital-giro"</span>] }
+        </div>
+        <div class="step-result result-ok" id="r2">✓ Config carregada em 42ms</div>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step-card" id="s3">
+      <div class="step-spine">
+        <div class="step-node idle c-amber" id="n3">03</div>
+        <div class="step-connector" id="c3"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-header">
+          <span class="step-num">S-03</span>
+          <span class="step-phase phase-theme">TEMA</span>
+        </div>
+        <div class="step-title">Aplica tema em runtime</div>
+        <div class="step-desc">Shell injeta os Design Tokens como <strong>CSS Custom Properties</strong> no <code>:root</code>. Toda a tela muda de aparência instantaneamente — zero rebuild.</div>
+        <div class="step-code">
+<span class="cm">// Injeção runtime — sem rebuild</span>
+root.<span class="fn">setProperty</span>(<span class="str">'--color-primary'</span>, <span class="str">'#0055A4'</span>)
+root.<span class="fn">setProperty</span>(<span class="str">'--font-family'</span>,  <span class="str">'Nunito'</span>)
+document.title = <span class="str">'Crédito XPTO'</span>
+        </div>
+        <div class="step-result result-ok" id="r3">✓ Identidade visual aplicada</div>
+      </div>
+    </div>
+
+    <!-- SEPARATOR -->
+    <div class="phase-separator">
+      <div class="phase-sep-line"></div>
+      <span class="phase-sep-label">Fase 2 — Autenticação B2B2X</span>
+      <div class="phase-sep-line"></div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step-card" id="s4">
+      <div class="step-spine">
+        <div class="step-node idle c-blue" id="n4">04</div>
+        <div class="step-connector" id="c4"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-header">
+          <span class="step-num">S-04</span>
+          <span class="step-phase phase-auth">AUTH B2B2X</span>
+        </div>
+        <div class="step-title">Parceiro autentica o cliente (X)</div>
+        <div class="step-desc">O Banco XPTO usa seus próprios sistemas (biometria, senha) para autenticar o cliente final. O Bradesco não vê esse fluxo. O resultado é o <strong>Partner User Token</strong>.</div>
+        <div class="step-code">
+<span class="cm">// Acontece no sistema do parceiro</span>
+<span class="kw">const</span> partnerToken = <span class="kw">await</span>
+  xptoAuth.<span class="fn">authenticateUser</span>(biometria)
+<span class="cm">// → token do usuário no sistema XPTO</span>
+        </div>
+        <div class="step-result result-ok" id="r4">✓ Cliente autenticado no parceiro</div>
+      </div>
+    </div>
+
+    <!-- STEP 5 -->
+    <div class="step-card" id="s5">
+      <div class="step-spine">
+        <div class="step-node idle c-blue" id="n5">05</div>
+        <div class="step-connector" id="c5"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-header">
+          <span class="step-num">S-05</span>
+          <span class="step-phase phase-auth">AUTH B2B2X</span>
+        </div>
+        <div class="step-title">Token Exchange — emissão do UCT</div>
+        <div class="step-desc">Parceiro chama o endpoint de <strong>Token Exchange (RFC 8693)</strong>. A plataforma valida o PAT + Partner User Token e emite o <strong>UCT</strong> — que identifica X dentro do tenant do parceiro B.</div>
+        <div class="step-code">
+POST /oauth2/token/exchange
+Authorization: Bearer {PAT}
+subject_token: {partnerUserToken}
+→ { <span class="str">access_token</span>: <span class="str">"UCT..."</span>,
+    <span class="str">expires_in</span>: <span class="kw">900</span> }
+        </div>
+        <div class="step-result result-ok" id="r5">✓ UCT emitido · válido 15min</div>
+      </div>
+    </div>
+
+    <!-- STEP 6 -->
+    <div class="step-card" id="s6">
+      <div class="step-spine">
+        <div class="step-node idle c-blue" id="n6">06</div>
+        <div class="step-connector" id="c6"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-header">
+          <span class="step-num">S-06</span>
+          <span class="step-phase phase-auth">AUTH B2B2X</span>
+        </div>
+        <div class="step-title">Shell armazena UCT em memória</div>
+        <div class="step-desc">O Shell recebe o UCT via <code>postMessage</code> do parceiro e o mantém <strong>somente em memória JavaScript</strong> — nunca em localStorage ou cookie acessível ao JS. XSS não consegue exfiltrá-lo.</div>
+        <div class="step-code">
+<span class="cm">// NUNCA localStorage — apenas memória</span>
+<span class="kw">let</span> uct = <span class="kw">null</span>; <span class="cm">// variável em closure</span>
+window.<span class="fn">addEventListener</span>(<span class="str">'message'</span>, (e) => {
+  <span class="kw">if</span> (e.data.type === <span class="str">'auth:token'</span>)
+    uct = e.data.uct; <span class="cm">// salvo em memória</span>
+})
+        </div>
+        <div class="step-result result-ok" id="r6">✓ UCT em memória · seguro</div>
+      </div>
+    </div>
+
+    <!-- SEPARATOR -->
+    <div class="phase-separator">
+      <div class="phase-sep-line"></div>
+      <span class="phase-sep-label">Fase 3 — Carregamento do MFE</span>
+      <div class="phase-sep-line"></div>
+    </div>
+
+    <!-- STEP 7 -->
+    <div class="step-card" id="s7">
+      <div class="step-spine">
+        <div class="step-node idle c-green" id="n7">07</div>
+        <div class="step-connector" id="c7"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-header">
+          <span class="step-num">S-07</span>
+          <span class="step-phase phase-mfe">MFE REGISTRY</span>
+        </div>
+        <div class="step-title">Descobre versão ativa do produto</div>
+        <div class="step-desc">Shell consulta o <strong>MFE Registry</strong> para saber qual versão do módulo "capital-giro" está ativa em produção. Nunca hardcoda URLs.</div>
+        <div class="step-code">
+GET /v1/mfe/registry
+→ { <span class="str">"capital-giro"</span>: <span class="str">"2.4.1"</span> }
+
+<span class="cm">// URL montada dinamicamente</span>
+mfe.baas.bradesco.com.br/
+  capital-giro/<span class="kw">2.4.1</span>/remoteEntry.js
+        </div>
+        <div class="step-result result-ok" id="r7">✓ Versão 2.4.1 localizada</div>
+      </div>
+    </div>
+
+    <!-- STEP 8 -->
+    <div class="step-card" id="s8">
+      <div class="step-spine">
+        <div class="step-node idle c-green" id="n8">08</div>
+        <div class="step-connector" id="c8"></div>
+      </div>
+      <div class="step-body">
+        <div class="step-header">
+          <span class="step-num">S-08</span>
+          <span class="step-phase phase-mfe">MODULE FEDERATION</span>
+        </div>
+        <div class="step-title">Carrega o módulo remoto via CDN</div>
+        <div class="step-desc">Webpack Module Federation baixa o <code>remoteEntry.js</code> do CloudFront. O MFE é carregado em isolamento — sem acesso ao estado interno do Shell ou de outros MFEs.</div>
+        <div class="step-code">
+<span class="cm">// Module Federation carrega em runtime</span>
+<span class="kw">const</span> CapGiro = <span class="kw">await</span> <span class="fn">loadRemote</span>(
+  <span class="str">'capitalGiro/CapitalGiroApp'</span>
+) <span class="cm">// → bundle do MFE via CloudFront</span>
+        </div>
+        <div class="step-result result-ok" id="r8">✓ MFE baixado em 87ms</div>
+      </div>
+    </div>
+
+    <!-- STEP 9 -->
+    <div class="step-card" id="s9">
+      <div class="step-spine">
+        <div class="step-node idle c-purple" id="n9">09</div>
+      </div>
+      <div class="step-body">
+        <div class="step-header">
+          <span class="step-num">S-09</span>
+          <span class="step-phase phase-product">PRODUTO ATIVO</span>
+        </div>
+        <div class="step-title">Shell monta o MFE com contexto completo</div>
+        <div class="step-desc">Shell chama <code>mfe.mount()</code> passando o <strong>PartnerContext</strong> — tema, UCT, partnerId e correlationId. O produto renderiza com a identidade do parceiro. Usuário vê a jornada de crédito.</div>
+        <div class="step-code">
+CapGiro.<span class="fn">mount</span>(container, {
+  partnerId:     <span class="str">'banco-xpto'</span>,
+  theme:         resolvedTheme,
+  accessToken:   uct,         <span class="cm">// UCT da memória</span>
+  correlationId: <span class="str">'req_9a1c'</span>,
+})
+        </div>
+        <div class="step-result result-ok" id="r9">🎉 Jornada de crédito ativa!</div>
+      </div>
+    </div>
+
+  </div><!-- /flow-col -->
+
+  <!-- RIGHT: PANELS -->
+  <div class="right-panel">
+
+    <!-- TIMELINE -->
+    <div class="timeline-box">
+      <div class="panel-title">Linha do tempo</div>
+
+      <div class="timeline-item" id="tl1">
+        <div class="tl-icon c-red">🔧</div>
+        <span class="tl-label">Shell montado</span>
+        <span class="tl-time">t+0ms</span>
+        <span class="tl-check">✓</span>
+      </div>
+      <div class="timeline-item" id="tl2">
+        <div class="tl-icon c-amber">⚙️</div>
+        <span class="tl-label">Config parceiro</span>
+        <span class="tl-time">t+42ms</span>
+        <span class="tl-check">✓</span>
+      </div>
+      <div class="timeline-item" id="tl3">
+        <div class="tl-icon c-amber">🎨</div>
+        <span class="tl-label">Tema aplicado</span>
+        <span class="tl-time">t+45ms</span>
+        <span class="tl-check">✓</span>
+      </div>
+      <div class="timeline-item" id="tl4">
+        <div class="tl-icon c-blue">👤</div>
+        <span class="tl-label">Cliente autenticado</span>
+        <span class="tl-time">t+320ms</span>
+        <span class="tl-check">✓</span>
+      </div>
+      <div class="timeline-item" id="tl5">
+        <div class="tl-icon c-blue">🔄</div>
+        <span class="tl-label">Token Exchange</span>
+        <span class="tl-time">t+410ms</span>
+        <span class="tl-check">✓</span>
+      </div>
+      <div class="timeline-item" id="tl6">
+        <div class="tl-icon c-blue">🔐</div>
+        <span class="tl-label">UCT em memória</span>
+        <span class="tl-time">t+412ms</span>
+        <span class="tl-check">✓</span>
+      </div>
+      <div class="timeline-item" id="tl7">
+        <div class="tl-icon c-green">📋</div>
+        <span class="tl-label">Registry consultado</span>
+        <span class="tl-time">t+430ms</span>
+        <span class="tl-check">✓</span>
+      </div>
+      <div class="timeline-item" id="tl8">
+        <div class="tl-icon c-green">📦</div>
+        <span class="tl-label">MFE carregado</span>
+        <span class="tl-time">t+517ms</span>
+        <span class="tl-check">✓</span>
+      </div>
+      <div class="timeline-item" id="tl9">
+        <div class="tl-icon c-purple">✨</div>
+        <span class="tl-label">Produto renderizado</span>
+        <span class="tl-time">t+524ms</span>
+        <span class="tl-check">✓</span>
+      </div>
+    </div>
+
+    <!-- PHONE -->
+    <div class="phone-box">
+      <div class="panel-title">Visualização na tela</div>
+      <div class="phone-wrap">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+
+          <!-- STATE 0: blank -->
+          <div class="phone-state active screen-loading" id="ph0">
+            <div style="font-size:28px; opacity:.2">📱</div>
+            <div style="font-family:'JetBrains Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:2px; text-transform:uppercase;">aguardando</div>
+          </div>
+
+          <!-- STATE 1: loading -->
+          <div class="phone-state screen-loading" id="ph1" style="min-height:280px">
+            <div class="loader"></div>
+            <div class="load-label">Carregando shell...</div>
+          </div>
+
+          <!-- STATE 2: theme applied -->
+          <div class="phone-state screen-theme" id="ph3">
+            <div style="font-size:32px; margin-bottom:8px">🏦</div>
+            <div class="phone-logo">XPTO</div>
+            <div class="phone-sub">carregando serviços...</div>
+          </div>
+
+          <!-- STATE 3: auth -->
+          <div class="phone-state screen-theme" id="ph5" style="background:#0055A4">
+            <div style="font-size:28px; margin-bottom:8px">🔐</div>
+            <div class="phone-logo" style="font-size:14px; font-weight:600">Verificando identidade</div>
+            <div class="phone-sub" style="margin-top:4px">Token Exchange...</div>
+            <div style="margin-top:16px; width:100px; height:3px; background:rgba(255,255,255,.2); border-radius:2px; overflow:hidden">
+              <div style="height:100%; width:60%; background:#fff; border-radius:2px; animation:progAnim 1s ease infinite alternate"></div>
+            </div>
+          </div>
+
+          <!-- STATE 4: product -->
+          <div class="phone-state screen-product" id="ph9">
+            <div class="product-header">
+              <div class="product-logo-sm">XPTO</div>
+              <div class="product-title">Capital de Giro</div>
+            </div>
+            <div class="product-body">
+              <div class="product-card">
+                <div class="product-card-title">Limite disponível</div>
+                <div class="product-card-val">R$ 50.000</div>
+              </div>
+              <div class="product-row">
+                <div class="product-pill">
+                  <span class="product-pill-val">12x</span>parcelas
+                </div>
+                <div class="product-pill">
+                  <span class="product-pill-val">1,2%</span>a.m.
+                </div>
+                <div class="product-pill">
+                  <span class="product-pill-val">30d</span>carência
+                </div>
+              </div>
+              <button class="product-btn">Solicitar agora →</button>
+            </div>
+          </div>
+
+        </div><!-- /phone-screen -->
+      </div><!-- /phone-wrap -->
+    </div><!-- /phone-box -->
+
+    <!-- LOG -->
+    <div class="log-box">
+      <div class="log-header">
+        <div class="log-dot"></div>
+        <span class="log-title">Console · Shell Log</span>
+      </div>
+      <div class="log-body" id="logBody">
+        <div class="log-line" id="l0">
+          <span class="log-time" style="color:var(--dim)">--:--</span>
+          <span style="color:var(--dim)">aguardando execução...</span>
+        </div>
+        <div class="log-line" id="l1"><span class="log-time">+000ms</span><span class="log-ok">[SHELL]</span><span style="margin-left:6px;color:#8fa8d0">mounted · partnerId=banco-xpto</span></div>
+        <div class="log-line" id="l2"><span class="log-time">+042ms</span><span class="log-info">[CONFIG]</span><span style="margin-left:6px;color:#8fa8d0">partner config loaded</span></div>
+        <div class="log-line" id="l3"><span class="log-time">+045ms</span><span class="log-warn">[THEME]</span><span style="margin-left:6px;color:#8fa8d0">tokens injected → :root</span></div>
+        <div class="log-line" id="l4"><span class="log-time">+320ms</span><span class="log-info">[AUTH]</span><span style="margin-left:6px;color:#8fa8d0">partner user authenticated</span></div>
+        <div class="log-line" id="l5"><span class="log-time">+410ms</span><span class="log-ok">[TOKEN]</span><span style="margin-left:6px;color:#8fa8d0">exchange OK · UCT issued</span></div>
+        <div class="log-line" id="l6"><span class="log-time">+412ms</span><span class="log-ok">[SESSION]</span><span style="margin-left:6px;color:#8fa8d0">UCT stored in memory only</span></div>
+        <div class="log-line" id="l7"><span class="log-time">+430ms</span><span class="log-info">[REGISTRY]</span><span style="margin-left:6px;color:#8fa8d0">capital-giro → v2.4.1</span></div>
+        <div class="log-line" id="l8"><span class="log-time">+517ms</span><span class="log-ok">[MFE]</span><span style="margin-left:6px;color:#8fa8d0">remoteEntry.js loaded</span></div>
+        <div class="log-line" id="l9"><span class="log-time">+524ms</span><span class="log-ok">[PRODUCT]</span><span style="margin-left:6px;color:#8fa8d0">CapitalGiro.mount() ✓</span></div>
+      </div>
+    </div>
+
+  </div><!-- /right-panel -->
+</div><!-- /canvas -->
+
+<style>
+@keyframes progAnim {
+  from { width: 20%; }
+  to   { width: 80%; }
+}
+</style>
+
+<script>
+const STEPS = 9;
+let currentStep = 0;
+let running = false;
+let timer = null;
+
+const playBtn    = document.getElementById('playBtn');
+const resetBtn   = document.getElementById('resetBtn');
+const speedSel   = document.getElementById('speedSelect');
+const progressFill  = document.getElementById('progressFill');
+const progressLabel = document.getElementById('progressLabel');
+const logBody    = document.getElementById('logBody');
+
+// Phone state manager
+function showPhone(id) {
+  ['ph0','ph1','ph3','ph5','ph9'].forEach(s => {
+    const el = document.getElementById(s);
+    if (el) { el.classList.remove('active'); }
+  });
+  const target = document.getElementById(id);
+  if (target) target.classList.add('active');
+}
+
+// Timeline
+function setTL(step, state) {
+  const el = document.getElementById('tl' + step);
+  if (!el) return;
+  el.classList.remove('tl-active','tl-done');
+  if (state === 'active') el.classList.add('tl-active');
+  if (state === 'done')   el.classList.add('tl-done');
+}
+
+// Step card
+function showCard(i) {
+  document.getElementById('s'+i).classList.add('visible');
+}
+
+// Node color active/done
+function activateNode(i, color) {
+  const n = document.getElementById('n'+i);
+  n.className = 'step-node active ' + color;
+}
+function doneNode(i, color) {
+  const n = document.getElementById('n'+i);
+  n.className = 'step-node done ' + color;
+}
+
+// Connector flow
+function flowConnector(i) {
+  const c = document.getElementById('c'+i);
+  if (!c) return;
+  c.classList.add('flowing');
+  setTimeout(() => c.classList.remove('flowing'), 700);
+}
+
+// Result badge
+function showResult(i) {
+  const r = document.getElementById('r'+i);
+  if (r) r.classList.add('show');
+}
+
+// Log line
+function showLog(i) {
+  document.getElementById('l0').style.display = 'none';
+  const el = document.getElementById('l'+i);
+  if (el) {
+    el.classList.add('show');
+    logBody.scrollTop = logBody.scrollHeight;
+  }
+}
+
+// Update progress
+function updateProgress(step) {
+  const pct = (step / STEPS) * 100;
+  progressFill.style.width = pct + '%';
+  progressLabel.textContent = step + ' / ' + STEPS;
+}
+
+// Phone mapping per step
+const phoneMap = {
+  1: 'ph1', 2: 'ph1', 3: 'ph3',
+  4: 'ph5', 5: 'ph5', 6: 'ph5',
+  7: 'ph5', 8: 'ph5', 9: 'ph9'
+};
+
+const nodeColors = {
+  1:'c-red', 2:'c-amber', 3:'c-amber',
+  4:'c-blue', 5:'c-blue', 6:'c-blue',
+  7:'c-green', 8:'c-green', 9:'c-purple'
+};
+
+function executeStep(i) {
+  // previous done
+  if (i > 1) {
+    doneNode(i-1, nodeColors[i-1]);
+    setTL(i-1, 'done');
+  }
+
+  showCard(i);
+  activateNode(i, nodeColors[i]);
+  setTL(i, 'active');
+  showPhone(phoneMap[i]);
+  showLog(i);
+  updateProgress(i);
+
+  const speed = parseInt(speedSel.value);
+
+  // connector flows after half the step duration
+  setTimeout(() => {
+    flowConnector(i);
+    showResult(i);
+  }, speed * 0.5);
+
+  currentStep = i;
+
+  if (i < STEPS) {
+    timer = setTimeout(() => executeStep(i+1), speed);
+  } else {
+    // done
+    doneNode(i, nodeColors[i]);
+    setTL(i, 'done');
+    running = false;
+    playBtn.textContent = '✓ Concluído';
+    playBtn.disabled = false;
+  }
+}
+
+function startFlow() {
+  if (running) return;
+  running = true;
+  playBtn.textContent = '⏸ Executando...';
+  playBtn.disabled = true;
+  showPhone('ph0');
+
+  // small delay then start
+  timer = setTimeout(() => executeStep(1), 300);
+}
+
+function resetFlow() {
+  if (timer) clearTimeout(timer);
+  running = false;
+  currentStep = 0;
+  playBtn.textContent = '▶ Executar Fluxo';
+  playBtn.disabled = false;
+
+  // reset steps
+  for (let i = 1; i <= STEPS; i++) {
+    const card = document.getElementById('s'+i);
+    if (card) card.classList.remove('visible');
+    const n = document.getElementById('n'+i);
+    if (n) n.className = 'step-node idle ' + nodeColors[i];
+    const r = document.getElementById('r'+i);
+    if (r) r.classList.remove('show');
+    const c = document.getElementById('c'+i);
+    if (c) c.classList.remove('flowing');
+    setTL(i, '');
+  }
+
+  // reset log
+  document.getElementById('l0').style.display = '';
+  for (let i = 1; i <= STEPS; i++) {
+    const l = document.getElementById('l'+i);
+    if (l) l.classList.remove('show');
+  }
+
+  updateProgress(0);
+  showPhone('ph0');
+}
+
+playBtn.addEventListener('click', startFlow);
+resetBtn.addEventListener('click', resetFlow);
+
+// Auto-reveal all cards on load for reading
+window.addEventListener('load', () => {
+  for (let i = 1; i <= STEPS; i++) {
+    setTimeout(() => showCard(i), i * 80);
+  }
+});
+</script>
+</body>
+</html>

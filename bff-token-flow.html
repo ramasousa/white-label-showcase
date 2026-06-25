@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BFF — Fluxo de Tokens Detalhado</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500;600&family=Epilogue:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#060810;
+  --s1:#0d1017;
+  --s2:#131720;
+  --s3:#191e2a;
+  --border:rgba(255,255,255,0.06);
+  --border2:rgba(255,255,255,0.11);
+  --text:#dde2f0;
+  --muted:#4d5a72;
+  --dim:#232c3d;
+
+  --red:#f0324f;    --rg:rgba(240,50,79,.14);   --rb:rgba(240,50,79,.28);
+  --blue:#4a9eff;   --bg2:rgba(74,158,255,.13);  --bb:rgba(74,158,255,.28);
+  --green:#1ecb97;  --gg:rgba(30,203,151,.11);   --gb:rgba(30,203,151,.28);
+  --amber:#f0a500;  --ag:rgba(240,165,0,.11);    --ab:rgba(240,165,0,.28);
+  --purple:#a97cf8; --pg:rgba(169,124,248,.11);  --pb:rgba(169,124,248,.28);
+  --teal:#22d4c0;   --tg:rgba(34,212,192,.11);
+
+  --mono:'JetBrains Mono',monospace;
+  --body:'Epilogue',sans-serif;
+  --disp:'Syne',sans-serif;
+}
+
+body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:14px;line-height:1.6;overflow-x:hidden}
+
+/* noise */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;
+  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E") opacity:.4}
+
+/* ── PAGE ── */
+.page{max-width:1200px;margin:0 auto;padding:48px 40px 80px}
+
+/* ── HEADER ── */
+.hdr{margin-bottom:48px}
+.hdr-badge{display:inline-flex;align-items:center;gap:8px;
+  background:var(--bg2);border:1px solid var(--bb);border-radius:20px;
+  padding:5px 14px;margin-bottom:16px;
+  font-family:var(--mono);font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--blue)}
+.hdr-dot{width:6px;height:6px;border-radius:50%;background:var(--blue);
+  box-shadow:0 0 8px var(--blue);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+h1{font-family:var(--disp);font-size:clamp(28px,4vw,48px);font-weight:800;
+  letter-spacing:-1.5px;line-height:1.05;margin-bottom:12px}
+h1 em{font-style:normal;color:var(--green)}
+.hdr-sub{font-size:14px;color:var(--muted);max-width:600px;line-height:1.7}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:4px;margin-bottom:40px;
+  background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:4px;
+  width:fit-content}
+.tab{padding:9px 20px;border-radius:7px;cursor:pointer;
+  font-size:12px;font-weight:600;font-family:var(--mono);letter-spacing:.5px;
+  color:var(--muted);transition:all .2s;border:none;background:transparent}
+.tab.active{background:var(--s3);color:var(--text);border:1px solid var(--border2)}
+.tab:hover:not(.active){color:var(--text)}
+
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ── ARCH OVERVIEW ── */
+.arch-wrap{display:flex;flex-direction:column;gap:0;position:relative}
+
+/* layer row */
+.layer{
+  display:flex;align-items:stretch;gap:0;
+  border-radius:14px;overflow:hidden;
+  border:1px solid var(--border);
+  margin-bottom:0;position:relative;
+}
+
+/* arrow between layers */
+.arrow-row{
+  display:flex;justify-content:center;align-items:center;
+  height:52px;position:relative;
+}
+.arrow-line{
+  position:absolute;left:50%;transform:translateX(-50%);
+  width:1.5px;height:100%;
+  background:linear-gradient(180deg,var(--dim),var(--dim));
+  overflow:hidden;
+}
+.arrow-line::after{
+  content:'';position:absolute;top:-40px;left:0;right:0;height:40px;
+  background:linear-gradient(180deg,transparent,var(--blue),transparent);
+  animation:flowDown 2s ease-in-out infinite;
+}
+@keyframes flowDown{0%{top:-40px}100%{top:calc(100% + 40px)}}
+
+.arrow-label{
+  background:var(--s2);border:1px solid var(--border2);
+  border-radius:20px;padding:5px 14px;position:relative;z-index:1;
+  font-family:var(--mono);font-size:10px;color:var(--blue);letter-spacing:1px;
+  display:flex;align-items:center;gap:8px;
+}
+.arrow-bidirect{color:var(--muted)}
+
+/* layer sections */
+.layer-icon{
+  width:64px;min-width:64px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;
+  border-right:1px solid var(--border);
+}
+.layer-main{flex:1;padding:20px 24px}
+.layer-meta{
+  width:200px;min-width:160px;padding:20px;
+  border-left:1px solid var(--border);
+  display:flex;flex-direction:column;gap:8px;
+  justify-content:center;
+}
+
+.layer-name{
+  font-family:var(--disp);font-size:13px;font-weight:700;
+  margin-bottom:4px;
+}
+.layer-desc{font-size:12px;color:var(--muted);line-height:1.6}
+.layer-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{
+  font-size:11px;padding:3px 10px;border-radius:12px;
+  font-weight:500;font-family:var(--mono);
+}
+
+.layer-proto{
+  font-family:var(--mono);font-size:10px;
+  color:var(--muted);letter-spacing:.5px;
+}
+.layer-proto strong{display:block;font-size:12px;margin-bottom:4px}
+
+/* layer themes */
+.layer-partner{background:linear-gradient(135deg,rgba(240,165,0,.06),transparent)}
+.layer-partner .layer-icon{background:var(--ag)}
+.layer-partner .layer-name{color:var(--amber)}
+.layer-partner .chip{background:var(--ag);color:var(--amber);border:1px solid var(--ab)}
+
+.layer-shell{background:linear-gradient(135deg,rgba(240,50,79,.06),transparent)}
+.layer-shell .layer-icon{background:var(--rg)}
+.layer-shell .layer-name{color:var(--red)}
+.layer-shell .chip{background:var(--rg);color:var(--red);border:1px solid var(--rb)}
+
+.layer-mfe{background:linear-gradient(135deg,rgba(74,158,255,.06),transparent)}
+.layer-mfe .layer-icon{background:var(--bg2)}
+.layer-mfe .layer-name{color:var(--blue)}
+.layer-mfe .chip{background:var(--bg2);color:var(--blue);border:1px solid var(--bb)}
+
+.layer-bff{background:linear-gradient(135deg,rgba(30,203,151,.06),transparent)}
+.layer-bff .layer-icon{background:var(--gg)}
+.layer-bff .layer-name{color:var(--green)}
+.layer-bff .chip{background:var(--gg);color:var(--green);border:1px solid var(--gb)}
+
+.layer-core{background:linear-gradient(135deg,rgba(169,124,248,.06),transparent)}
+.layer-core .layer-icon{background:var(--pg)}
+.layer-core .layer-name{color:var(--purple)}
+.layer-core .chip{background:var(--pg);color:var(--purple);border:1px solid var(--pb)}
+
+.layer-api{background:linear-gradient(135deg,rgba(34,212,192,.06),transparent)}
+.layer-api .layer-icon{background:var(--tg)}
+.layer-api .layer-name{color:var(--teal)}
+.layer-api .chip{background:var(--tg);color:var(--teal);border:1px solid rgba(34,212,192,.3)}
+
+/* ── TOKEN TABLE ── */
+.section-title{
+  font-family:var(--disp);font-size:20px;font-weight:700;
+  letter-spacing:-.5px;margin-bottom:6px;
+}
+.section-sub{font-size:13px;color:var(--muted);margin-bottom:28px;line-height:1.6}
+
+.token-table{width:100%;border-collapse:collapse;margin-bottom:40px}
+.token-table th{
+  font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);padding:12px 16px;text-align:left;
+  border-bottom:1px solid var(--border2);
+}
+.token-table td{
+  padding:16px;border-bottom:1px solid var(--border);
+  font-size:13px;vertical-align:top;line-height:1.6;
+}
+.token-table tr:hover td{background:rgba(255,255,255,.015)}
+.token-table td:first-child{font-family:var(--mono);font-size:12px;font-weight:600}
+.ok{color:var(--green)}
+.warn{color:var(--amber)}
+.bad{color:var(--red)}
+
+/* ── BFF DETAIL CARDS ── */
+.bff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:40px}
+.bff-card{
+  background:var(--s1);border:1px solid var(--border);border-radius:12px;
+  overflow:hidden;transition:border-color .2s,transform .2s;
+}
+.bff-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.bff-card-top{
+  padding:16px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+}
+.bff-card-icon{
+  width:36px;height:36px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+}
+.bff-card-title{font-family:var(--disp);font-size:14px;font-weight:700}
+.bff-card-body{padding:16px 20px}
+.bff-card-desc{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px}
+
+/* ── CODE ── */
+.code-wrap{
+  background:var(--s2);border:1px solid var(--border);
+  border-radius:10px;overflow:hidden;margin:16px 0;
+}
+.code-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 14px;border-bottom:1px solid var(--border);background:var(--s3);
+}
+.code-dots{display:flex;gap:5px}
+.cd{width:9px;height:9px;border-radius:50%}
+.cd.r{background:#ff5f57}.cd.y{background:#ffbd2e}.cd.g{background:#28c840}
+.code-lang{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase}
+pre{padding:18px;font-family:var(--mono);font-size:11.5px;line-height:1.85;
+  color:#a8b8d0;overflow-x:auto}
+.kw{color:#f07178}.str{color:#c3e88d}.cm{color:#546579;font-style:italic}
+.fn{color:#82aaff}.num{color:#f78c6c}.key{color:#89ddff}.op{color:#89ddff}
+.green-t{color:var(--green)}.amber-t{color:var(--amber)}.red-t{color:var(--red)}
+
+/* ── FLOW STEP (token detail tab) ── */
+.flow-steps{display:flex;flex-direction:column;gap:0}
+.fstep{display:flex;gap:0;position:relative}
+.fstep-spine{display:flex;flex-direction:column;align-items:center;width:52px;min-width:52px}
+.fstep-node{
+  width:40px;height:40px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:11px;font-weight:600;
+  border:1.5px solid;flex-shrink:0;
+}
+.fstep-line{width:1.5px;flex:1;min-height:16px;margin:4px 0;background:var(--dim)}
+.fstep-body{flex:1;padding:2px 0 32px 20px}
+.fstep-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.fstep-num{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+.fstep-tag{
+  font-size:10px;padding:2px 9px;border-radius:10px;
+  font-family:var(--mono);font-weight:600;letter-spacing:.3px;
+}
+.fstep-title{font-family:var(--disp);font-size:16px;font-weight:700;margin-bottom:6px}
+.fstep-desc{font-size:13px;color:var(--muted);line-height:1.7}
+
+.n-amber{background:var(--ag);border-color:var(--amber);color:var(--amber)}
+.n-red{background:var(--rg);border-color:var(--red);color:var(--red)}
+.n-blue{background:var(--bg2);border-color:var(--blue);color:var(--blue)}
+.n-green{background:var(--gg);border-color:var(--green);color:var(--green)}
+.n-purple{background:var(--pg);border-color:var(--purple);color:var(--purple)}
+.n-teal{background:var(--tg);border-color:var(--teal);color:var(--teal)}
+
+.t-amber{background:var(--ag);color:var(--amber);border:1px solid var(--ab)}
+.t-red{background:var(--rg);color:var(--red);border:1px solid var(--rb)}
+.t-blue{background:var(--bg2);color:var(--blue);border:1px solid var(--bb)}
+.t-green{background:var(--gg);color:var(--green);border:1px solid var(--gb)}
+.t-purple{background:var(--pg);color:var(--purple);border:1px solid var(--pb)}
+.t-teal{background:var(--tg);color:var(--teal);border:1px solid rgba(34,212,192,.3)}
+
+/* highlight box */
+.hbox{
+  border-radius:10px;padding:18px 22px;margin:14px 0;
+  border:1px solid;
+}
+.hbox.green{background:var(--gg);border-color:var(--gb)}
+.hbox.amber{background:var(--ag);border-color:var(--ab)}
+.hbox.red{background:var(--rg);border-color:var(--rb)}
+.hbox.blue{background:var(--bg2);border-color:var(--bb)}
+.hbox-title{font-family:var(--disp);font-size:13px;font-weight:700;margin-bottom:6px}
+.hbox.green .hbox-title{color:var(--green)}
+.hbox.amber .hbox-title{color:var(--amber)}
+.hbox.red .hbox-title{color:var(--red)}
+.hbox.blue .hbox-title{color:var(--blue)}
+.hbox p{font-size:12.5px;color:var(--muted);line-height:1.65}
+
+/* ── COMPARISON ── */
+.versus{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:36px;
+}
+.versus-side{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:12px;padding:24px;
+}
+.versus-label{
+  font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  margin-bottom:14px;font-weight:600;
+}
+.versus-side.bad-side .versus-label{color:var(--red)}
+.versus-side.good-side .versus-label{color:var(--green)}
+.versus-item{
+  display:flex;align-items:flex-start;gap:10px;
+  margin-bottom:10px;font-size:13px;color:var(--muted);line-height:1.5;
+}
+.versus-bullet{font-size:14px;margin-top:1px;flex-shrink:0}
+
+/* divider */
+.divider{height:1px;background:var(--border);margin:36px 0}
+
+/* ── RESP ── */
+@media(max-width:700px){
+  .page{padding:28px 20px 60px}
+  .layer-meta{display:none}
+  .versus{grid-template-columns:1fr}
+  .tabs{width:100%;overflow-x:auto}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-badge"><div class="hdr-dot"></div>BaaS · Backend for Frontend</div>
+  <h1>BFF no Fluxo de <em>Tokens</em></h1>
+  <p class="hdr-sub">Como o Backend for Frontend se encaixa entre o MFE e as APIs de plataforma — detalhando cada token, cada protocolo e cada responsabilidade de segurança.</p>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="showTab('arch')">Arquitetura Geral</button>
+  <button class="tab" onclick="showTab('flow')">Fluxo de Tokens</button>
+  <button class="tab" onclick="showTab('bff')">Responsabilidades do BFF</button>
+  <button class="tab" onclick="showTab('compare')">Sem BFF vs Com BFF</button>
+</div>
+
+<!-- ══════════════════════════════════════════
+     TAB 1 — ARQUITETURA GERAL
+══════════════════════════════════════════ -->
+<div class="tab-panel active" id="tab-arch">
+
+  <div class="section-title">Visão em Camadas com BFF</div>
+  <p class="section-sub">Cada camada fala um protocolo diferente com a camada abaixo. O BFF é a fronteira onde o mundo do browser (HTTPS + UCT) se traduz para o mundo das APIs bancárias (mTLS + credenciais server-side).</p>
+
+  <div class="arch-wrap">
+
+    <!-- PARCEIRO -->
+    <div class="layer layer-partner">
+      <div class="layer-icon">🏦</div>
+      <div class="layer-main">
+        <div class="layer-name">App do Parceiro (B)</div>
+        <div class="layer-desc">Sistema do Banco XPTO, Fintech Y etc. Autentica o cliente X com seus próprios mecanismos e repassa o UCT ao Shell via postMessage.</div>
+        <div class="layer-chips">
+          <span class="chip">Autenticação própria do X</span>
+          <span class="chip">postMessage → Shell</span>
+          <span class="chip">Gerencia PAT server-side</span>
+        </div>
+      </div>
+      <div class="layer-meta">
+        <div class="layer-proto"><strong>Protocolo</strong>postMessage (origem validada)</div>
+        <div class="layer-proto"><strong>Token emitido</strong>UCT → Shell</div>
+      </div>
+    </div>
+
+    <div class="arrow-row">
+      <div class="arrow-line"></div>
+      <div class="arrow-label">🔑 UCT via postMessage <span class="arrow-bidirect">· origem validada</span></div>
+    </div>
+
+    <!-- SHELL -->
+    <div class="layer layer-shell">
+      <div class="layer-icon">🔴</div>
+      <div class="layer-main">
+        <div class="layer-name">Shell App</div>
+        <div class="layer-desc">Armazena UCT em memória. Gerencia sessão, tema e roteamento entre MFEs. Injeta PartnerContext em todos os módulos filhos.</div>
+        <div class="layer-chips">
+          <span class="chip">UCT em memória</span>
+          <span class="chip">Tema runtime</span>
+          <span class="chip">Controle de sessão</span>
+          <span class="chip">Roteamento MFE</span>
+        </div>
+      </div>
+      <div class="layer-meta">
+        <div class="layer-proto"><strong>Protocolo</strong>Module Federation</div>
+        <div class="layer-proto"><strong>Passa ao MFE</strong>PartnerContext + UCT</div>
+      </div>
+    </div>
+
+    <div class="arrow-row">
+      <div class="arrow-line"></div>
+      <div class="arrow-label">📦 PartnerContext (tema + UCT + partnerId)</div>
+    </div>
+
+    <!-- MFE -->
+    <div class="layer layer-mfe">
+      <div class="layer-icon">🔵</div>
+      <div class="layer-main">
+        <div class="layer-name">MFE — ex: Capital de Giro</div>
+        <div class="layer-desc">Módulo de produto. Faz chamadas <strong>apenas ao BFF próprio</strong>. Nunca chama APIs de plataforma diretamente. Não sabe nada de autenticação — usa o UCT recebido do Shell.</div>
+        <div class="layer-chips">
+          <span class="chip">React + TypeScript</span>
+          <span class="chip">Chama só o BFF</span>
+          <span class="chip">Stateless de auth</span>
+          <span class="chip">UCT no header</span>
+        </div>
+      </div>
+      <div class="layer-meta">
+        <div class="layer-proto"><strong>Protocolo</strong>HTTPS · REST</div>
+        <div class="layer-proto"><strong>Token enviado</strong>Authorization: Bearer UCT</div>
+      </div>
+    </div>
+
+    <div class="arrow-row">
+      <div class="arrow-line"></div>
+      <div class="arrow-label" style="color:var(--green);border-color:var(--gb)">🌐 HTTPS · Bearer UCT · <span class="arrow-bidirect">JSON</span></div>
+    </div>
+
+    <!-- BFF -->
+    <div class="layer layer-bff">
+      <div class="layer-icon">🟢</div>
+      <div class="layer-main">
+        <div class="layer-name">BFF — bff-capital-giro</div>
+        <div class="layer-desc">Fronteira de segurança e agregação. Valida o UCT, troca por credenciais server-side, agrega chamadas de múltiplas APIs, aplica filtros do parceiro. O cliente X nunca fala com as APIs bancárias diretamente.</div>
+        <div class="layer-chips">
+          <span class="chip">Valida UCT</span>
+          <span class="chip">Troca por service token</span>
+          <span class="chip">Agrega APIs</span>
+          <span class="chip">Filtros por parceiro</span>
+          <span class="chip">Rate limit por X</span>
+          <span class="chip">Node.js / Fastify</span>
+        </div>
+      </div>
+      <div class="layer-meta">
+        <div class="layer-proto"><strong>Protocolo out</strong>mTLS + service token</div>
+        <div class="layer-proto"><strong>Deploy</strong>AKS · Azure</div>
+      </div>
+    </div>
+
+    <div class="arrow-row">
+      <div class="arrow-line"></div>
+      <div class="arrow-label" style="color:var(--purple);border-color:var(--pb)">🔒 mTLS · Service Token · <span class="arrow-bidirect">rede interna</span></div>
+    </div>
+
+    <!-- CORE PLATFORM -->
+    <div class="layer layer-core">
+      <div class="layer-icon">🟣</div>
+      <div class="layer-main">
+        <div class="layer-name">Core Platform — Squad 1</div>
+        <div class="layer-desc">OAuth2, IAM, multi-tenant, rate limit global, Kafka, observabilidade. Valida o service token do BFF e garante isolamento entre tenants de parceiros.</div>
+        <div class="layer-chips">
+          <span class="chip">OAuth2 + mTLS</span>
+          <span class="chip">Multi-tenant</span>
+          <span class="chip">Rate limit global</span>
+          <span class="chip">Kafka</span>
+        </div>
+      </div>
+      <div class="layer-meta">
+        <div class="layer-proto"><strong>Protocolo</strong>Java / Spring Boot</div>
+        <div class="layer-proto"><strong>Deploy</strong>AKS · Azure</div>
+      </div>
+    </div>
+
+    <div class="arrow-row">
+      <div class="arrow-line"></div>
+      <div class="arrow-label" style="color:var(--teal);border-color:rgba(34,212,192,.3)">⚡ APIs internas · rede privada</div>
+    </div>
+
+    <!-- LAAS / CAAS -->
+    <div class="layer layer-api">
+      <div class="layer-icon">🩵</div>
+      <div class="layer-main">
+        <div class="layer-name">LaaS / CaaS — Squads 2 & 3</div>
+        <div class="layer-desc">APIs de produto: originação de crédito, score, contratos, antecipação de recebíveis. Falam apenas com o Core Platform — nunca diretamente com o BFF ou MFE.</div>
+        <div class="layer-chips">
+          <span class="chip">Capital de Giro API</span>
+          <span class="chip">Antecipação API</span>
+          <span class="chip">Score / Risco</span>
+          <span class="chip">Contratos</span>
+        </div>
+      </div>
+      <div class="layer-meta">
+        <div class="layer-proto"><strong>Protocolo</strong>Java / Spring Boot</div>
+        <div class="layer-proto"><strong>Deploy</strong>AKS · Azure</div>
+      </div>
+    </div>
+
+  </div><!-- /arch-wrap -->
+</div>
+
+<!-- ══════════════════════════════════════════
+     TAB 2 — FLUXO DE TOKENS
+══════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-flow">
+
+  <div class="section-title">Fluxo Completo de Tokens com BFF</div>
+  <p class="section-sub">Do clique do usuário no MFE até a resposta da API de crédito — com cada token, cada validação e cada troca de protocolo explicitada.</p>
+
+  <div class="flow-steps">
+
+    <!-- 1 -->
+    <div class="fstep">
+      <div class="fstep-spine">
+        <div class="fstep-node n-amber">01</div>
+        <div class="fstep-line"></div>
+      </div>
+      <div class="fstep-body">
+        <div class="fstep-header">
+          <span class="fstep-num">MFE → BFF</span>
+          <span class="fstep-tag t-amber">REQUISIÇÃO</span>
+        </div>
+        <div class="fstep-title">MFE chama o BFF com o UCT no header</div>
+        <div class="fstep-desc">O usuário clica em "Simular Capital de Giro". O MFE faz uma chamada HTTP para o BFF. O UCT (que estava em memória no Shell, repassado via PartnerContext) vai no header <code>Authorization</code>.</div>
+        <div class="code-wrap">
+          <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">HTTP · MFE → BFF</span></div>
+          <pre><span class="key">GET</span> https://bff-capital-giro.baas.bradesco.com.br/v1/simulate
+<span class="key">Authorization</span>: Bearer <span class="green-t">{UCT}</span>          <span class="cm">← token em memória do Shell</span>
+<span class="key">X-Partner-Id</span>: banco-xpto
+<span class="key">X-Correlation-Id</span>: req_9a1c-f3b2
+<span class="key">X-Session-Id</span>: sess_4d2e-8a71
+Content-Type: application/json
+
+{ <span class="str">"amount"</span>: <span class="num">50000</span>, <span class="str">"term"</span>: <span class="num">12</span> }   <span class="cm">← dados da simulação</span></pre>
+        </div>
+        <div class="hbox blue">
+          <div class="hbox-title">Por que o MFE não chama a API diretamente?</div>
+          <p>Porque a API de plataforma exige mTLS com certificado server-side — o browser não tem como fazer isso com segurança. O BFF é a única camada que detém as credenciais de serviço.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="fstep">
+      <div class="fstep-spine">
+        <div class="fstep-node n-red">02</div>
+        <div class="fstep-line"></div>
+      </div>
+      <div class="fstep-body">
+        <div class="fstep-header">
+          <span class="fstep-num">BFF · validação</span>
+          <span class="fstep-tag t-red">SEGURANÇA</span>
+        </div>
+        <div class="fstep-title">BFF valida o UCT — 3 verificações</div>
+        <div class="fstep-desc">Antes de qualquer outra coisa, o BFF valida o UCT recebido. Se qualquer verificação falhar, retorna 401 e não prossegue.</div>
+        <div class="code-wrap">
+          <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">Node.js · BFF · validateUCT.ts</span></div>
+          <pre><span class="kw">async function</span> <span class="fn">validateUCT</span>(uct: <span class="str">string</span>, req: Request) {
+
+  <span class="cm">// ① Verifica assinatura JWT (chave pública do Auth Server)</span>
+  <span class="kw">const</span> payload = <span class="kw">await</span> jwtVerify(uct, JWKS_URL);
+
+  <span class="cm">// ② Verifica se o jti não está na blacklist (Redis)</span>
+  <span class="kw">const</span> revoked = <span class="kw">await</span> redis.<span class="fn">get</span>(<span class="str">`blacklist:<span class="key">${payload.jti}</span>`</span>);
+  <span class="kw">if</span> (revoked) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">'TOKEN_REVOKED'</span>);
+
+  <span class="cm">// ③ Verifica se o parceiro do token == parceiro da request</span>
+  <span class="kw">if</span> (payload.partner_id !== req.headers[<span class="str">'x-partner-id'</span>])
+    <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">'PARTNER_MISMATCH'</span>);
+
+  <span class="kw">return</span> payload; <span class="cm">// { sub, partner_id, scope, products, exp }</span>
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="fstep">
+      <div class="fstep-spine">
+        <div class="fstep-node n-green">03</div>
+        <div class="fstep-line"></div>
+      </div>
+      <div class="fstep-body">
+        <div class="fstep-header">
+          <span class="fstep-num">BFF → Core Platform</span>
+          <span class="fstep-tag t-green">TOKEN EXCHANGE</span>
+        </div>
+        <div class="fstep-title">BFF troca UCT por Service Token via mTLS</div>
+        <div class="fstep-desc">Com o UCT validado, o BFF chama o Authorization Server para obter um <strong>Service Token</strong> — uma credencial server-to-server que identifica tanto o serviço (BFF) quanto o contexto do usuário (X) e do parceiro (B).</div>
+        <div class="code-wrap">
+          <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">HTTP · BFF → Auth Server · mTLS</span></div>
+          <pre><span class="cm"># BFF faz isso com certificado mTLS do lado do cliente</span>
+<span class="key">POST</span> https://auth.baas.bradesco.com.br/oauth2/token
+<span class="cm"># [certificado TLS do BFF apresentado automaticamente]</span>
+
+<span class="key">grant_type</span>=<span class="str">urn:ietf:params:oauth:grant-type:token-exchange</span>
+<span class="key">&subject_token</span>=<span class="green-t">{UCT}</span>
+<span class="key">&subject_token_type</span>=<span class="str">urn:ietf:params:oauth:token-type:access_token</span>
+<span class="key">&requested_token_type</span>=<span class="str">urn:ietf:params:oauth:token-type:access_token</span>
+<span class="key">&scope</span>=<span class="str">credit.capital-giro:simulate credit.capital-giro:apply</span>
+<span class="key">&audience</span>=<span class="str">lending-api.internal.bradesco.com.br</span>
+
+<span class="cm">── RESPOSTA ──────────────────────────────────</span>
+{
+  <span class="str">"access_token"</span>: <span class="green-t">"{ServiceToken}"</span>,   <span class="cm">← token server-to-server</span>
+  <span class="str">"token_type"</span>:   <span class="str">"Bearer"</span>,
+  <span class="str">"expires_in"</span>:   <span class="num">300</span>                  <span class="cm">← 5 min, escopo restrito</span>
+}</pre>
+        </div>
+        <div class="hbox green">
+          <div class="hbox-title">O que o Service Token carrega que o UCT não tem</div>
+          <p>O Service Token é emitido com audience específico (<code>lending-api</code>), TTL muito menor (5 min vs 15 min do UCT) e inclui a identidade do BFF como emissor delegado. As APIs de plataforma só aceitam Service Token — nunca UCT diretamente.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="fstep">
+      <div class="fstep-spine">
+        <div class="fstep-node n-purple">04</div>
+        <div class="fstep-line"></div>
+      </div>
+      <div class="fstep-body">
+        <div class="fstep-header">
+          <span class="fstep-num">BFF → LaaS API</span>
+          <span class="fstep-tag t-purple">AGREGAÇÃO</span>
+        </div>
+        <div class="fstep-title">BFF agrega múltiplas APIs com o Service Token</div>
+        <div class="fstep-desc">Para montar uma resposta completa para o MFE, o BFF pode precisar chamar mais de uma API. Ele faz isso em paralelo e agrega o resultado — economizando round-trips do browser.</div>
+        <div class="code-wrap">
+          <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">Node.js · BFF · aggregator.ts</span></div>
+          <pre><span class="cm">// Paralelo — economiza tempo de resposta</span>
+<span class="kw">const</span> [limit, conditions, riskProfile] = <span class="kw">await</span> Promise.<span class="fn">all</span>([
+
+  <span class="cm">// API 1: limite de crédito disponível para o usuário X</span>
+  lendingApi.<span class="fn">get</span>(<span class="str">`/v1/credit-limit/<span class="key">${ctx.sub}</span>`</span>,
+    { headers: { Authorization: <span class="str">`Bearer <span class="key">${serviceToken}</span>`</span> } }),
+
+  <span class="cm">// API 2: condições comerciais do parceiro para capital de giro</span>
+  lendingApi.<span class="fn">get</span>(<span class="str">`/v1/conditions/capital-giro/<span class="key">${ctx.partner_id}</span>`</span>,
+    { headers: { Authorization: <span class="str">`Bearer <span class="key">${serviceToken}</span>`</span> } }),
+
+  <span class="cm">// API 3: score de risco do usuário (Squad 2 — Motor de Risco)</span>
+  riskApi.<span class="fn">get</span>(<span class="str">`/v1/risk-profile/<span class="key">${ctx.sub}</span>`</span>,
+    { headers: { Authorization: <span class="str">`Bearer <span class="key">${serviceToken}</span>`</span> } }),
+]);
+
+<span class="cm">// Agrega e filtra conforme contrato do parceiro</span>
+<span class="kw">return</span> <span class="fn">buildSimulationResponse</span>(limit, conditions, riskProfile, ctx);</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="fstep">
+      <div class="fstep-spine">
+        <div class="fstep-node n-amber">05</div>
+        <div class="fstep-line"></div>
+      </div>
+      <div class="fstep-body">
+        <div class="fstep-header">
+          <span class="fstep-num">BFF · filtros</span>
+          <span class="fstep-tag t-amber">REGRAS DE PARCEIRO</span>
+        </div>
+        <div class="fstep-title">BFF aplica filtros específicos do parceiro</div>
+        <div class="fstep-desc">Antes de devolver ao MFE, o BFF aplica regras do parceiro — campos que não foram contratados são removidos, limites são ajustados, campos obrigatórios são validados. Essa lógica nunca fica no MFE nem nas APIs de plataforma.</div>
+        <div class="code-wrap">
+          <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">Node.js · BFF · partnerFilter.ts</span></div>
+          <pre><span class="kw">function</span> <span class="fn">applyPartnerFilters</span>(data, partnerConfig) {
+
+  <span class="cm">// Remove campos não contratados pelo parceiro</span>
+  <span class="kw">if</span> (!partnerConfig.features.showRiskScore)
+    <span class="kw">delete</span> data.riskScore;
+
+  <span class="cm">// Aplica teto de limite definido em contrato</span>
+  <span class="kw">if</span> (data.limit > partnerConfig.maxCreditLimit)
+    data.limit = partnerConfig.maxCreditLimit;
+
+  <span class="cm">// Ajusta taxas conforme spread acordado com o parceiro</span>
+  data.rate = data.baseRate + partnerConfig.spreadBps / <span class="num">10000</span>;
+
+  <span class="kw">return</span> data;
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6 -->
+    <div class="fstep">
+      <div class="fstep-spine">
+        <div class="fstep-node n-blue">06</div>
+      </div>
+      <div class="fstep-body">
+        <div class="fstep-header">
+          <span class="fstep-num">BFF → MFE</span>
+          <span class="fstep-tag t-blue">RESPOSTA</span>
+        </div>
+        <div class="fstep-title">BFF devolve resposta agregada e filtrada ao MFE</div>
+        <div class="fstep-desc">O MFE recebe uma resposta única, limpa, já filtrada pelo parceiro. Ele não sabe quantas APIs foram chamadas por baixo. O MFE só precisa renderizar os dados.</div>
+        <div class="code-wrap">
+          <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">JSON · BFF → MFE · resposta</span></div>
+          <pre>{
+  <span class="str">"simulation"</span>: {
+    <span class="str">"availableLimit"</span>: <span class="num">50000</span>,         <span class="cm">← de /credit-limit</span>
+    <span class="str">"monthlyRate"</span>:    <span class="num">0.012</span>,           <span class="cm">← de /conditions + spread parceiro</span>
+    <span class="str">"maxTerm"</span>:        <span class="num">24</span>,              <span class="cm">← de /conditions</span>
+    <span class="str">"gracePeriod"</span>:    <span class="num">30</span>,              <span class="cm">← de /conditions</span>
+    <span class="str">"approvalChance"</span>: <span class="str">"high"</span>           <span class="cm">← de /risk-profile (filtrado)</span>
+  },
+  <span class="str">"meta"</span>: {
+    <span class="str">"correlationId"</span>: <span class="str">"req_9a1c-f3b2"</span>, <span class="cm">← rastreabilidade ponta a ponta</span>
+    <span class="str">"cachedAt"</span>:      <span class="str">"2026-05-27T10:31:00Z"</span>
+  }
+}
+<span class="cm">
+⏱ Tempo total: ~180ms
+   (3 APIs em paralelo · filtros · serialização)</span></pre>
+        </div>
+        <div class="hbox green">
+          <div class="hbox-title">✓ O que o MFE nunca vê</div>
+          <p>Service Token · credenciais mTLS · score numérico bruto (se parceiro não contratou) · campos de risco interno · estrutura interna das APIs de plataforma. O BFF é o guardião dessa fronteira.</p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /flow-steps -->
+</div>
+
+<!-- ══════════════════════════════════════════
+     TAB 3 — RESPONSABILIDADES DO BFF
+══════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-bff">
+
+  <div class="section-title">O Que o BFF Faz — e o Que Não Faz</div>
+  <p class="section-sub">O BFF é intencionalmente pequeno e focado. Três responsabilidades fixas, nada mais.</p>
+
+  <div class="bff-grid">
+
+    <div class="bff-card">
+      <div class="bff-card-top" style="border-color:var(--border)">
+        <div class="bff-card-icon" style="background:var(--rg)">🔐</div>
+        <div>
+          <div class="bff-card-title" style="color:var(--red)">Segurança de Fronteira</div>
+          <div style="font-size:11px;color:var(--muted);font-family:var(--mono)">RESPONSABILIDADE 1</div>
+        </div>
+      </div>
+      <div class="bff-card-body">
+        <div class="bff-card-desc">Valida o UCT (assinatura, expiração, blacklist, partner match). Faz a troca por Service Token via mTLS. As APIs de plataforma nunca recebem UCT diretamente — só Service Token emitido pelo BFF.</div>
+        <div class="code-wrap">
+          <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">Checklist de segurança</span></div>
+          <pre><span class="green-t">✓</span> Verifica assinatura JWT (JWKS)
+<span class="green-t">✓</span> Checa jti no Redis blacklist
+<span class="green-t">✓</span> Valida partner_id do token vs header
+<span class="green-t">✓</span> Verifica scope para o endpoint chamado
+<span class="green-t">✓</span> mTLS para chamadas saindo do BFF
+<span class="red-t">✗</span> Nunca repassa UCT para APIs internas</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="bff-card">
+      <div class="bff-card-top">
+        <div class="bff-card-icon" style="background:var(--pg)">🧩</div>
+        <div>
+          <div class="bff-card-title" style="color:var(--purple)">Agregação de Dados</div>
+          <div style="font-size:11px;color:var(--muted);font-family:var(--mono)">RESPONSABILIDADE 2</div>
+        </div>
+      </div>
+      <div class="bff-card-body">
+        <div class="bff-card-desc">Chama múltiplas APIs em paralelo e devolve uma resposta única e coerente para o MFE. O MFE nunca faz N chamadas para montar uma tela — sempre uma.</div>
+        <div class="code-wrap">
+          <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">Padrão de agregação</span></div>
+          <pre><span class="cm">MFE faz 1 chamada → BFF
+BFF faz N chamadas em paralelo:
+  → /credit-limit      (LaaS)
+  → /conditions        (LaaS)
+  → /risk-profile      (Motor Risco)
+BFF agrega → 1 resposta ao MFE
+
+<span class="green-t">Resultado: tela mais rápida</span>
+<span class="green-t">Menos dados sensíveis no browser</span></span></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="bff-card">
+      <div class="bff-card-top">
+        <div class="bff-card-icon" style="background:var(--ag)">⚙️</div>
+        <div>
+          <div class="bff-card-title" style="color:var(--amber)">Filtros de Parceiro</div>
+          <div style="font-size:11px;color:var(--muted);font-family:var(--mono)">RESPONSABILIDADE 3</div>
+        </div>
+      </div>
+      <div class="bff-card-body">
+        <div class="bff-card-desc">Aplica as regras comerciais do parceiro: teto de limite, spread de taxa, campos habilitados, produtos contratados. Essa camada protege tanto o Bradesco (regras de negócio) quanto o parceiro (SLA comercial).</div>
+        <div class="code-wrap">
+          <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">Exemplos de filtros</span></div>
+          <pre><span class="cm">partner: banco-xpto</span>
+maxCreditLimit: <span class="num">100_000</span>   <span class="cm">← teto contratual</span>
+spreadBps:      <span class="num">85</span>         <span class="cm">← spread de taxa (0,85%)</span>
+showRiskScore:  <span class="kw">false</span>       <span class="cm">← não contratou</span>
+maxTerm:        <span class="num">18</span>          <span class="cm">← prazo máximo permitido</span>
+gracePeriod:    <span class="num">30</span>          <span class="cm">← carência padrão XPTO</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="bff-card">
+      <div class="bff-card-top">
+        <div class="bff-card-icon" style="background:var(--gg)">📊</div>
+        <div>
+          <div class="bff-card-title" style="color:var(--green)">Observabilidade</div>
+          <div style="font-size:11px;color:var(--muted);font-family:var(--mono)">RESPONSABILIDADE 4</div>
+        </div>
+      </div>
+      <div class="bff-card-body">
+        <div class="bff-card-desc">Emite traces distribuídos com o correlationId propagado do MFE. Qualquer incidente pode ser rastreado do clique do usuário até a API de plataforma. Métricas por parceiro, por produto e por endpoint.</div>
+        <div class="code-wrap">
+          <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">Dados emitidos por requisição</span></div>
+          <pre>correlationId  <span class="cm">← propagado do MFE</span>
+partnerId      <span class="cm">← do UCT validado</span>
+productId      <span class="cm">← capital-giro</span>
+endpoint       <span class="cm">← /simulate</span>
+durationMs     <span class="cm">← tempo total</span>
+upstreamCalls  <span class="cm">← [ {api, ms} ]</span>
+statusCode     <span class="cm">← 200 / 4xx / 5xx</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="bff-card" style="border-color:var(--rb)">
+      <div class="bff-card-top" style="background:var(--rg)">
+        <div class="bff-card-icon" style="background:var(--rg)">🚫</div>
+        <div>
+          <div class="bff-card-title" style="color:var(--red)">O Que o BFF NÃO Faz</div>
+          <div style="font-size:11px;color:var(--muted);font-family:var(--mono)">LIMITES INTENCIONAIS</div>
+        </div>
+      </div>
+      <div class="bff-card-body">
+        <div class="bff-card-desc">O BFF tem um escopo deliberadamente estreito. Fora disso, é problema de outra camada.</div>
+        <div class="code-wrap">
+          <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">Fora do escopo do BFF</span></div>
+          <pre><span class="red-t">✗</span> Regras de negócio de crédito (→ LaaS)
+<span class="red-t">✗</span> Motor de score/risco      (→ Squad 2)
+<span class="red-t">✗</span> Gestão de contratos       (→ LaaS)
+<span class="red-t">✗</span> Emissão de tokens         (→ Core Platform)
+<span class="red-t">✗</span> Multi-tenant IAM          (→ Core Platform)
+<span class="red-t">✗</span> Kafka / eventos           (→ Core Platform)
+<span class="red-t">✗</span> Lógica de UI              (→ MFE)</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="bff-card">
+      <div class="bff-card-top">
+        <div class="bff-card-icon" style="background:var(--tg)">🚀</div>
+        <div>
+          <div class="bff-card-title" style="color:var(--teal)">Stack & Deploy</div>
+          <div style="font-size:11px;color:var(--muted);font-family:var(--mono)">TECNOLOGIA</div>
+        </div>
+      </div>
+      <div class="bff-card-body">
+        <div class="bff-card-desc">Um BFF por produto de crédito. Stateless, leve, deployado no Azure AKS junto com as APIs de plataforma. Escala independente do MFE e do Core Platform.</div>
+        <div class="code-wrap">
+          <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">Tech stack do BFF</span></div>
+          <pre>runtime:   Node.js <span class="num">20</span> LTS
+framework: Fastify  <span class="cm">← baixa latência</span>
+http:      Axios + retry/circuit-breaker
+auth:      jose (JWT) + redis (blacklist)
+tls:       node-tls (mTLS client cert)
+deploy:    Docker → AKS · Azure
+scaling:   HPA (CPU + RPS por pod)
+observ:    OpenTelemetry → Azure Monitor</pre>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /bff-grid -->
+
+  <!-- TOKEN ANATOMY TABLE -->
+  <div class="divider"></div>
+  <div class="section-title">Os Três Tokens — Anatomia Comparada</div>
+  <p class="section-sub">Cada camada usa um token diferente, com propósito e TTL calibrado para o risco.</p>
+
+  <table class="token-table">
+    <thead>
+      <tr>
+        <th>Token</th>
+        <th>Quem emite</th>
+        <th>Quem usa</th>
+        <th>Storage</th>
+        <th>TTL</th>
+        <th>Protocolo</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="color:var(--amber)">PAT<br><span style="font-size:10px;color:var(--muted)">Partner Access Token</span></td>
+        <td>Auth Server (Bradesco)</td>
+        <td>Backend do parceiro</td>
+        <td class="ok">Server-side (parceiro)</td>
+        <td>15 min</td>
+        <td>OAuth2 client_credentials + mTLS</td>
+      </tr>
+      <tr>
+        <td style="color:var(--blue)">UCT<br><span style="font-size:10px;color:var(--muted)">User Context Token</span></td>
+        <td>Auth Server via Token Exchange</td>
+        <td>Shell App + MFEs</td>
+        <td class="ok">Memória JS apenas</td>
+        <td>15 min</td>
+        <td>HTTPS · Bearer header</td>
+      </tr>
+      <tr>
+        <td style="color:var(--green)">Service Token<br><span style="font-size:10px;color:var(--muted)">BFF → APIs</span></td>
+        <td>Auth Server (BFF solicita)</td>
+        <td>BFF → Core Platform</td>
+        <td class="ok">Memória do BFF (pod)</td>
+        <td>5 min</td>
+        <td>mTLS · rede interna Azure</td>
+      </tr>
+      <tr>
+        <td style="color:var(--red)">localStorage<br><span style="font-size:10px;color:var(--muted)">Qualquer token</span></td>
+        <td>—</td>
+        <td>—</td>
+        <td class="bad">PROIBIDO</td>
+        <td>—</td>
+        <td>Vulnerável a XSS</td>
+      </tr>
+    </tbody>
+  </table>
+
+</div>
+
+<!-- ══════════════════════════════════════════
+     TAB 4 — SEM BFF vs COM BFF
+══════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-compare">
+
+  <div class="section-title">Sem BFF vs Com BFF</div>
+  <p class="section-sub">Por que não conectar o MFE diretamente nas APIs de plataforma? Três problemas concretos que aparecem imediatamente.</p>
+
+  <div class="versus">
+    <div class="versus-side bad-side">
+      <div class="versus-label">✗ Sem BFF — MFE chama API diretamente</div>
+      <div class="versus-item"><span class="versus-bullet">⚠️</span><span>Browser teria que fazer mTLS — impossível de forma segura no frontend</span></div>
+      <div class="versus-item"><span class="versus-bullet">⚠️</span><span>UCT enviado diretamente para APIs bancárias — superfície de ataque maior</span></div>
+      <div class="versus-item"><span class="versus-bullet">⚠️</span><span>MFE faz 3 chamadas separadas para montar uma tela — 3x o round-trip</span></div>
+      <div class="versus-item"><span class="versus-bullet">⚠️</span><span>Filtros de parceiro ficam no MFE — lógica de negócio no frontend</span></div>
+      <div class="versus-item"><span class="versus-bullet">⚠️</span><span>Cada MFE reimplementa validação de token — duplicação e inconsistência</span></div>
+      <div class="versus-item"><span class="versus-bullet">⚠️</span><span>Troca de regra comercial de parceiro exige redesploy do MFE</span></div>
+      <div class="versus-item"><span class="versus-bullet">⚠️</span><span>Dados brutos das APIs expostos no tráfego do browser</span></div>
+    </div>
+    <div class="versus-side good-side">
+      <div class="versus-label">✓ Com BFF — MFE fala só com o BFF</div>
+      <div class="versus-item"><span class="versus-bullet">✅</span><span>mTLS fica no BFF — certificados server-side, sem expor ao browser</span></div>
+      <div class="versus-item"><span class="versus-bullet">✅</span><span>UCT validado e trocado no BFF — APIs internas recebem Service Token</span></div>
+      <div class="versus-item"><span class="versus-bullet">✅</span><span>MFE faz 1 chamada — BFF agrega N APIs em paralelo</span></div>
+      <div class="versus-item"><span class="versus-bullet">✅</span><span>Filtros de parceiro no BFF — lógica de negócio server-side</span></div>
+      <div class="versus-item"><span class="versus-bullet">✅</span><span>Validação de token centralizada no BFF — um só lugar para atualizar</span></div>
+      <div class="versus-item"><span class="versus-bullet">✅</span><span>Regra comercial muda no BFF — MFE não precisa de redesploy</span></div>
+      <div class="versus-item"><span class="versus-bullet">✅</span><span>MFE recebe só o que precisa renderizar — dados sensíveis ficam server-side</span></div>
+    </div>
+  </div>
+
+  <div class="hbox amber" style="margin-bottom:32px">
+    <div class="hbox-title">⚠ Quando o BFF vira problema</div>
+    <p>BFF pode virar gargalo se a Squad 4 colocar regras de negócio pesadas nele. A linha é clara: <strong>orquestração e filtro = BFF</strong>. <strong>Regra de negócio de crédito = LaaS/CaaS</strong>. Se o BFF começa a calcular parcelas ou decidir aprovação, ele saiu do seu papel.</p>
+  </div>
+
+  <!-- FINAL FLOW SUMMARY -->
+  <div class="section-title" style="margin-top:8px">Resumo Visual do Fluxo Completo</div>
+  <div class="code-wrap">
+    <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">Fluxo ponta a ponta · com tokens</span></div>
+    <pre>
+<span class="amber-t">Parceiro (B)</span>
+  └─ autentica X com sistemas próprios
+  └─ chama Token Exchange com PAT → obtém <span class="amber-t">UCT</span>
+  └─ passa UCT ao Shell via postMessage
+
+<span class="red-t">Shell App</span>
+  └─ recebe <span class="amber-t">UCT</span> → armazena em memória JS
+  └─ injeta no PartnerContext → MFE recebe
+
+<span class="kw">MFE Capital de Giro</span>
+  └─ usuário clica "Simular"
+  └─ GET /v1/simulate · header: <span class="amber-t">Bearer UCT</span>
+  └─ → chega no BFF
+
+<span class="green-t">BFF bff-capital-giro</span>
+  └─ valida <span class="amber-t">UCT</span> (assinatura + blacklist + partner match)
+  └─ troca UCT por <span class="green-t">Service Token</span> via mTLS
+  └─ chama em paralelo (com <span class="green-t">Service Token</span>):
+       ├─ LaaS /credit-limit
+       ├─ LaaS /conditions/capital-giro
+       └─ Risk /risk-profile
+  └─ agrega resultados
+  └─ aplica filtros do parceiro banco-xpto
+  └─ → devolve JSON limpo ao MFE
+
+<span class="kw">MFE</span> renderiza resultado → <span class="green-t">tela de simulação pronta ✓</span>
+
+<span class="cm">Tempo total: ~180ms · 1 chamada do MFE · 3 APIs internas</span>
+    </pre>
+  </div>
+
+</div><!-- /tab-compare -->
+
+</div><!-- /page -->
+
+<script>
+function showTab(id){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    const ids=['arch','flow','bff','compare'];
+    t.classList.toggle('active', ids[i]===id);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p=>{
+    p.classList.toggle('active', p.id==='tab-'+id);
+  });
+}
+</script>
+</body>
+</html>

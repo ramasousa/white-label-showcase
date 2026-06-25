@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BaaS Admin · MFE Registry · Gestão de Portfólio</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c0e12;--s1:#13161c;--s2:#191d25;--s3:#1f2430;
+  --border:rgba(255,255,255,.07);--b2:rgba(255,255,255,.12);
+  --text:#e8ecf3;--text2:#a8b2c4;--muted:#6b7589;--dim:#404a5e;
+
+  --acc:#5b8def;--acc-d:#3f6dd1;--acc-g:rgba(91,141,239,.1);--acc-b:rgba(91,141,239,.25);
+  --green:#2dd4a8;--gg:rgba(45,212,168,.1);--gb:rgba(45,212,168,.28);
+  --amber:#f5b942;--ag:rgba(245,185,66,.1);--ab:rgba(245,185,66,.28);
+  --red:#f0506e;--rg:rgba(240,80,110,.1);--rb:rgba(240,80,110,.28);
+  --purple:#a684f0;--pg:rgba(166,132,240,.1);
+
+  --radius:8px;--radius-lg:12px;
+  --mono:'JetBrains Mono',monospace;--sans:'Inter',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:13.5px;line-height:1.55}
+button,input,select,textarea{font-family:var(--sans)}
+button{cursor:pointer}
+
+/* topbar */
+.topbar{height:56px;background:var(--s1);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;position:sticky;top:0;z-index:100}
+.tb-logo{display:flex;align-items:center;gap:10px;padding-right:16px;border-right:1px solid var(--border)}
+.tb-logo-mark{width:30px;height:30px;background:linear-gradient(135deg,var(--acc),#8b5cf6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff}
+.tb-logo-name{font-size:13.5px;font-weight:700;color:var(--text)}
+.tb-logo-tag{font-size:10px;color:var(--muted);letter-spacing:.5px}
+.tb-env-badge{font-family:var(--mono);font-size:10px;font-weight:700;padding:4px 10px;border-radius:5px;background:var(--rg);color:var(--red);border:1px solid var(--rb);letter-spacing:1px}
+.tb-spacer{flex:1}
+.tb-search{display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--border);border-radius:var(--radius);padding:7px 14px;width:280px;color:var(--muted);font-size:12.5px}
+.tb-user{display:flex;align-items:center;gap:9px}
+.tb-avatar{width:28px;height:28px;border-radius:50%;background:var(--acc);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
+.tb-user-name{font-size:12.5px;font-weight:600}
+.tb-user-role{font-size:10.5px;color:var(--muted)}
+
+/* layout */
+.layout{display:flex;min-height:calc(100vh - 56px)}
+.sidebar{width:236px;min-width:236px;background:var(--s1);border-right:1px solid var(--border);padding:18px 0;display:flex;flex-direction:column}
+.sb-section{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);padding:0 18px;margin:16px 0 6px}
+.sb-link{display:flex;align-items:center;gap:10px;padding:9px 18px;color:var(--muted);font-size:13px;font-weight:500;border-left:2px solid transparent;cursor:pointer;transition:all .15s;background:none;border-top:none;border-right:none;border-bottom:none;width:100%;text-align:left}
+.sb-link:hover{color:var(--text2);background:rgba(255,255,255,.02)}
+.sb-link.active{color:var(--acc);border-left-color:var(--acc);background:var(--acc-g)}
+.sb-icon{font-size:15px;flex-shrink:0}
+.sb-badge{margin-left:auto;font-family:var(--mono);font-size:9.5px;font-weight:700;background:var(--s3);color:var(--text2);border-radius:9px;padding:1px 7px}
+.sb-badge.warn{background:var(--ag);color:var(--amber)}
+.sb-bottom{margin-top:auto;padding:14px 18px;border-top:1px solid var(--border)}
+.sb-bottom-label{font-size:9.5px;color:var(--dim);margin-bottom:3px}
+.sb-bottom-val{font-family:var(--mono);font-size:10px;color:var(--muted)}
+
+.main{flex:1;padding:28px 32px;overflow-x:hidden}
+
+/* page header */
+.page-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+.page-title{font-size:21px;font-weight:800;letter-spacing:-.4px}
+.page-sub{font-size:12.5px;color:var(--muted);margin-top:3px}
+.btn{padding:9px 18px;border-radius:var(--radius);border:none;font-size:12.5px;font-weight:700;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:7px}
+.btn-acc{background:var(--acc);color:#fff}
+.btn-acc:hover{background:var(--acc-d);transform:translateY(-1px);box-shadow:0 6px 20px rgba(91,141,239,.25)}
+.btn-ghost{background:var(--s2);border:1px solid var(--border);color:var(--text2)}
+.btn-ghost:hover{border-color:var(--b2);color:var(--text)}
+
+/* stats */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stat{background:var(--s1);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;transition:border-color .2s}
+.stat:hover{border-color:var(--b2)}
+.stat-label{font-size:10.5px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.stat-val{font-size:26px;font-weight:800;letter-spacing:-.5px;font-family:var(--mono)}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:4px}
+
+/* registry table */
+.panel{background:var(--s1);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:20px}
+.panel-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.panel-title{font-size:14px;font-weight:700}
+.panel-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+.panel-toolbar{display:flex;gap:10px;align-items:center}
+.filter-chip{padding:6px 13px;border-radius:20px;border:1px solid var(--border);background:var(--s2);font-size:11.5px;color:var(--muted);cursor:pointer;transition:all .15s}
+.filter-chip:hover{border-color:var(--b2);color:var(--text2)}
+.filter-chip.active{background:var(--acc-g);border-color:var(--acc-b);color:var(--acc)}
+
+table{width:100%;border-collapse:collapse}
+thead th{font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);padding:11px 20px;text-align:left;background:var(--s2);border-bottom:1px solid var(--border);white-space:nowrap}
+tbody td{padding:14px 20px;border-bottom:1px solid var(--border);vertical-align:middle}
+tbody tr:hover td{background:rgba(255,255,255,.012)}
+tbody tr:last-child td{border-bottom:none}
+
+.mod-info{display:flex;align-items:center;gap:11px}
+.mod-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.mod-name{font-size:13px;font-weight:700;color:var(--text)}
+.mod-id{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+
+.status-pill{font-family:var(--mono);font-size:9.5px;font-weight:700;padding:4px 10px;border-radius:10px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.sp-active{background:var(--gg);color:var(--green);border:1px solid var(--gb)}
+.sp-staging{background:var(--ag);color:var(--amber);border:1px solid var(--ab)}
+.sp-deprecated{background:var(--pg);color:var(--purple);border:1px solid rgba(166,132,240,.28)}
+.sp-disabled{background:var(--rg);color:var(--red);border:1px solid var(--rb)}
+.pill-dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+
+.health-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+.health-dot{width:6px;height:6px;border-radius:50%}
+.hd-ok{background:var(--green);box-shadow:0 0 5px var(--green)}
+.hd-fail{background:var(--red);box-shadow:0 0 5px var(--red)}
+.hd-pending{background:var(--amber);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.partner-pips{display:flex;gap:4px;flex-wrap:wrap;max-width:160px}
+.pp{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:4px;background:var(--s3);color:var(--text2);white-space:nowrap}
+.pp-more{font-size:9.5px;color:var(--dim);padding:2px 4px}
+
+.td-actions{display:flex;gap:6px}
+.act-btn{padding:5px 11px;border-radius:6px;border:1px solid var(--border);background:var(--s2);font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s}
+.act-btn:hover{border-color:var(--acc-b);color:var(--acc);background:var(--acc-g)}
+.act-btn.danger:hover{border-color:var(--rb);color:var(--red);background:var(--rg)}
+.act-btn.warn:hover{border-color:var(--ab);color:var(--amber);background:var(--ag)}
+
+/* version */
+.ver-tag{font-family:var(--mono);font-size:11px;color:var(--text2);background:var(--s2);padding:2px 8px;border-radius:5px;border:1px solid var(--border)}
+
+/* page sections */
+.page{display:none}
+.page.active{display:block}
+
+/* ─── ADD MODULE WIZARD ─── */
+.wizard-steps{display:flex;align-items:center;gap:0;margin-bottom:24px}
+.wstep{display:flex;align-items:center;gap:9px;flex:1}
+.wstep-circle{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--muted);flex-shrink:0;transition:all .2s}
+.wstep.active .wstep-circle{background:var(--acc);border-color:var(--acc);color:#fff}
+.wstep.done .wstep-circle{background:var(--green);border-color:var(--green);color:#0c0e12}
+.wstep-label{font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap}
+.wstep.active .wstep-label{color:var(--text)}
+.wstep-line{flex:1;height:1px;background:var(--border);margin:0 6px}
+
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-full{grid-column:1/-1}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.field-label{font-size:12px;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:6px}
+.field-req{color:var(--red);font-size:13px}
+.field-hint{font-size:10.5px;color:var(--dim);font-weight:400}
+.field-input{height:38px;border:1px solid var(--border);border-radius:var(--radius);padding:0 12px;font-size:13px;color:var(--text);background:var(--s2);outline:none;transition:border-color .15s,box-shadow .15s}
+.field-input:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-g)}
+.field-input.mono{font-family:var(--mono);font-size:12px}
+.field-select{height:38px;border:1px solid var(--border);border-radius:var(--radius);padding:0 12px;font-size:13px;color:var(--text);background:var(--s2);appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%236b7589' d='M5 6L0 0h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:30px;cursor:pointer;outline:none}
+.field-select:focus{border-color:var(--acc)}
+.field-textarea{min-height:70px;resize:vertical;padding:10px 12px}
+
+.icon-picker{display:flex;gap:8px;flex-wrap:wrap}
+.icon-opt{width:42px;height:42px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:19px;cursor:pointer;transition:all .15s}
+.icon-opt:hover{border-color:var(--b2)}
+.icon-opt.selected{border-color:var(--acc);background:var(--acc-g)}
+
+/* partner toggle list */
+.partner-toggle-list{display:flex;flex-direction:column;gap:8px}
+.partner-toggle{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--s2);border:1px solid var(--border);border-radius:var(--radius);transition:border-color .15s}
+.partner-toggle:hover{border-color:var(--b2)}
+.pt-info{flex:1}
+.pt-name{font-size:12.5px;font-weight:600;color:var(--text)}
+.pt-meta{font-size:10.5px;color:var(--muted)}
+.switch{position:relative;width:40px;height:22px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.slider-switch{position:absolute;cursor:pointer;inset:0;background:var(--s3);border:1px solid var(--border);transition:.2s;border-radius:22px}
+.slider-switch::before{content:'';position:absolute;width:16px;height:16px;left:2px;top:2px;background:var(--muted);transition:.2s;border-radius:50%}
+input:checked + .slider-switch{background:var(--acc-g);border-color:var(--acc)}
+input:checked + .slider-switch::before{transform:translateX(17px);background:var(--acc)}
+
+/* health check result */
+.health-check-box{background:var(--s2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-top:8px}
+.hc-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12.5px}
+.hc-row:last-child{border-bottom:none}
+.hc-icon{width:20px;flex-shrink:0;text-align:center}
+
+/* wizard nav */
+.wizard-nav{display:flex;align-items:center;gap:12px;padding-top:20px;border-top:1px solid var(--border);margin-top:20px}
+.wn-spacer{flex:1}
+
+/* modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.show{opacity:1;pointer-events:auto}
+.modal{background:var(--s1);border:1px solid var(--border);border-radius:var(--radius-lg);width:560px;max-width:92vw;max-height:85vh;overflow-y:auto;box-shadow:0 30px 80px rgba(0,0,0,.5);transform:scale(.96);transition:transform .2s}
+.modal-overlay.show .modal{transform:scale(1)}
+.modal-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--s1)}
+.modal-title{font-size:15.5px;font-weight:700}
+.modal-close{background:none;border:none;font-size:18px;color:var(--muted);cursor:pointer}
+.modal-close:hover{color:var(--text)}
+.modal-body{padding:22px}
+.modal-foot{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;position:sticky;bottom:0;background:var(--s1)}
+
+/* info/warn boxes */
+.info-box{background:var(--acc-g);border:1px solid var(--acc-b);border-radius:var(--radius);padding:11px 14px;font-size:12px;color:#bcd2ff;display:flex;gap:9px;align-items:flex-start;margin-bottom:16px}
+.warn-box{background:var(--ag);border:1px solid var(--ab);border-radius:var(--radius);padding:11px 14px;font-size:12px;color:#ffd98a;display:flex;gap:9px;align-items:flex-start;margin-bottom:16px}
+.danger-box{background:var(--rg);border:1px solid var(--rb);border-radius:var(--radius);padding:11px 14px;font-size:12px;color:#ffb0c0;display:flex;gap:9px;align-items:flex-start;margin-bottom:16px}
+
+/* timeline / audit log */
+.audit-item{display:flex;gap:13px;padding:13px 0;border-bottom:1px solid var(--border)}
+.audit-item:last-child{border-bottom:none}
+.audit-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.audit-body{flex:1}
+.audit-action{font-size:12.5px;font-weight:600;color:var(--text)}
+.audit-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.audit-time{font-size:10.5px;color:var(--dim);white-space:nowrap}
+
+/* toast */
+.toast{position:fixed;bottom:24px;right:24px;z-index:700;padding:13px 18px;border-radius:var(--radius);box-shadow:0 10px 30px rgba(0,0,0,.4);display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;transform:translateX(120%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none;min-width:260px}
+.toast.show{transform:translateX(0)}
+.toast.success{background:var(--green);color:#04332b}
+.toast.error{background:var(--red);color:#fff}
+.toast.info{background:var(--acc);color:#fff}
+.toast.warning{background:var(--amber);color:#3d2a00}
+
+hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tb-logo">
+    <div class="tb-logo-mark">B</div>
+    <div>
+      <div class="tb-logo-name">BaaS Admin</div>
+      <div class="tb-logo-tag">Gestão de Portfólio · MFE Registry</div>
+    </div>
+  </div>
+  <span class="tb-env-badge">● PRODUÇÃO</span>
+  <div class="tb-spacer"></div>
+  <div class="tb-search">🔍 Buscar módulo, parceiro...</div>
+  <div class="tb-user">
+    <div class="tb-avatar">RS</div>
+    <div>
+      <div class="tb-user-name">Raul Sousa</div>
+      <div class="tb-user-role">Head de Tecnologia · Open Platform</div>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-section">Portfólio</div>
+    <button class="sb-link active" onclick="showPage('registry',this)"><span class="sb-icon">📦</span>MFE Registry<span class="sb-badge">4</span></button>
+    <button class="sb-link" onclick="showPage('partners',this)"><span class="sb-icon">🏢</span>Parceiros & Acessos</button>
+    <button class="sb-link" onclick="showPage('staging',this)"><span class="sb-icon">🧪</span>Staging / Homologação<span class="sb-badge warn">1</span></button>
+
+    <div class="sb-section">Operação</div>
+    <button class="sb-link" onclick="showPage('health',this)"><span class="sb-icon">💚</span>Health Checks</button>
+    <button class="sb-link" onclick="showPage('audit',this)"><span class="sb-icon">📜</span>Audit Log</button>
+
+    <div class="sb-section">Sistema</div>
+    <button class="sb-link" onclick="showPage('contract',this)"><span class="sb-icon">📋</span>Contrato CreditProductMFE</button>
+
+    <div class="sb-bottom">
+      <div class="sb-bottom-label">Ambiente</div>
+      <div class="sb-bottom-val">prod · sa-east-1 · v3.2</div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- ══ REGISTRY PAGE ══ -->
+    <div class="page active" id="page-registry">
+      <div class="page-hdr">
+        <div>
+          <div class="page-title">MFE Registry</div>
+          <div class="page-sub">Catálogo global de módulos remotos disponíveis para os parceiros do BaaS</div>
+        </div>
+        <button class="btn btn-acc" onclick="openAddModuleWizard()">+ Adicionar Novo Módulo</button>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat"><div class="stat-label">Módulos Ativos</div><div class="stat-val" style="color:var(--green)">3</div><div class="stat-sub">Disponíveis para parceiros</div></div>
+        <div class="stat"><div class="stat-label">Em Staging</div><div class="stat-val" style="color:var(--amber)">1</div><div class="stat-sub">CDC · aguardando aprovação</div></div>
+        <div class="stat"><div class="stat-label">Parceiros Conectados</div><div class="stat-val">4</div><div class="stat-sub">Com pelo menos 1 produto</div></div>
+        <div class="stat"><div class="stat-label">Deploys do Shell (90d)</div><div class="stat-val" style="color:var(--acc)">0</div><div class="stat-sub">Mudanças de portfólio sem deploy</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">Módulos cadastrados</div>
+            <div class="panel-sub">Cada módulo é um bundle remoto carregado dinamicamente pelo Shell App</div>
+          </div>
+          <div class="panel-toolbar">
+            <div class="filter-chip active" onclick="filterRegistry('all',this)">Todos</div>
+            <div class="filter-chip" onclick="filterRegistry('active',this)">Ativos</div>
+            <div class="filter-chip" onclick="filterRegistry('staging',this)">Staging</div>
+            <div class="filter-chip" onclick="filterRegistry('deprecated',this)">Deprecados</div>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Módulo</th><th>Versão</th><th>Status</th><th>Health Check</th><th>Parceiros</th><th>Atualizado</th><th>Ações</th></tr></thead>
+          <tbody id="registryTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ PARTNERS PAGE ══ -->
+    <div class="page" id="page-partners">
+      <div class="page-hdr">
+        <div>
+          <div class="page-title">Parceiros & Acessos a Produtos</div>
+          <div class="page-sub">Controle granular de quais módulos cada parceiro pode ver e usar</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div><div class="panel-title">Matriz Parceiro × Produto</div><div class="panel-sub">Toggle para habilitar/desabilitar instantaneamente — sem deploy</div></div>
+        </div>
+        <table>
+          <thead><tr><th>Parceiro</th><th>Capital de Giro</th><th>Crédito Emergencial</th><th>Antecipação</th><th>CDC <span style="color:var(--amber);font-size:9px">staging</span></th></tr></thead>
+          <tbody id="partnerMatrixBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ STAGING PAGE ══ -->
+    <div class="page" id="page-staging">
+      <div class="page-hdr">
+        <div>
+          <div class="page-title">Staging / Homologação</div>
+          <div class="page-sub">Módulos em teste antes de serem promovidos para produção</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div><div class="panel-title">🛍️ Crédito Direto ao Consumidor (CDC)</div><div class="panel-sub">Cadastrado por Raul Sousa · 18/06/2026 · aguardando promoção</div></div>
+          <span class="status-pill sp-staging"><span class="pill-dot"></span>staging</span>
+        </div>
+        <div style="padding:20px">
+          <div class="info-box">
+            <span>ℹ️</span>
+            <span>Este módulo está disponível apenas no ambiente de homologação e para o parceiro piloto <strong>Fintech Verde</strong>. Promova para produção quando os testes forem concluídos.</span>
+          </div>
+          <div class="health-check-box">
+            <div class="hc-row"><span class="hc-icon">✓</span><span>Bundle carregado com sucesso · <span class="ver-tag">remoteEntry.js</span></span></div>
+            <div class="hc-row"><span class="hc-icon">✓</span><span>Health check respondeu 200 em 84ms</span></div>
+            <div class="hc-row"><span class="hc-icon">✓</span><span>Contrato <code>CreditProductMFE v1</code> compatível com Shell atual</span></div>
+            <div class="hc-row"><span class="hc-icon">✓</span><span>Design Tokens validados visualmente com Fintech Verde</span></div>
+            <div class="hc-row"><span class="hc-icon">⏳</span><span style="color:var(--amber)">Aguardando 48h de observação em staging (iniciado há 6h)</span></div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end">
+            <button class="btn btn-ghost" onclick="showToast('Detalhes técnicos abertos','info')">Ver logs técnicos</button>
+            <button class="btn btn-acc" onclick="promoteToProduction()">Promover para Produção →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ HEALTH PAGE ══ -->
+    <div class="page" id="page-health">
+      <div class="page-hdr">
+        <div><div class="page-title">Health Checks</div><div class="page-sub">Monitoramento contínuo da disponibilidade dos bundles remotos</div></div>
+        <button class="btn btn-ghost" onclick="runHealthChecks()">↻ Rodar agora</button>
+      </div>
+      <div class="panel">
+        <table>
+          <thead><tr><th>Módulo</th><th>Status</th><th>Latência</th><th>Última verificação</th><th>Uptime (30d)</th></tr></thead>
+          <tbody id="healthTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ AUDIT PAGE ══ -->
+    <div class="page" id="page-audit">
+      <div class="page-hdr">
+        <div><div class="page-title">Audit Log</div><div class="page-sub">Histórico de todas as alterações no MFE Registry — quem, quando, o quê</div></div>
+      </div>
+      <div class="panel">
+        <div style="padding:8px 20px" id="auditLog"></div>
+      </div>
+    </div>
+
+    <!-- ══ CONTRACT PAGE ══ -->
+    <div class="page" id="page-contract">
+      <div class="page-hdr">
+        <div><div class="page-title">Contrato CreditProductMFE</div><div class="page-sub">Interface obrigatória que todo MFE de produto deve implementar para ser compatível com o Shell</div></div>
+      </div>
+      <div class="panel">
+        <div style="padding:20px">
+          <div class="warn-box">
+            <span>⚠️</span>
+            <span>Este contrato é mantido pelo time de Shell App. Mudanças aqui exigem deploy coordenado — diferente do cadastro de módulos, que não exige deploy.</span>
+          </div>
+          <pre style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:18px;font-family:var(--mono);font-size:12px;line-height:1.8;color:#9badc7;overflow-x:auto">interface CreditProductMFE {
+  contractVersion: "v1";
+  mount(container: HTMLElement, context: MFEContext): void;
+  unmount(): void;
+  getSimulation(): Promise&lt;SimulationResult&gt;;
+  onTokenRefresh(newToken: string): void;
+}
+
+interface MFEContext {
+  partnerId: string;
+  uct: string;              // User Context Token
+  designTokens: DesignTokenPackage;
+  locale: string;
+}</pre>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- ADD MODULE MODAL -->
+<div class="modal-overlay" id="addModuleModal">
+  <div class="modal" style="width:640px">
+    <div class="modal-head">
+      <div class="modal-title">Adicionar Novo Módulo ao Registry</div>
+      <button class="modal-close" onclick="closeAddModuleModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="wizard-steps">
+        <div class="wstep active" id="awstep-1"><div class="wstep-circle">1</div><div class="wstep-label">Identificação</div></div>
+        <div class="wstep-line"></div>
+        <div class="wstep" id="awstep-2"><div class="wstep-circle">2</div><div class="wstep-label">Remote & Health</div></div>
+        <div class="wstep-line"></div>
+        <div class="wstep" id="awstep-3"><div class="wstep-circle">3</div><div class="wstep-label">Parceiros</div></div>
+      </div>
+
+      <!-- STEP 1 -->
+      <div id="awpanel-1">
+        <div class="form-grid">
+          <div class="field">
+            <div class="field-label">ID do Módulo<span class="field-req">*</span><span class="field-hint">slug único, ex: cdc</span></div>
+            <input class="field-input mono" id="newModId" placeholder="cdc" value="cdc">
+          </div>
+          <div class="field">
+            <div class="field-label">Nome de Exibição<span class="field-req">*</span></div>
+            <input class="field-input" id="newModName" placeholder="Crédito Direto ao Consumidor" value="Crédito Direto ao Consumidor">
+          </div>
+          <div class="field form-full">
+            <div class="field-label">Ícone</div>
+            <div class="icon-picker" id="iconPicker">
+              <div class="icon-opt selected" onclick="selectIcon('🛍️',this)">🛍️</div>
+              <div class="icon-opt" onclick="selectIcon('💳',this)">💳</div>
+              <div class="icon-opt" onclick="selectIcon('🚗',this)">🚗</div>
+              <div class="icon-opt" onclick="selectIcon('🏠',this)">🏠</div>
+              <div class="icon-opt" onclick="selectIcon('📱',this)">📱</div>
+              <div class="icon-opt" onclick="selectIcon('💼',this)">💼</div>
+            </div>
+          </div>
+          <div class="field form-full">
+            <div class="field-label">Descrição interna<span class="field-hint">visível só no admin</span></div>
+            <textarea class="field-input field-textarea" placeholder="Financiamento de bens de consumo para clientes finais via parceiros varejistas.">Financiamento de bens de consumo para clientes finais via parceiros varejistas.</textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div id="awpanel-2" style="display:none">
+        <div class="info-box">
+          <span>ℹ️</span>
+          <span>O bundle já deve estar publicado no CDN pelo time de produto. Este passo apenas registra a URL — nenhum código é enviado por aqui.</span>
+        </div>
+        <div class="form-grid">
+          <div class="field form-full">
+            <div class="field-label">URL do remoteEntry.js<span class="field-req">*</span></div>
+            <input class="field-input mono" id="newModUrl" value="https://cdn.baas.bradesco.com.br/mfe/cdc/1.0.0/remoteEntry.js">
+          </div>
+          <div class="field">
+            <div class="field-label">Remote Name<span class="field-req">*</span></div>
+            <input class="field-input mono" id="newModRemoteName" value="cdcMFE">
+          </div>
+          <div class="field">
+            <div class="field-label">Versão</div>
+            <input class="field-input mono" id="newModVersion" value="1.0.0">
+          </div>
+          <div class="field form-full">
+            <div class="field-label">Exposed Module</div>
+            <input class="field-input mono" id="newModExposed" value="./CreditProductMFE">
+          </div>
+          <div class="field">
+            <div class="field-label">Status Inicial</div>
+            <select class="field-select" id="newModStatus">
+              <option value="staging" selected>Staging (homologação)</option>
+              <option value="active">Ativo (produção imediata)</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="runNewModuleHealthCheck()">🔍 Testar conexão e validar contrato</button>
+        <div id="healthCheckResult" style="display:none" class="health-check-box">
+          <div class="hc-row"><span class="hc-icon">⟳</span><span>Verificando...</span></div>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div id="awpanel-3" style="display:none">
+        <div class="warn-box">
+          <span>⚠️</span>
+          <span>Selecione quais parceiros já podem ver este módulo. Você pode habilitar para mais parceiros depois, a qualquer momento, sem repetir este processo.</span>
+        </div>
+        <div class="partner-toggle-list" id="newModPartnerList"></div>
+      </div>
+
+      <div class="wizard-nav">
+        <button class="btn btn-ghost" id="awBackBtn" onclick="awizPrev()" style="opacity:0">← Voltar</button>
+        <div class="wn-spacer"></div>
+        <button class="btn btn-acc" id="awNextBtn" onclick="awizNext()">Continuar →</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- GENERIC MODAL -->
+<div class="modal-overlay" id="genericModal">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title" id="genModalTitle">—</div><button class="modal-close" onclick="closeGenericModal()">✕</button></div>
+    <div class="modal-body" id="genModalBody"></div>
+    <div class="modal-foot" id="genModalFoot"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════
+const REGISTRY = [
+  {id:'capital-giro',name:'Capital de Giro',icon:'💼',iconBg:'rgba(91,141,239,.12)',version:'2.4.1',status:'active',health:'ok',latency:42,updated:'12/06/2026',partners:['Cacau Show','Banco XPTO','Fintech Verde','Coop. Sul']},
+  {id:'eme',name:'Crédito Emergencial',icon:'🚨',iconBg:'rgba(166,132,240,.12)',version:'1.6.0',status:'active',health:'ok',latency:38,updated:'05/06/2026',partners:['Banco XPTO','Coop. Sul']},
+  {id:'ant',name:'Antecipação de Recebíveis',icon:'📈',iconBg:'rgba(45,212,168,.12)',version:'1.8.2',status:'active',health:'ok',latency:51,updated:'28/05/2026',partners:['Cacau Show','Fintech Verde']},
+  {id:'cdc',name:'Crédito Direto ao Consumidor',icon:'🛍️',iconBg:'rgba(245,185,66,.12)',version:'1.0.0',status:'staging',health:'pending',latency:84,updated:'18/06/2026',partners:['Fintech Verde (piloto)']},
+];
+
+const PARTNERS = ['Cacau Show','Banco XPTO','Fintech Verde','Cooperativa Sul'];
+
+const AUDIT_LOG = [
+  {icon:'🆕',color:'var(--green)',action:'Módulo "CDC" cadastrado em Staging',meta:'Raul Sousa · raul.sousa@bradesco.com.br',time:'Há 6 horas'},
+  {icon:'🔓',color:'var(--acc)',action:'Antecipação habilitada para Fintech Verde',meta:'Raul Sousa',time:'Ontem, 16:42'},
+  {icon:'🔁',color:'var(--purple)',action:'Capital de Giro atualizado: v2.3.0 → v2.4.1',meta:'Deploy automático · time CapGiro',time:'12/06/2026, 09:15'},
+  {icon:'🔒',color:'var(--red)',action:'Antecipação desabilitada para Banco XPTO',meta:'Solicitação do parceiro · aprovado por Rafael Patz',time:'08/06/2026, 14:20'},
+  {icon:'🆕',color:'var(--green)',action:'Módulo "Crédito Emergencial" promovido para Produção',meta:'Raul Sousa',time:'05/06/2026, 11:03'},
+  {icon:'🔓',color:'var(--acc)',action:'Capital de Giro habilitado para Cooperativa Sul',meta:'Onboarding inicial · Raul Sousa',time:'02/06/2026, 10:30'},
+];
+
+let selectedIcon = '🛍️';
+let awStep = 1;
+
+// ══════════════════════════════════════════════════
+// RENDER REGISTRY TABLE
+// ══════════════════════════════════════════════════
+function statusPillHtml(status) {
+  const map = {
+    active:    {cls:'sp-active',    label:'active'},
+    staging:   {cls:'sp-staging',   label:'staging'},
+    deprecated:{cls:'sp-deprecated',label:'deprecated'},
+    disabled:  {cls:'sp-disabled',  label:'disabled'},
+  };
+  const s = map[status];
+  return `<span class="status-pill ${s.cls}"><span class="pill-dot"></span>${s.label}</span>`;
+}
+
+function healthBadgeHtml(health, latency) {
+  if (health==='ok') return `<span class="health-badge"><span class="health-dot hd-ok"></span>200 OK · ${latency}ms</span>`;
+  if (health==='pending') return `<span class="health-badge"><span class="health-dot hd-pending"></span>verificando...</span>`;
+  return `<span class="health-badge"><span class="health-dot hd-fail"></span>falhou</span>`;
+}
+
+function partnerPipsHtml(partners) {
+  const shown = partners.slice(0,2);
+  const rest = partners.length - shown.length;
+  return `<div class="partner-pips">${shown.map(p=>`<span class="pp">${p}</span>`).join('')}${rest>0?`<span class="pp-more">+${rest}</span>`:''}</div>`;
+}
+
+function renderRegistryTable(filter='all') {
+  const tbody = document.getElementById('registryTableBody');
+  const rows = filter==='all' ? REGISTRY : REGISTRY.filter(m=>m.status===filter);
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--muted)">Nenhum módulo encontrado para este filtro</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(m => `
+    <tr>
+      <td><div class="mod-info"><div class="mod-icon" style="background:${m.iconBg}">${m.icon}</div><div><div class="mod-name">${m.name}</div><div class="mod-id">${m.id}</div></div></div></td>
+      <td><span class="ver-tag">v${m.version}</span></td>
+      <td>${statusPillHtml(m.status)}</td>
+      <td>${healthBadgeHtml(m.health,m.latency)}</td>
+      <td>${partnerPipsHtml(m.partners)}</td>
+      <td style="font-size:11.5px;color:var(--muted)">${m.updated}</td>
+      <td><div class="td-actions">
+        <button class="act-btn" onclick="viewModuleDetail('${m.id}')">Ver</button>
+        ${m.status==='active'?`<button class="act-btn warn" onclick="deprecateModule('${m.id}')">Deprecar</button>`:''}
+        ${m.status==='staging'?`<button class="act-btn" onclick="showPage('staging',null);document.querySelectorAll('.sb-link').forEach(b=>b.classList.remove('active'))" style="color:var(--amber)">Ver Staging</button>`:''}
+        <button class="act-btn danger" onclick="disableModule('${m.id}')">Desabilitar</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function filterRegistry(f, btn) {
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  renderRegistryTable(f);
+}
+
+// ══════════════════════════════════════════════════
+// MODULE ACTIONS
+// ══════════════════════════════════════════════════
+function viewModuleDetail(id) {
+  const m = REGISTRY.find(x=>x.id===id);
+  showGenericModal(`${m.icon} ${m.name}`, `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;font-size:12.5px;margin-bottom:16px">
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">ID</div><div class="mod-id" style="font-size:12px">${m.id}</div></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">VERSÃO</div><span class="ver-tag">v${m.version}</span></div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">STATUS</div>${statusPillHtml(m.status)}</div>
+      <div><div style="font-size:10px;color:var(--muted);margin-bottom:3px">HEALTH</div>${healthBadgeHtml(m.health,m.latency)}</div>
+    </div>
+    <div class="info-box"><span>🔗</span><span class="mod-id" style="font-size:11px">https://cdn.baas.bradesco.com.br/mfe/${m.id}/${m.version}/remoteEntry.js</span></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px">PARCEIROS COM ACESSO</div>
+    <div class="partner-pips" style="max-width:100%">${m.partners.map(p=>`<span class="pp">${p}</span>`).join('')}</div>
+  `, [{label:'Fechar',action:'closeGenericModal()',secondary:true}]);
+}
+
+function deprecateModule(id) {
+  const m = REGISTRY.find(x=>x.id===id);
+  showGenericModal('Depreciar Módulo', `
+    <div class="warn-box">
+      <span>⚠️</span>
+      <span>Depreciar <strong>${m.name}</strong> significa que ele para de aparecer para novos parceiros, mas continua funcionando normalmente para quem já usa. Esta ação não exige deploy do Shell.</span>
+    </div>
+    <p style="font-size:12.5px;color:var(--text2)">Confirma a depreciação?</p>
+  `, [
+    {label:'Cancelar',action:'closeGenericModal()',secondary:true},
+    {label:'Confirmar Depreciação',action:`confirmDeprecate('${id}')`,warn:true}
+  ]);
+}
+function confirmDeprecate(id) {
+  const m = REGISTRY.find(x=>x.id===id);
+  m.status = 'deprecated';
+  closeGenericModal();
+  renderRegistryTable();
+  showToast(m.name + ' foi depreciado — invisível para novos parceiros','warning');
+}
+
+function disableModule(id) {
+  const m = REGISTRY.find(x=>x.id===id);
+  showGenericModal('Desabilitar Módulo', `
+    <div class="danger-box">
+      <span>🛑</span>
+      <span>Desabilitar <strong>${m.name}</strong> remove o módulo do ar imediatamente para <strong>todos os ${m.partners.length} parceiros</strong> que o utilizam. O Shell para de tentar carregar o remote. Esta ação é reversível, mas afeta usuários ativos.</span>
+    </div>
+    <p style="font-size:12.5px;color:var(--text2)">Digite o nome do módulo para confirmar: <strong>${m.id}</strong></p>
+    <input class="field-input mono" id="disableConfirmInput" placeholder="${m.id}" style="margin-top:8px">
+  `, [
+    {label:'Cancelar',action:'closeGenericModal()',secondary:true},
+    {label:'Desabilitar Agora',action:`confirmDisable('${id}')`,danger:true}
+  ]);
+}
+function confirmDisable(id) {
+  const input = document.getElementById('disableConfirmInput');
+  const m = REGISTRY.find(x=>x.id===id);
+  if (input.value.trim() !== m.id) { showToast('Nome não corresponde — ação cancelada','error'); return; }
+  m.status = 'disabled';
+  closeGenericModal();
+  renderRegistryTable();
+  showToast(m.name + ' foi desabilitado para todos os parceiros','error');
+}
+
+function promoteToProduction() {
+  showGenericModal('Promover CDC para Produção', `
+    <div class="info-box"><span>✅</span><span>Todos os critérios do checklist de homologação foram atendidos. Ao confirmar, o módulo ficará disponível para qualquer parceiro que você habilitar na matriz de Parceiros & Acessos.</span></div>
+    <p style="font-size:12.5px;color:var(--text2)">O Shell App não precisa de deploy para esta promoção.</p>
+  `, [
+    {label:'Cancelar',action:'closeGenericModal()',secondary:true},
+    {label:'Promover para Produção →',action:'confirmPromote()'}
+  ]);
+}
+function confirmPromote() {
+  const m = REGISTRY.find(x=>x.id==='cdc');
+  m.status = 'active'; m.health='ok';
+  closeGenericModal();
+  renderRegistryTable();
+  showToast('🎉 CDC promovido para produção!','success');
+}
+
+function runHealthChecks() {
+  showToast('Rodando health checks em todos os módulos...','info');
+  setTimeout(()=>showToast('✓ Todos os módulos respondendo normalmente','success'),1500);
+}
+
+// ══════════════════════════════════════════════════
+// PARTNER MATRIX
+// ══════════════════════════════════════════════════
+function renderPartnerMatrix() {
+  const tbody = document.getElementById('partnerMatrixBody');
+  const matrix = {
+    'Cacau Show':      {cap:true, eme:false, ant:true,  cdc:false},
+    'Banco XPTO':       {cap:true, eme:true,  ant:false, cdc:false},
+    'Fintech Verde':    {cap:true, eme:false, ant:true,  cdc:true},
+    'Cooperativa Sul':  {cap:true, eme:true,  ant:false, cdc:false},
+  };
+  tbody.innerHTML = Object.entries(matrix).map(([partner,prods]) => `
+    <tr>
+      <td><div style="font-weight:700;font-size:13px">${partner}</div></td>
+      ${['cap','eme','ant','cdc'].map(p => `
+        <td>
+          <label class="switch">
+            <input type="checkbox" ${prods[p]?'checked':''} onchange="toggleAccess('${partner}','${p}',this.checked)">
+            <span class="slider-switch"></span>
+          </label>
+        </td>`).join('')}
+    </tr>`).join('');
+}
+
+function toggleAccess(partner, product, enabled) {
+  const prodNames = {cap:'Capital de Giro',eme:'Crédito Emergencial',ant:'Antecipação',cdc:'CDC'};
+  showToast(`${prodNames[product]} ${enabled?'habilitado':'desabilitado'} para ${partner}`, enabled?'success':'warning');
+}
+
+// ══════════════════════════════════════════════════
+// HEALTH TABLE
+// ══════════════════════════════════════════════════
+function renderHealthTable() {
+  const tbody = document.getElementById('healthTableBody');
+  tbody.innerHTML = REGISTRY.map(m => `
+    <tr>
+      <td><div class="mod-info"><div class="mod-icon" style="background:${m.iconBg};width:30px;height:30px;font-size:14px">${m.icon}</div><span style="font-weight:600">${m.name}</span></div></td>
+      <td>${healthBadgeHtml(m.health,m.latency)}</td>
+      <td><span class="ver-tag">${m.latency}ms</span></td>
+      <td style="color:var(--muted);font-size:11.5px">Há 2 minutos</td>
+      <td><span style="color:var(--green);font-weight:700;font-family:var(--mono)">${m.status==='staging'?'—':'99.9' + (m.id==='ant'?'2':m.id==='eme'?'8':'9') }%</span></td>
+    </tr>`).join('');
+}
+
+// ══════════════════════════════════════════════════
+// AUDIT LOG
+// ══════════════════════════════════════════════════
+function renderAuditLog() {
+  const el = document.getElementById('auditLog');
+  el.innerHTML = AUDIT_LOG.map(a => `
+    <div class="audit-item">
+      <div class="audit-icon" style="background:${a.color}20;color:${a.color}">${a.icon}</div>
+      <div class="audit-body"><div class="audit-action">${a.action}</div><div class="audit-meta">${a.meta}</div></div>
+      <div class="audit-time">${a.time}</div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════
+// ADD MODULE WIZARD
+// ══════════════════════════════════════════════════
+function openAddModuleWizard() {
+  awStep = 1;
+  awizRender();
+  document.getElementById('addModuleModal').classList.add('show');
+}
+function closeAddModuleModal() {
+  document.getElementById('addModuleModal').classList.remove('show');
+}
+function selectIcon(icon, el) {
+  selectedIcon = icon;
+  document.querySelectorAll('.icon-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function awizRender() {
+  [1,2,3].forEach(n => {
+    const step = document.getElementById('awstep-'+n);
+    const panel = document.getElementById('awpanel-'+n);
+    step.classList.remove('active','done');
+    if (n===awStep) step.classList.add('active');
+    else if (n<awStep) step.classList.add('done');
+    if(panel) panel.style.display = (n===awStep)?'block':'none';
+  });
+  document.getElementById('awBackBtn').style.opacity = awStep===1?'0':'1';
+  document.getElementById('awNextBtn').textContent = awStep===3 ? '✓ Cadastrar Módulo' : 'Continuar →';
+
+  if (awStep===3) renderNewModPartnerList();
+}
+
+function renderNewModPartnerList() {
+  const el = document.getElementById('newModPartnerList');
+  el.innerHTML = PARTNERS.map(p => `
+    <div class="partner-toggle">
+      <div class="pt-info"><div class="pt-name">${p}</div><div class="pt-meta">Habilitar acesso a este módulo</div></div>
+      <label class="switch"><input type="checkbox" id="newmod-partner-${p.replace(/\s/g,'')}"><span class="slider-switch"></span></label>
+    </div>`).join('');
+}
+
+function awizNext() {
+  if (awStep < 3) { awStep++; awizRender(); }
+  else { finalizeNewModule(); }
+}
+function awizPrev() { if (awStep>1) { awStep--; awizRender(); } }
+
+function runNewModuleHealthCheck() {
+  const box = document.getElementById('healthCheckResult');
+  box.style.display = 'block';
+  box.innerHTML = `<div class="hc-row"><span class="hc-icon">⟳</span><span>Conectando ao remote...</span></div>`;
+  setTimeout(() => {
+    box.innerHTML = `
+      <div class="hc-row"><span class="hc-icon">✓</span><span>remoteEntry.js carregado · 84ms</span></div>
+      <div class="hc-row"><span class="hc-icon">✓</span><span>Container "cdcMFE" inicializado com sucesso</span></div>
+      <div class="hc-row"><span class="hc-icon">✓</span><span>Módulo "./CreditProductMFE" exposto corretamente</span></div>
+      <div class="hc-row"><span class="hc-icon">✓</span><span>Contrato v1 compatível com Shell atual</span></div>`;
+    showToast('Health check concluído com sucesso','success');
+  }, 1500);
+}
+
+function finalizeNewModule() {
+  const id = document.getElementById('newModId').value || 'novo-modulo';
+  const name = document.getElementById('newModName').value || 'Novo Módulo';
+  const status = document.getElementById('newModStatus').value;
+
+  REGISTRY.push({
+    id, name, icon:selectedIcon, iconBg:'rgba(245,185,66,.12)',
+    version: document.getElementById('newModVersion').value || '1.0.0',
+    status, health:'ok', latency: 60+Math.round(Math.random()*40),
+    updated: new Date().toLocaleDateString('pt-BR'),
+    partners: PARTNERS.filter(p => document.getElementById('newmod-partner-'+p.replace(/\s/g,''))?.checked)
+  });
+
+  closeAddModuleModal();
+  renderRegistryTable();
+  showToast(`✓ Módulo "${name}" cadastrado com sucesso!`, 'success');
+}
+
+// ══════════════════════════════════════════════════
+// PAGE ROUTING
+// ══════════════════════════════════════════════════
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if (btn) {
+    document.querySelectorAll('.sb-link').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  if (id==='partners') renderPartnerMatrix();
+  if (id==='health') renderHealthTable();
+  if (id==='audit') renderAuditLog();
+}
+
+// ══════════════════════════════════════════════════
+// GENERIC MODAL
+// ══════════════════════════════════════════════════
+function showGenericModal(title, body, buttons) {
+  document.getElementById('genModalTitle').textContent = title;
+  document.getElementById('genModalBody').innerHTML = body;
+  const foot = document.getElementById('genModalFoot');
+  foot.innerHTML = '';
+  buttons.forEach(b => {
+    const btn = document.createElement('button');
+    btn.textContent = b.label;
+    btn.onclick = new Function(b.action);
+    btn.className = 'btn ' + (b.secondary?'btn-ghost':'btn-acc');
+    if (b.danger) btn.style.background='var(--red)';
+    if (b.warn) btn.style.background='var(--amber)';
+    foot.appendChild(btn);
+  });
+  document.getElementById('genericModal').classList.add('show');
+}
+function closeGenericModal() { document.getElementById('genericModal').classList.remove('show'); }
+
+// ══════════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════════
+let toastT;
+function showToast(msg, type='info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  clearTimeout(toastT);
+  toastT = setTimeout(()=>t.classList.remove('show'), 3800);
+}
+
+// ══════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  renderRegistryTable();
+});
+</script>
+</body>
+</html>

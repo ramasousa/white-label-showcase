@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shell — Multi-Tenant Demo · Vivo & Claro</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#07090e;
+  --s1:#0d1018;
+  --s2:#12161f;
+  --s3:#181d28;
+  --border:rgba(255,255,255,0.06);
+  --border2:rgba(255,255,255,0.12);
+  --text:#e2e6f4;
+  --muted:#4e5a72;
+  --dim:#1e2535;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'DM Sans',sans-serif;
+  --disp:'Syne',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+
+/* noise */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:1000;
+  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");
+  opacity:.5}
+
+/* ── HEADER ── */
+.page-header{padding:44px 56px 0;margin-bottom:44px}
+.eyebrow{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.eyebrow-tag{
+  font-family:var(--mono);font-size:9px;letter-spacing:2.5px;text-transform:uppercase;
+  padding:4px 12px;border-radius:20px;font-weight:600;
+}
+.tag-shell{background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border)}
+.tag-live{background:rgba(30,203,100,0.12);color:#1ecb64;border:1px solid rgba(30,203,100,0.3);
+  display:flex;align-items:center;gap:6px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:#1ecb64;
+  box-shadow:0 0 6px #1ecb64;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+h1{font-family:var(--disp);font-size:clamp(26px,3.5vw,46px);font-weight:800;
+  letter-spacing:-1.5px;line-height:1.05;margin-bottom:10px}
+.h1-dim{color:var(--muted)}
+.h1-note{font-size:14px;color:var(--muted);line-height:1.7;max-width:580px}
+
+/* ── KEY INSIGHT BAR ── */
+.insight-bar{
+  margin:0 56px 40px;
+  background:var(--s2);border:1px solid var(--border2);border-radius:12px;
+  padding:18px 24px;
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+}
+.insight-icon{font-size:20px}
+.insight-text{flex:1;font-size:13px;color:var(--muted);line-height:1.6}
+.insight-text strong{color:var(--text)}
+.insight-badge{
+  font-family:var(--mono);font-size:10px;letter-spacing:1px;
+  padding:5px 12px;border-radius:6px;white-space:nowrap;font-weight:600;
+}
+
+/* ── MAIN SPLIT ── */
+.split{
+  display:grid;grid-template-columns:1fr 1fr;gap:24px;
+  padding:0 56px;margin-bottom:40px;
+}
+
+/* ── PARTNER PANEL ── */
+.partner-panel{
+  border-radius:16px;overflow:hidden;border:1px solid var(--border);
+  display:flex;flex-direction:column;
+  transition:border-color .3s;
+}
+.partner-panel:hover{border-color:var(--border2)}
+
+.partner-panel.vivo{--pc:#660099;--pc-dim:rgba(102,0,153,.14);--pc-glow:rgba(102,0,153,.3);
+  --pc-light:#9b59f7;--pc-btn:#7a00c0}
+.partner-panel.claro{--pc:#e8001c;--pc-dim:rgba(232,0,28,.13);--pc-glow:rgba(232,0,28,.28);
+  --pc-light:#ff3355;--pc-btn:#c0001a}
+
+.panel-header{
+  padding:20px 24px;border-bottom:1px solid var(--border);
+  background:var(--s1);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+.panel-partner-badge{
+  display:flex;align-items:center;gap:10px;
+}
+.partner-dot{
+  width:10px;height:10px;border-radius:50%;background:var(--pc);
+  box-shadow:0 0 8px var(--pc);
+}
+.panel-partner-name{
+  font-family:var(--disp);font-size:16px;font-weight:800;color:var(--pc-light);
+}
+.panel-partner-sub{font-size:11px;color:var(--muted);font-family:var(--mono)}
+.panel-status{
+  font-family:var(--mono);font-size:10px;letter-spacing:1px;
+  padding:4px 10px;border-radius:6px;background:var(--pc-dim);
+  color:var(--pc-light);border:1px solid var(--pc-glow);
+}
+
+/* ── PHONE AREA ── */
+.phone-area{
+  padding:28px 24px;background:var(--s2);
+  display:flex;justify-content:center;align-items:flex-start;gap:24px;
+}
+
+.phone-frame{
+  width:174px;flex-shrink:0;
+  background:#0a0c12;border-radius:30px;
+  border:2px solid var(--dim);padding:10px;
+  box-shadow:0 24px 64px rgba(0,0,0,.6);
+  position:relative;
+}
+.phone-notch{width:54px;height:5px;background:var(--dim);border-radius:3px;margin:0 auto 10px}
+.phone-screen{border-radius:20px;overflow:hidden;min-height:290px;position:relative}
+
+/* screen states */
+.pscreen{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  opacity:0;transition:opacity .4s ease;pointer-events:none;
+}
+.pscreen.show{opacity:1;pointer-events:auto}
+
+/* blank */
+.sc-blank{background:#090b10;align-items:center;justify-content:center;gap:8px}
+.sc-blank-icon{font-size:28px;opacity:.15}
+.sc-blank-txt{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);opacity:.4}
+
+/* loading */
+.sc-loading{background:#090b10;align-items:center;justify-content:center;gap:10px}
+.spinner{width:26px;height:26px;border-radius:50%;border:2px solid var(--dim);border-top-color:var(--pc);animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin-label{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+
+/* partner splash */
+.sc-splash{align-items:center;justify-content:center;gap:6px;
+  background:var(--pc)}
+.splash-logo{font-family:var(--disp);font-size:26px;font-weight:800;color:#fff;letter-spacing:-1px}
+.splash-tag{font-size:8px;color:rgba(255,255,255,.55);letter-spacing:2px;text-transform:uppercase}
+
+/* auth */
+.sc-auth{background:#fff;padding:0}
+.auth-top{background:var(--pc);padding:16px 14px 14px;display:flex;align-items:center;gap:8px}
+.auth-logo-sm{font-family:var(--disp);font-size:15px;font-weight:800;color:#fff}
+.auth-title{font-size:9px;color:rgba(255,255,255,.6);letter-spacing:.5px}
+.auth-body{padding:14px;flex:1}
+.auth-card{background:#f7f7f9;border-radius:8px;padding:12px;margin-bottom:10px;text-align:center}
+.auth-card-icon{font-size:20px;margin-bottom:4px}
+.auth-card-label{font-size:9px;color:#888;letter-spacing:.5px;text-transform:uppercase}
+.auth-card-val{font-size:13px;font-weight:700;color:#1a1a2e;margin-top:2px}
+.auth-checking{display:flex;align-items:center;justify-content:center;gap:6px;
+  font-size:10px;color:#888;margin-bottom:10px}
+.auth-bar{height:3px;background:#eee;border-radius:2px;overflow:hidden}
+.auth-bar-fill{height:100%;background:var(--pc);border-radius:2px;
+  animation:authBar 1.2s ease infinite alternate}
+@keyframes authBar{from{width:20%}to{width:85%}}
+
+/* product */
+.sc-product{background:#fff}
+.prod-header{background:var(--pc);padding:14px 14px 12px;
+  display:flex;align-items:center;justify-content:space-between}
+.prod-logo{font-family:var(--disp);font-size:14px;font-weight:800;color:#fff}
+.prod-label{font-size:8px;color:rgba(255,255,255,.6);letter-spacing:.5px;text-align:right}
+.prod-body{padding:10px}
+.prod-hero{background:var(--pc);border-radius:10px;padding:12px;margin-bottom:8px}
+.prod-hero-sub{font-size:8px;color:rgba(255,255,255,.65);letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px}
+.prod-hero-val{font-family:var(--disp);font-size:22px;font-weight:800;color:#fff}
+.prod-hero-note{font-size:8px;color:rgba(255,255,255,.55);margin-top:2px}
+.prod-pills{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:8px}
+.prod-pill{background:#f5f5f8;border-radius:6px;padding:7px 4px;text-align:center}
+.prod-pill-val{font-size:11px;font-weight:700;color:var(--pc);display:block}
+.prod-pill-sub{font-size:8px;color:#999}
+.prod-btn{width:100%;padding:10px;border:none;border-radius:7px;
+  background:var(--pc);color:#fff;font-size:11px;font-weight:700;cursor:pointer;
+  font-family:var(--sans)}
+
+/* ── LOG PANEL ── */
+.log-panel{flex:1;min-width:0}
+.log-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.log-title-dot{width:6px;height:6px;border-radius:50%;background:var(--pc);
+  box-shadow:0 0 5px var(--pc)}
+.log-entries{display:flex;flex-direction:column;gap:4px}
+.log-entry{
+  display:flex;gap:6px;opacity:0;transform:translateX(-8px);
+  transition:opacity .3s ease,transform .3s ease;
+  font-family:var(--mono);font-size:10px;line-height:1.5;
+}
+.log-entry.show{opacity:1;transform:translateX(0)}
+.log-t{color:var(--muted);min-width:44px;flex-shrink:0}
+.log-ok{color:#1ecb64}
+.log-info{color:var(--pc-light)}
+.log-warn{color:#f0a500}
+.log-msg{color:#7a8ba8}
+
+/* ── STEP TRACKER ── */
+.step-track{padding:0 24px 20px;background:var(--s2)}
+.step-track-title{font-family:var(--mono);font-size:8px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.steps-row{display:flex;gap:4px}
+.step-pip{
+  flex:1;height:4px;border-radius:2px;background:var(--dim);
+  transition:background .3s;position:relative;overflow:hidden;
+}
+.step-pip.done{background:var(--pc)}
+.step-pip.active{background:var(--dim)}
+.step-pip.active::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,var(--pc),transparent);
+  animation:pipSlide 1s ease infinite;
+}
+@keyframes pipSlide{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.steps-labels{display:flex;gap:4px;margin-top:6px}
+.step-label{flex:1;font-family:var(--mono);font-size:7.5px;color:var(--muted);
+  text-align:center;line-height:1.3;transition:color .3s}
+.step-label.done,.step-label.active{color:var(--pc-light)}
+
+/* ── CONTROLS ── */
+.controls-area{padding:0 56px;margin-bottom:48px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ctrl-btn{
+  display:flex;align-items:center;gap:8px;
+  padding:11px 22px;border-radius:9px;border:none;cursor:pointer;
+  font-family:var(--sans);font-size:13px;font-weight:600;
+  transition:all .2s;
+}
+.ctrl-primary{background:linear-gradient(135deg,#660099,#e8001c);color:#fff}
+.ctrl-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(102,0,153,.3)}
+.ctrl-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.ctrl-ghost{background:var(--s2);color:var(--muted);border:1px solid var(--border2)}
+.ctrl-ghost:hover{color:var(--text);border-color:rgba(255,255,255,.2)}
+.ctrl-speed{background:var(--s2);color:var(--text);border:1px solid var(--border);
+  border-radius:8px;padding:10px 14px;font-size:12px;font-family:var(--mono);cursor:pointer}
+.ctrl-label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase}
+
+/* ── CODE COMPARISON ── */
+.code-section{padding:0 56px;margin-bottom:56px}
+.cs-title{font-family:var(--disp);font-size:20px;font-weight:700;letter-spacing:-.5px;margin-bottom:6px}
+.cs-sub{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.6}
+.code-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.cw{background:var(--s2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.cw-head{display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;border-bottom:1px solid var(--border);background:var(--s3)}
+.cw-dots{display:flex;gap:5px}
+.cd{width:9px;height:9px;border-radius:50%}
+.cd.r{background:#ff5f57}.cd.y{background:#ffbd2e}.cd.g{background:#28c840}
+.cw-tag{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase}
+.cw-tag.vivo-tag{color:#9b59f7}
+.cw-tag.claro-tag{color:#ff3355}
+pre{padding:16px;font-family:var(--mono);font-size:11px;line-height:1.9;color:#8a9bb8;overflow-x:auto}
+.kw{color:#f07178}.str{color:#c3e88d}.cm{color:#3d4f66;font-style:italic}
+.fn{color:#82aaff}.num{color:#f78c6c}.key{color:#89ddff}
+.vivo-c{color:#c084fc}.claro-c{color:#f87171}
+
+/* ── SAME SHELL NOTE ── */
+.same-shell-note{
+  margin:0 56px 48px;padding:24px 28px;
+  background:linear-gradient(135deg,rgba(102,0,153,.08),rgba(232,0,28,.08));
+  border:1px solid rgba(255,255,255,.08);border-radius:14px;
+  display:flex;gap:20px;align-items:flex-start;
+}
+.ssn-icon{font-size:28px;flex-shrink:0;margin-top:2px}
+.ssn-body h3{font-family:var(--disp);font-size:17px;font-weight:700;margin-bottom:8px}
+.ssn-body p{font-size:13px;color:var(--muted);line-height:1.7}
+.ssn-body strong{color:var(--text)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:800px){
+  .split{grid-template-columns:1fr;padding:0 20px}
+  .page-header{padding:32px 20px 0}
+  .controls-area{padding:0 20px}
+  .code-section{padding:0 20px}
+  .code-grid{grid-template-columns:1fr}
+  .insight-bar,.same-shell-note{margin-left:20px;margin-right:20px}
+  .phone-area{flex-direction:column;align-items:center}
+}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<div class="page-header">
+  <div class="eyebrow">
+    <span class="eyebrow-tag tag-shell">Shell App · BaaS</span>
+    <span class="eyebrow-tag tag-live"><div class="live-dot"></div>Demo interativo</span>
+  </div>
+  <h1>O mesmo Shell.<br><span class="h1-dim">Duas identidades.</span></h1>
+  <p class="h1-note">O código do Shell não muda. O que muda é o <code>partnerId</code> passado na inicialização. Tudo o mais — tema, logo, cores, produtos — é carregado em runtime da Partner Config API.</p>
+</div>
+
+<!-- ── INSIGHT BAR ── -->
+<div class="insight-bar">
+  <div class="insight-icon">⚡</div>
+  <div class="insight-text">
+    <strong>Zero rebuild entre parceiros.</strong> A Vivo e a Claro recebem o mesmo artefato JavaScript do Shell. A identidade visual é injetada via CSS Custom Properties na inicialização — uma chamada de API, nenhum redeploy.
+  </div>
+  <span class="insight-badge" style="background:rgba(102,0,153,.15);color:#c084fc;border:1px solid rgba(102,0,153,.3)">partnerId=vivo</span>
+  <span class="insight-badge" style="background:rgba(232,0,28,.12);color:#f87171;border:1px solid rgba(232,0,28,.28)">partnerId=claro</span>
+</div>
+
+<!-- ── CONTROLS ── -->
+<div class="controls-area">
+  <span class="ctrl-label">Velocidade</span>
+  <select class="ctrl-speed" id="speedSel">
+    <option value="700">Normal</option>
+    <option value="350">Rápido</option>
+    <option value="1400">Lento</option>
+  </select>
+  <button class="ctrl-btn ctrl-primary" id="playBtn">▶ Executar os dois fluxos</button>
+  <button class="ctrl-btn ctrl-ghost" id="resetBtn">↺ Resetar</button>
+</div>
+
+<!-- ── SPLIT PANELS ── -->
+<div class="split">
+
+  <!-- ══ VIVO ══ -->
+  <div class="partner-panel vivo" id="panel-vivo">
+    <div class="panel-header">
+      <div class="panel-partner-badge">
+        <div class="partner-dot"></div>
+        <div>
+          <div class="panel-partner-name">Vivo</div>
+          <div class="panel-partner-sub" style="font-family:var(--mono)">partnerId=vivo · tenant=vivo-prod</div>
+        </div>
+      </div>
+      <div class="panel-status" id="status-vivo">aguardando</div>
+    </div>
+
+    <!-- phone + log -->
+    <div class="phone-area">
+      <!-- PHONE -->
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+
+          <div class="pscreen sc-blank show" id="vivo-blank">
+            <div class="sc-blank-icon">📱</div>
+            <div class="sc-blank-txt">aguardando</div>
+          </div>
+
+          <div class="pscreen sc-loading" id="vivo-loading">
+            <div class="spinner"></div>
+            <div class="spin-label">shell init...</div>
+          </div>
+
+          <div class="pscreen sc-splash" id="vivo-splash"
+            style="background:linear-gradient(135deg,#660099,#9b2dff)">
+            <div class="splash-logo">vivo</div>
+            <div class="splash-tag">Serviços financeiros</div>
+          </div>
+
+          <div class="pscreen sc-auth" id="vivo-auth">
+            <div class="auth-top" style="background:linear-gradient(135deg,#660099,#8b1ddc)">
+              <div class="auth-logo-sm">vivo</div>
+              <div class="auth-title">Verificando identidade...</div>
+            </div>
+            <div class="auth-body">
+              <div class="auth-card">
+                <div class="auth-card-icon">🔐</div>
+                <div class="auth-card-label">Token Exchange</div>
+                <div class="auth-card-val">UCT emitido</div>
+              </div>
+              <div class="auth-checking">
+                <div class="spinner" style="width:12px;height:12px;border-width:1.5px"></div>
+                Autenticando...
+              </div>
+              <div class="auth-bar"><div class="auth-bar-fill" style="--pc:#660099"></div></div>
+            </div>
+          </div>
+
+          <div class="pscreen sc-product" id="vivo-product">
+            <div class="prod-header" style="background:linear-gradient(135deg,#660099,#8b1ddc)">
+              <div class="prod-logo">vivo</div>
+              <div class="prod-label">Capital de Giro<br>Vivo Empresas</div>
+            </div>
+            <div class="prod-body">
+              <div class="prod-hero" style="background:linear-gradient(135deg,#660099,#9b2dff)">
+                <div class="prod-hero-sub">Limite disponível</div>
+                <div class="prod-hero-val">R$ 80.000</div>
+                <div class="prod-hero-note">✦ aprovação pré-qualificada</div>
+              </div>
+              <div class="prod-pills">
+                <div class="prod-pill" style="--pc:#660099">
+                  <span class="prod-pill-val" style="color:#660099">24x</span>
+                  <span class="prod-pill-sub">parcelas</span>
+                </div>
+                <div class="prod-pill" style="--pc:#660099">
+                  <span class="prod-pill-val" style="color:#660099">1,1%</span>
+                  <span class="prod-pill-sub">a.m.</span>
+                </div>
+                <div class="prod-pill" style="--pc:#660099">
+                  <span class="prod-pill-val" style="color:#660099">45d</span>
+                  <span class="prod-pill-sub">carência</span>
+                </div>
+              </div>
+              <button class="prod-btn" style="background:#660099">Contratar agora →</button>
+            </div>
+          </div>
+
+        </div><!-- /phone-screen -->
+      </div><!-- /phone-frame -->
+
+      <!-- LOG -->
+      <div class="log-panel">
+        <div class="log-title">
+          <div class="log-title-dot" style="background:#9b59f7;box-shadow:0 0 5px #9b59f7"></div>
+          Shell Log · Vivo
+        </div>
+        <div class="log-entries" id="vivo-log">
+          <div class="log-entry" id="vl0"><span class="log-t" style="color:#2a3044">--</span><span class="log-msg">aguardando...</span></div>
+          <div class="log-entry" id="vl1"><span class="log-t">+0ms</span><span class="log-ok">[INIT]</span><span class="log-msg" style="margin-left:4px">shell mounted · vivo</span></div>
+          <div class="log-entry" id="vl2"><span class="log-t">+38ms</span><span class="log-info" style="color:#9b59f7">[CFG]</span><span class="log-msg" style="margin-left:4px">config loaded</span></div>
+          <div class="log-entry" id="vl3"><span class="log-t">+41ms</span><span class="log-warn">[THEME]</span><span class="log-msg" style="margin-left:4px">--color-primary: #660099</span></div>
+          <div class="log-entry" id="vl4"><span class="log-t">+42ms</span><span class="log-warn">[THEME]</span><span class="log-msg" style="margin-left:4px">font: Vivo Sans · logo OK</span></div>
+          <div class="log-entry" id="vl5"><span class="log-t">+290ms</span><span class="log-ok">[AUTH]</span><span class="log-msg" style="margin-left:4px">X autenticado no parceiro</span></div>
+          <div class="log-entry" id="vl6"><span class="log-t">+380ms</span><span class="log-ok">[TOKEN]</span><span class="log-msg" style="margin-left:4px">UCT issued · 15min</span></div>
+          <div class="log-entry" id="vl7"><span class="log-t">+390ms</span><span class="log-ok">[MEM]</span><span class="log-msg" style="margin-left:4px">UCT in memory only</span></div>
+          <div class="log-entry" id="vl8"><span class="log-t">+410ms</span><span class="log-info" style="color:#9b59f7">[REG]</span><span class="log-msg" style="margin-left:4px">capital-giro → v2.4.1</span></div>
+          <div class="log-entry" id="vl9"><span class="log-t">+490ms</span><span class="log-ok">[MFE]</span><span class="log-msg" style="margin-left:4px">remoteEntry loaded</span></div>
+          <div class="log-entry" id="vl10"><span class="log-t">+498ms</span><span class="log-ok">[✓]</span><span class="log-msg" style="margin-left:4px;color:#9b59f7">CapGiro.mount() · vivo ✨</span></div>
+        </div>
+      </div>
+    </div><!-- /phone-area -->
+
+    <!-- STEP TRACKER -->
+    <div class="step-track" style="background:var(--s1);border-top:1px solid var(--border)">
+      <div class="step-track-title">Progresso da inicialização</div>
+      <div class="steps-row" id="vivo-steps">
+        <div class="step-pip" data-step="0"></div>
+        <div class="step-pip" data-step="1"></div>
+        <div class="step-pip" data-step="2"></div>
+        <div class="step-pip" data-step="3"></div>
+        <div class="step-pip" data-step="4"></div>
+        <div class="step-pip" data-step="5"></div>
+        <div class="step-pip" data-step="6"></div>
+        <div class="step-pip" data-step="7"></div>
+        <div class="step-pip" data-step="8"></div>
+        <div class="step-pip" data-step="9"></div>
+      </div>
+      <div class="steps-labels">
+        <div class="step-label" id="vlabel-0">Shell</div>
+        <div class="step-label" id="vlabel-1">Config</div>
+        <div class="step-label" id="vlabel-2">Tema</div>
+        <div class="step-label" id="vlabel-3">Fonte</div>
+        <div class="step-label" id="vlabel-4">Auth X</div>
+        <div class="step-label" id="vlabel-5">UCT</div>
+        <div class="step-label" id="vlabel-6">Memória</div>
+        <div class="step-label" id="vlabel-7">Registry</div>
+        <div class="step-label" id="vlabel-8">MFE</div>
+        <div class="step-label" id="vlabel-9">Produto</div>
+      </div>
+    </div>
+
+  </div><!-- /vivo panel -->
+
+  <!-- ══ CLARO ══ -->
+  <div class="partner-panel claro" id="panel-claro">
+    <div class="panel-header">
+      <div class="panel-partner-badge">
+        <div class="partner-dot"></div>
+        <div>
+          <div class="panel-partner-name">Claro</div>
+          <div class="panel-partner-sub" style="font-family:var(--mono)">partnerId=claro · tenant=claro-prod</div>
+        </div>
+      </div>
+      <div class="panel-status" id="status-claro">aguardando</div>
+    </div>
+
+    <div class="phone-area">
+      <!-- PHONE -->
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+
+          <div class="pscreen sc-blank show" id="claro-blank">
+            <div class="sc-blank-icon">📱</div>
+            <div class="sc-blank-txt">aguardando</div>
+          </div>
+
+          <div class="pscreen sc-loading" id="claro-loading">
+            <div class="spinner" style="border-top-color:#e8001c"></div>
+            <div class="spin-label">shell init...</div>
+          </div>
+
+          <div class="pscreen sc-splash" id="claro-splash"
+            style="background:linear-gradient(135deg,#c0001a,#e8001c)">
+            <div class="splash-logo">claro</div>
+            <div class="splash-tag">Crédito empresarial</div>
+          </div>
+
+          <div class="pscreen sc-auth" id="claro-auth">
+            <div class="auth-top" style="background:linear-gradient(135deg,#c0001a,#e8001c)">
+              <div class="auth-logo-sm">claro</div>
+              <div class="auth-title">Verificando identidade...</div>
+            </div>
+            <div class="auth-body">
+              <div class="auth-card">
+                <div class="auth-card-icon">🔐</div>
+                <div class="auth-card-label">Token Exchange</div>
+                <div class="auth-card-val">UCT emitido</div>
+              </div>
+              <div class="auth-checking">
+                <div class="spinner" style="width:12px;height:12px;border-width:1.5px;border-top-color:#e8001c"></div>
+                Autenticando...
+              </div>
+              <div class="auth-bar"><div class="auth-bar-fill" style="--pc:#e8001c"></div></div>
+            </div>
+          </div>
+
+          <div class="pscreen sc-product" id="claro-product">
+            <div class="prod-header" style="background:linear-gradient(135deg,#c0001a,#e8001c)">
+              <div class="prod-logo">claro</div>
+              <div class="prod-label">Capital de Giro<br>Claro Negócios</div>
+            </div>
+            <div class="prod-body">
+              <div class="prod-hero" style="background:linear-gradient(135deg,#c0001a,#ff3355)">
+                <div class="prod-hero-sub">Limite disponível</div>
+                <div class="prod-hero-val">R$ 60.000</div>
+                <div class="prod-hero-note">✦ aprovação em 24h</div>
+              </div>
+              <div class="prod-pills">
+                <div class="prod-pill">
+                  <span class="prod-pill-val" style="color:#e8001c">18x</span>
+                  <span class="prod-pill-sub">parcelas</span>
+                </div>
+                <div class="prod-pill">
+                  <span class="prod-pill-val" style="color:#e8001c">1,3%</span>
+                  <span class="prod-pill-sub">a.m.</span>
+                </div>
+                <div class="prod-pill">
+                  <span class="prod-pill-val" style="color:#e8001c">30d</span>
+                  <span class="prod-pill-sub">carência</span>
+                </div>
+              </div>
+              <button class="prod-btn" style="background:#e8001c">Contratar agora →</button>
+            </div>
+          </div>
+
+        </div><!-- /phone-screen -->
+      </div><!-- /phone-frame -->
+
+      <!-- LOG -->
+      <div class="log-panel">
+        <div class="log-title">
+          <div class="log-title-dot" style="background:#f87171;box-shadow:0 0 5px #f87171"></div>
+          Shell Log · Claro
+        </div>
+        <div class="log-entries" id="claro-log">
+          <div class="log-entry" id="cl0"><span class="log-t" style="color:#2a3044">--</span><span class="log-msg">aguardando...</span></div>
+          <div class="log-entry" id="cl1"><span class="log-t">+0ms</span><span class="log-ok">[INIT]</span><span class="log-msg" style="margin-left:4px">shell mounted · claro</span></div>
+          <div class="log-entry" id="cl2"><span class="log-t">+41ms</span><span class="log-info" style="color:#f87171">[CFG]</span><span class="log-msg" style="margin-left:4px">config loaded</span></div>
+          <div class="log-entry" id="cl3"><span class="log-t">+44ms</span><span class="log-warn">[THEME]</span><span class="log-msg" style="margin-left:4px">--color-primary: #e8001c</span></div>
+          <div class="log-entry" id="cl4"><span class="log-t">+45ms</span><span class="log-warn">[THEME]</span><span class="log-msg" style="margin-left:4px">font: Claro Sans · logo OK</span></div>
+          <div class="log-entry" id="cl5"><span class="log-t">+310ms</span><span class="log-ok">[AUTH]</span><span class="log-msg" style="margin-left:4px">X autenticado no parceiro</span></div>
+          <div class="log-entry" id="cl6"><span class="log-t">+395ms</span><span class="log-ok">[TOKEN]</span><span class="log-msg" style="margin-left:4px">UCT issued · 15min</span></div>
+          <div class="log-entry" id="cl7"><span class="log-t">+398ms</span><span class="log-ok">[MEM]</span><span class="log-msg" style="margin-left:4px">UCT in memory only</span></div>
+          <div class="log-entry" id="cl8"><span class="log-t">+415ms</span><span class="log-info" style="color:#f87171">[REG]</span><span class="log-msg" style="margin-left:4px">capital-giro → v2.4.1</span></div>
+          <div class="log-entry" id="cl9"><span class="log-t">+501ms</span><span class="log-ok">[MFE]</span><span class="log-msg" style="margin-left:4px">remoteEntry loaded</span></div>
+          <div class="log-entry" id="cl10"><span class="log-t">+509ms</span><span class="log-ok">[✓]</span><span class="log-msg" style="margin-left:4px;color:#f87171">CapGiro.mount() · claro ✨</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP TRACKER -->
+    <div class="step-track" style="background:var(--s1);border-top:1px solid var(--border)">
+      <div class="step-track-title">Progresso da inicialização</div>
+      <div class="steps-row" id="claro-steps">
+        <div class="step-pip" data-step="0"></div>
+        <div class="step-pip" data-step="1"></div>
+        <div class="step-pip" data-step="2"></div>
+        <div class="step-pip" data-step="3"></div>
+        <div class="step-pip" data-step="4"></div>
+        <div class="step-pip" data-step="5"></div>
+        <div class="step-pip" data-step="6"></div>
+        <div class="step-pip" data-step="7"></div>
+        <div class="step-pip" data-step="8"></div>
+        <div class="step-pip" data-step="9"></div>
+      </div>
+      <div class="steps-labels">
+        <div class="step-label" id="clabel-0">Shell</div>
+        <div class="step-label" id="clabel-1">Config</div>
+        <div class="step-label" id="clabel-2">Tema</div>
+        <div class="step-label" id="clabel-3">Fonte</div>
+        <div class="step-label" id="clabel-4">Auth X</div>
+        <div class="step-label" id="clabel-5">UCT</div>
+        <div class="step-label" id="clabel-6">Memória</div>
+        <div class="step-label" id="clabel-7">Registry</div>
+        <div class="step-label" id="clabel-8">MFE</div>
+        <div class="step-label" id="clabel-9">Produto</div>
+      </div>
+    </div>
+
+  </div><!-- /claro panel -->
+</div><!-- /split -->
+
+<!-- ── SAME SHELL NOTE ── -->
+<div class="same-shell-note">
+  <div class="ssn-icon">🔑</div>
+  <div class="ssn-body">
+    <h3>O artefato JavaScript é idêntico para os dois</h3>
+    <p>Vivo e Claro recebem o <strong>mesmo bundle do Shell</strong> — mesma URL, mesmo hash de integridade. O que difere é o <code>partnerId</code> passado como parâmetro. Na inicialização, o Shell chama <code>GET /v1/partners/{partnerId}/config</code> e recebe os Design Tokens, produtos habilitados e UCT scope. <strong>Zero código condicional</strong> dentro do Shell para distinguir parceiros.</p>
+  </div>
+</div>
+
+<!-- ── CODE COMPARISON ── -->
+<div class="code-section">
+  <div class="cs-title">O Shell visto por dentro — mesmo código, dois contextos</div>
+  <p class="cs-sub">Observe que a única diferença entre os dois fluxos é o valor de <code>partnerId</code>. O Shell não tem <code>if (partner === 'vivo')</code> em lugar nenhum.</p>
+  <div class="code-grid">
+    <div class="cw">
+      <div class="cw-head">
+        <div class="cw-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div>
+        <span class="cw-tag vivo-tag">Vivo · Shell boot</span>
+      </div>
+      <pre><span class="cm">// App do parceiro Vivo</span>
+&lt;ShellApp
+  <span class="key">partnerId</span>=<span class="vivo-c">"vivo"</span>
+  <span class="key">onEvent</span>={handleEvent}
+/&gt;
+
+<span class="cm">// Shell busca config</span>
+GET /v1/partners/<span class="vivo-c">vivo</span>/config
+→ {
+    primaryColor: <span class="vivo-c">"#660099"</span>,
+    fontFamily:   <span class="str">"Vivo Sans"</span>,
+    logo:         <span class="str">"cdn.vivo.com.br/logo.svg"</span>,
+    products:     [<span class="str">"capital-giro"</span>],
+    maxLimit:     <span class="num">80000</span>
+  }
+
+<span class="cm">// CSS injetado em :root</span>
+--color-primary: <span class="vivo-c">#660099</span>;
+--color-light:   <span class="vivo-c">#9b2dff</span>;
+--font-family:   <span class="str">Vivo Sans</span>;</pre>
+    </div>
+    <div class="cw">
+      <div class="cw-head">
+        <div class="cw-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div>
+        <span class="cw-tag claro-tag">Claro · Shell boot</span>
+      </div>
+      <pre><span class="cm">// App do parceiro Claro</span>
+&lt;ShellApp
+  <span class="key">partnerId</span>=<span class="claro-c">"claro"</span>
+  <span class="key">onEvent</span>={handleEvent}
+/&gt;
+
+<span class="cm">// Shell busca config</span>
+GET /v1/partners/<span class="claro-c">claro</span>/config
+→ {
+    primaryColor: <span class="claro-c">"#e8001c"</span>,
+    fontFamily:   <span class="str">"Claro Sans"</span>,
+    logo:         <span class="str">"cdn.claro.com.br/logo.svg"</span>,
+    products:     [<span class="str">"capital-giro"</span>],
+    maxLimit:     <span class="num">60000</span>
+  }
+
+<span class="cm">// CSS injetado em :root</span>
+--color-primary: <span class="claro-c">#e8001c</span>;
+--color-light:   <span class="claro-c">#ff3355</span>;
+--font-family:   <span class="str">Claro Sans</span>;</pre>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────
+const TOTAL_STEPS = 10; // log entries 1..10
+
+// Screen states per step index (0-based log step 1..10)
+const vivoScreens = {
+  1:'vivo-loading', 2:'vivo-splash', 3:'vivo-splash', 4:'vivo-splash',
+  5:'vivo-auth', 6:'vivo-auth', 7:'vivo-auth',
+  8:'vivo-auth', 9:'vivo-auth', 10:'vivo-product'
+};
+const claroScreens = {
+  1:'claro-loading', 2:'claro-splash', 3:'claro-splash', 4:'claro-splash',
+  5:'claro-auth', 6:'claro-auth', 7:'claro-auth',
+  8:'claro-auth', 9:'claro-auth', 10:'claro-product'
+};
+
+// pip step mapping: pip 0..9 activated at log step
+const pipAt = [1,2,3,4,5,6,7,8,9,10];
+
+const statusTexts = {
+  0:'aguardando', 1:'montando...', 2:'config...', 3:'tema...',
+  4:'fonte...', 5:'auth...', 6:'token...', 7:'memória...',
+  8:'registry...', 9:'mfe...', 10:'✓ ativo'
+};
+
+// ── STATE ────────────────────────────────────────────
+let vivoStep = 0, claroStep = 0;
+let running = false;
+let timers = [];
+
+// ── HELPERS ─────────────────────────────────────────
+function showScreen(partner, screenId) {
+  const prefix = partner;
+  ['blank','loading','splash','auth','product'].forEach(s => {
+    const el = document.getElementById(prefix+'-'+s);
+    if(el) el.classList.remove('show');
+  });
+  const target = document.getElementById(screenId);
+  if(target) target.classList.add('show');
+}
+
+function setStatus(partner, step) {
+  const el = document.getElementById('status-'+partner);
+  if(!el) return;
+  const txt = statusTexts[step] || 'ativo';
+  el.textContent = txt;
+  if(step >= 10) {
+    el.style.background = partner==='vivo' ? 'rgba(155,89,247,.2)' : 'rgba(248,113,113,.18)';
+    el.style.color = partner==='vivo' ? '#c084fc' : '#f87171';
+    el.style.borderColor = partner==='vivo' ? 'rgba(155,89,247,.4)' : 'rgba(248,113,113,.35)';
+  }
+}
+
+function showLog(partner, step) {
+  const prefix = partner==='vivo' ? 'vl' : 'cl';
+  // hide placeholder
+  document.getElementById(prefix+'0').style.display = 'none';
+  const el = document.getElementById(prefix+step);
+  if(el) el.classList.add('show');
+  // scroll
+  const log = document.getElementById(partner+'-log');
+  if(log) log.scrollTop = log.scrollHeight;
+}
+
+function setPip(partner, step) {
+  const container = document.getElementById(partner+'-steps');
+  if(!container) return;
+  const pips = container.querySelectorAll('.step-pip');
+  const labels = [];
+  for(let i=0;i<10;i++) {
+    const lbl = document.getElementById((partner==='vivo'?'vlabel':'clabel')+'-'+i);
+    labels.push(lbl);
+  }
+  pips.forEach((pip, i) => {
+    pip.classList.remove('active','done');
+    if(labels[i]) labels[i].classList.remove('active','done');
+    if(i < step-1) {
+      pip.classList.add('done');
+      if(labels[i]) { labels[i].classList.remove('active'); labels[i].classList.add('done'); }
+    } else if(i === step-1) {
+      pip.classList.add('active');
+      if(labels[i]) labels[i].classList.add('active');
+    }
+  });
+}
+
+function scheduleStep(partner, step, delay) {
+  const t = setTimeout(() => {
+    if(partner==='vivo') {
+      vivoStep = step;
+      const screenId = vivoScreens[step];
+      if(screenId) showScreen('vivo', screenId);
+      showLog('vivo', step);
+      setPip('vivo', step);
+      setStatus('vivo', step);
+    } else {
+      claroStep = step;
+      const screenId = claroScreens[step];
+      if(screenId) showScreen('claro', screenId);
+      showLog('claro', step);
+      setPip('claro', step);
+      setStatus('claro', step);
+    }
+
+    if(step === TOTAL_STEPS) {
+      // check if both done
+      if(vivoStep >= TOTAL_STEPS && claroStep >= TOTAL_STEPS) {
+        running = false;
+        document.getElementById('playBtn').textContent = '✓ Ambos ativos';
+        document.getElementById('playBtn').disabled = false;
+      }
+    }
+  }, delay);
+  timers.push(t);
+}
+
+function runPartner(partner, baseDelay, speed) {
+  for(let step = 1; step <= TOTAL_STEPS; step++) {
+    const delay = baseDelay + (step-1) * speed;
+    scheduleStep(partner, step, delay);
+  }
+}
+
+function startFlow() {
+  if(running) return;
+  running = true;
+  const btn = document.getElementById('playBtn');
+  btn.textContent = '⏸ Executando...';
+  btn.disabled = true;
+
+  const speed = parseInt(document.getElementById('speedSel').value);
+
+  // Claro starts 300ms after Vivo to make stagger visible
+  runPartner('vivo',  200, speed);
+  runPartner('claro', 200 + Math.floor(speed * 0.4), speed);
+}
+
+function resetFlow() {
+  timers.forEach(clearTimeout);
+  timers = [];
+  running = false;
+  vivoStep = 0; claroStep = 0;
+
+  const btn = document.getElementById('playBtn');
+  btn.textContent = '▶ Executar os dois fluxos';
+  btn.disabled = false;
+
+  // reset screens
+  ['vivo','claro'].forEach(p => {
+    showScreen(p, p+'-blank');
+    setStatus(p, 0);
+    // hide log entries
+    const prefix = p==='vivo'?'vl':'cl';
+    document.getElementById(prefix+'0').style.display = '';
+    for(let i=1;i<=TOTAL_STEPS;i++) {
+      const el = document.getElementById(prefix+i);
+      if(el) el.classList.remove('show');
+    }
+    // reset pips
+    const container = document.getElementById(p+'-steps');
+    if(container) {
+      container.querySelectorAll('.step-pip').forEach(pip => pip.classList.remove('active','done'));
+    }
+    for(let i=0;i<10;i++) {
+      const lbl = document.getElementById((p==='vivo'?'vlabel':'clabel')+'-'+i);
+      if(lbl) lbl.classList.remove('active','done');
+    }
+    // reset status style
+    const statusEl = document.getElementById('status-'+p);
+    if(statusEl) {
+      statusEl.style.background = '';
+      statusEl.style.color = '';
+      statusEl.style.borderColor = '';
+    }
+  });
+}
+
+document.getElementById('playBtn').addEventListener('click', startFlow);
+document.getElementById('resetBtn').addEventListener('click', resetFlow);
+</script>
+</body>
+</html>

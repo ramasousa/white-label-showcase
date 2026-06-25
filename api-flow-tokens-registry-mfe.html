@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API Flow — Partner Tokens · Customer Registry · MFE APIs</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#06080d;--s1:#0c0f17;--s2:#11151e;--s3:#171c28;--s4:#1d2335;
+  --border:rgba(255,255,255,.055);--b2:rgba(255,255,255,.1);--b3:rgba(255,255,255,.16);
+  --text:#d8e2f5;--muted:#46546c;--dim:#1d2638;--dim2:#263045;
+
+  --red:#e8294a;    --rg:rgba(232,41,74,.12);    --rb:rgba(232,41,74,.28);
+  --blue:#3b9eff;   --bg2:rgba(59,158,255,.11);   --bb:rgba(59,158,255,.28);
+  --green:#00d49a;  --gg:rgba(0,212,154,.1);      --gb:rgba(0,212,154,.28);
+  --amber:#f0a420;  --ag:rgba(240,164,32,.1);     --ab:rgba(240,164,32,.28);
+  --purple:#a87cf8; --pg:rgba(168,124,248,.1);    --pb:rgba(168,124,248,.28);
+  --teal:#22d4c0;   --tg2:rgba(34,212,192,.1);
+
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Inter',sans-serif;
+  --disp:'Syne',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.032'/%3E%3C/svg%3E");opacity:.5}
+
+/* ── LAYOUT ── */
+.shell{display:flex;min-height:100vh}
+
+/* ── SIDEBAR ── */
+.sb{width:248px;min-width:248px;background:var(--s1);border-right:1px solid var(--border);
+  position:sticky;top:0;height:100vh;overflow-y:auto;padding:28px 0;scrollbar-width:none}
+.sb::-webkit-scrollbar{display:none}
+.sb-brand{padding:0 20px 24px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.sb-tag{font-family:var(--mono);font-size:8.5px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--red);background:var(--rg);border:1px solid var(--rb);border-radius:4px;
+  padding:3px 8px;display:inline-block;margin-bottom:10px}
+.sb-title{font-family:var(--disp);font-size:14px;font-weight:700;color:var(--text);line-height:1.3}
+.sb-ver{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:4px}
+.sb-sec{font-family:var(--mono);font-size:8px;letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--muted);padding:0 20px;margin:14px 0 6px}
+.sb-link{display:flex;align-items:center;gap:9px;padding:8px 20px;color:var(--muted);
+  font-size:12px;font-weight:500;border-left:2px solid transparent;
+  cursor:pointer;transition:all .16s;border:none;background:none;width:100%;text-align:left}
+.sb-link:hover{color:var(--text);background:rgba(255,255,255,.025)}
+.sb-link.active{color:var(--red);border-left-color:var(--red);background:var(--rg)}
+.sb-n{font-family:var(--mono);font-size:9px;color:var(--dim2);min-width:18px}
+.sb-flow-badge{font-family:var(--mono);font-size:8px;margin-left:auto;padding:2px 6px;border-radius:3px;font-weight:600}
+.f1{background:var(--rg);color:var(--red);border:1px solid var(--rb)}
+.f2{background:var(--bg2);color:var(--blue);border:1px solid var(--bb)}
+.f3{background:var(--gg);color:var(--green);border:1px solid var(--gb)}
+
+/* ── MAIN ── */
+.main{flex:1;overflow-x:hidden}
+
+/* ── HERO ── */
+.hero{padding:60px 60px 52px;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;top:-80px;right:-80px;width:400px;height:400px;
+  background:radial-gradient(circle,rgba(232,41,74,.07),transparent 65%);pointer-events:none}
+.hero-tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.htag{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;
+  padding:4px 11px;border-radius:4px;font-weight:600}
+.ht-r{background:var(--rg);color:var(--red);border:1px solid var(--rb)}
+.ht-b{background:var(--bg2);color:var(--blue);border:1px solid var(--bb)}
+.ht-g{background:var(--gg);color:var(--green);border:1px solid var(--gb)}
+.ht-a{background:var(--ag);color:var(--amber);border:1px solid var(--ab)}
+.ht-p{background:var(--pg);color:var(--purple);border:1px solid var(--pb)}
+h1{font-family:var(--disp);font-size:clamp(28px,4vw,50px);font-weight:800;
+  letter-spacing:-2px;line-height:1.03;margin-bottom:12px}
+h1 em{font-style:normal;color:var(--red)}
+.hero-desc{font-size:14px;color:var(--muted);max-width:620px;line-height:1.8;margin-bottom:32px}
+.hero-kpis{display:flex;gap:36px;flex-wrap:wrap}
+.kpi-val{font-family:var(--disp);font-size:28px;font-weight:800;letter-spacing:-1px}
+.kpi-lbl{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:2px}
+
+/* ── SECTION ── */
+.section{padding:56px 60px;border-bottom:1px solid var(--border);display:none}
+.section.active{display:block}
+.sec-hdr{display:flex;align-items:baseline;gap:14px;margin-bottom:28px}
+.sec-num{font-family:var(--mono);font-size:10px;color:var(--red);letter-spacing:1px;font-weight:600}
+.sec-title{font-family:var(--disp);font-size:26px;font-weight:700;letter-spacing:-.6px}
+.sec-bar{flex:1;height:1px;background:var(--border)}
+.sec-intro{font-size:14px;color:var(--muted);line-height:1.8;max-width:700px;margin-bottom:40px}
+
+/* ── FLOW DIAGRAM ── */
+.flow-diagram{
+  background:var(--s1);border:1px solid var(--border);border-radius:12px;
+  padding:28px;margin-bottom:32px;overflow-x:auto;
+}
+.flow-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:20px}
+.flow-actors{display:flex;gap:0;margin-bottom:16px}
+.actor{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  min-width:130px;flex:1;
+}
+.actor-box{
+  padding:8px 14px;border-radius:8px;border:1.5px solid;
+  font-family:var(--mono);font-size:10px;font-weight:600;text-align:center;
+  white-space:nowrap;line-height:1.4;
+}
+.a-partner{background:var(--ag);border-color:var(--amber);color:var(--amber)}
+.a-shell{background:var(--rg);border-color:var(--red);color:var(--red)}
+.a-bff{background:var(--gg);border-color:var(--green);color:var(--green)}
+.a-auth{background:var(--bg2);border-color:var(--blue);color:var(--blue)}
+.a-core{background:var(--pg);border-color:var(--purple);color:var(--purple)}
+.a-laas{background:var(--tg2);border-color:var(--teal);color:var(--teal)}
+.actor-sub{font-size:9px;color:var(--muted);text-align:center;font-family:var(--mono)}
+.actor-lifeline{width:1.5px;background:var(--border);flex:1;min-height:20px}
+
+/* sequence steps */
+.seq-steps{display:flex;flex-direction:column;gap:0}
+.seq-step{display:flex;align-items:stretch;min-height:40px}
+.seq-step-left{
+  width:130px;min-width:130px;display:flex;align-items:center;justify-content:center;
+  position:relative;
+}
+.ssl-lifeline{position:absolute;left:50%;width:1.5px;height:100%;background:var(--border);top:0}
+.ssl-dot{width:10px;height:10px;border-radius:50%;border:2px solid;background:var(--s1);position:relative;z-index:1}
+.seq-step-arrow{
+  flex:1;display:flex;align-items:center;gap:0;position:relative;min-height:40px;
+}
+.arrow-line{
+  height:1.5px;flex:1;position:relative;overflow:hidden;
+}
+.arrow-line::after{
+  content:'';position:absolute;top:0;left:-60px;width:60px;height:100%;
+  animation:none;
+}
+.arrow-head{font-size:14px;flex-shrink:0}
+.arrow-label{
+  position:absolute;top:-18px;left:0;right:0;text-align:center;
+  font-family:var(--mono);font-size:10px;white-space:nowrap;
+}
+.arrow-sub{position:absolute;bottom:-16px;left:0;right:0;text-align:center;
+  font-family:var(--mono);font-size:9px;color:var(--muted);white-space:nowrap}
+.seq-step-right{
+  width:130px;min-width:130px;display:flex;align-items:center;justify-content:center;
+  position:relative;
+}
+.ssr-lifeline{position:absolute;left:50%;width:1.5px;height:100%;background:var(--border);top:0}
+
+/* simplified inline flow */
+.inline-flow{
+  display:flex;align-items:center;gap:0;padding:16px 20px;
+  background:var(--s2);border-radius:8px;border:1px solid var(--border);
+  overflow-x:auto;margin-bottom:12px;
+}
+.if-node{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  flex-shrink:0;
+}
+.if-box{
+  padding:8px 14px;border-radius:6px;border:1.5px solid;
+  font-family:var(--mono);font-size:10px;font-weight:600;text-align:center;
+  white-space:nowrap;
+}
+.if-sub{font-size:9px;text-align:center;color:var(--muted);font-family:var(--mono);max-width:100px;line-height:1.3}
+.if-arrow{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:0 8px;flex-shrink:0;
+}
+.if-arrow-line{height:1.5px;width:40px}
+.if-arrow-lbl{font-family:var(--mono);font-size:8.5px;color:var(--muted);white-space:nowrap}
+.if-arrow-head{color:var(--muted);font-size:12px}
+
+/* ── CODE BLOCK ── */
+.code-wrap{background:var(--s2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:16px 0}
+.code-head{display:flex;align-items:center;justify-content:space-between;
+  padding:9px 14px;border-bottom:1px solid var(--border);background:var(--s3)}
+.code-dots{display:flex;gap:5px}
+.cd{width:9px;height:9px;border-radius:50%}
+.cd.r{background:#ff5f57}.cd.y{background:#ffbd2e}.cd.g{background:#28c840}
+.code-lang{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase}
+.code-copy{font-family:var(--mono);font-size:9px;color:var(--muted);cursor:pointer;
+  padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:none;
+  transition:all .15s}
+.code-copy:hover{color:var(--text);border-color:var(--b2)}
+pre{padding:18px;font-family:var(--mono);font-size:12px;line-height:1.85;color:#8a9fbc;overflow-x:auto}
+.kw{color:#f07178}.str{color:#c3e88d}.cm{color:#3d5068;font-style:italic}
+.fn{color:#82aaff}.key{color:#89ddff}.num{color:#f78c6c}.op{color:#89ddff}
+.ok{color:var(--green)}.warn{color:var(--amber)}.err{color:var(--red)}
+.amber-t{color:var(--amber)}.blue-t{color:var(--blue)}.green-t{color:var(--green)}
+.purple-t{color:var(--purple)}.teal-t{color:var(--teal)}
+
+/* ── ENDPOINT CARDS ── */
+.endpoint-list{display:flex;flex-direction:column;gap:14px;margin-bottom:32px}
+.ep{background:var(--s1);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .2s}
+.ep:hover{border-color:var(--b2)}
+.ep-head{
+  padding:16px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;cursor:pointer;
+  background:var(--s2);
+}
+.ep-method{
+  font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.5px;
+  padding:4px 9px;border-radius:4px;min-width:42px;text-align:center;flex-shrink:0;
+}
+.m-get{background:var(--bg2);color:var(--blue);border:1px solid var(--bb)}
+.m-post{background:var(--gg);color:var(--green);border:1px solid var(--gb)}
+.m-del{background:var(--rg);color:var(--red);border:1px solid var(--rb)}
+.ep-path{font-family:var(--mono);font-size:13px;color:var(--text);font-weight:500;flex:1}
+.ep-desc{font-size:12.5px;color:var(--muted)}
+.ep-tags{display:flex;gap:6px;margin-left:auto;flex-shrink:0}
+.ep-tag{font-family:var(--mono);font-size:8.5px;letter-spacing:.5px;padding:2px 7px;border-radius:3px;font-weight:600}
+.ep-body{padding:18px 20px;display:none}
+.ep.open .ep-body{display:block}
+.ep.open .ep-head{border-bottom-color:var(--b2)}
+
+h3{font-family:var(--disp);font-size:18px;font-weight:700;letter-spacing:-.3px;margin:28px 0 12px}
+h4{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin:20px 0 10px}
+p{font-size:13.5px;color:var(--muted);line-height:1.8;margin-bottom:12px}
+strong{color:var(--text);font-weight:600}
+
+/* ── HIGHLIGHT BOXES ── */
+.hbox{border-radius:10px;padding:18px 22px;margin:14px 0;border:1px solid}
+.hbox.green{background:var(--gg);border-color:var(--gb)}
+.hbox.amber{background:var(--ag);border-color:var(--ab)}
+.hbox.red{background:var(--rg);border-color:var(--rb)}
+.hbox.blue{background:var(--bg2);border-color:var(--bb)}
+.hbox-title{font-family:var(--disp);font-size:13px;font-weight:700;margin-bottom:6px}
+.hbox.green .hbox-title{color:var(--green)}
+.hbox.amber .hbox-title{color:var(--amber)}
+.hbox.red .hbox-title{color:var(--red)}
+.hbox.blue .hbox-title{color:var(--blue)}
+.hbox p{font-size:12.5px;margin-bottom:0}
+
+/* ── GRID ── */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:24px}
+.info-card{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:20px;transition:border-color .2s}
+.info-card:hover{border-color:var(--b2)}
+.ic-tag{font-family:var(--mono);font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;margin-bottom:8px}
+.ic-title{font-family:var(--disp);font-size:15px;font-weight:700;margin-bottom:6px}
+.ic-body{font-size:12.5px;color:var(--muted);line-height:1.7}
+
+/* ── PARAM TABLE ── */
+.param-table{width:100%;border-collapse:collapse;font-size:12.5px;margin:10px 0 20px}
+.param-table th{font-family:var(--mono);font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--muted);padding:8px 12px;text-align:left;border-bottom:1px solid var(--b2)}
+.param-table td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6;color:var(--muted)}
+.param-table tr:hover td{background:rgba(255,255,255,.015)}
+.param-table td:first-child{font-family:var(--mono);font-size:11px;color:var(--text);font-weight:600}
+.param-table td:nth-child(2){color:var(--purple)}
+.req{color:var(--red);font-size:9px;margin-left:4px}
+.opt{color:var(--green);font-size:9px;margin-left:4px}
+
+/* ── SEQUENCE DIAGRAM (simplified visual) ── */
+.seq-diagram{
+  background:var(--s1);border:1px solid var(--border);border-radius:12px;
+  padding:24px;margin:20px 0;overflow-x:auto;
+}
+.sd-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:18px}
+.sd-actors{display:flex;gap:0;margin-bottom:8px;min-width:700px}
+.sda{
+  flex:1;min-width:110px;text-align:center;
+}
+.sda-box{
+  display:inline-block;padding:7px 12px;border-radius:6px;border:1.5px solid;
+  font-family:var(--mono);font-size:10px;font-weight:700;line-height:1.3;
+}
+.sda-line{width:1.5px;height:12px;background:var(--border);margin:0 auto}
+
+.sd-messages{display:flex;flex-direction:column;gap:0;min-width:700px}
+.sdm{display:flex;align-items:center;min-height:36px;position:relative}
+.sdm-spacer{background:var(--border);width:1.5px;min-height:36px}
+.sdm-from{flex:1}
+.sdm-line-wrap{flex:2;display:flex;align-items:center;position:relative;height:36px}
+.sdm-line{height:1.5px;width:100%;position:relative}
+.sdm-arrow{font-size:12px;flex-shrink:0}
+.sdm-label{position:absolute;top:-16px;left:0;right:0;text-align:center;
+  font-family:var(--mono);font-size:9.5px;white-space:nowrap;font-weight:600}
+.sdm-note{position:absolute;bottom:-14px;left:0;right:0;text-align:center;
+  font-family:var(--mono);font-size:8.5px;color:var(--muted);white-space:nowrap}
+.sdm-to{flex:1}
+.sdm-side-line{background:var(--border);width:1.5px;min-height:36px;flex-shrink:0}
+
+/* divider */
+.divider{height:1px;background:var(--border);margin:28px 0}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .sb{display:none}
+  .section{padding:36px 24px}
+  .hero{padding:44px 24px 40px}
+  .grid2,.grid3{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ── SIDEBAR ── -->
+<nav class="sb">
+  <div class="sb-brand">
+    <div class="sb-tag">API Spec · BaaS</div>
+    <div class="sb-title">Fluxo de APIs<br>White Label</div>
+    <div class="sb-ver">v1.0 · Capital de Giro · Jun 2026</div>
+  </div>
+
+  <div class="sb-sec">Visão Geral</div>
+  <button class="sb-link active" onclick="nav('overview',this)"><span class="sb-n">00</span>Arquitetura & Cadeia</button>
+
+  <div class="sb-sec">Fluxo 1 — Tokens</div>
+  <button class="sb-link" onclick="nav('auth',this)"><span class="sb-n">01</span>Autenticação M2M<span class="sb-flow-badge f1">F1</span></button>
+  <button class="sb-link" onclick="nav('tokens',this)"><span class="sb-n">02</span>Partner Config API<span class="sb-flow-badge f1">F1</span></button>
+  <button class="sb-link" onclick="nav('tokenex',this)"><span class="sb-n">03</span>Token Exchange<span class="sb-flow-badge f1">F1</span></button>
+
+  <div class="sb-sec">Fluxo 2 — Customer</div>
+  <button class="sb-link" onclick="nav('registry',this)"><span class="sb-n">04</span>Customer Registry<span class="sb-flow-badge f2">F2</span></button>
+  <button class="sb-link" onclick="nav('lookup',this)"><span class="sb-n">05</span>Limit Lookup<span class="sb-flow-badge f2">F2</span></button>
+
+  <div class="sb-sec">Fluxo 3 — MFE APIs</div>
+  <button class="sb-link" onclick="nav('simulate',this)"><span class="sb-n">06</span>Simulação<span class="sb-flow-badge f3">F3</span></button>
+  <button class="sb-link" onclick="nav('origination',this)"><span class="sb-n">07</span>Originação<span class="sb-flow-badge f3">F3</span></button>
+  <button class="sb-link" onclick="nav('status',this)"><span class="sb-n">08</span>Status & Consulta<span class="sb-flow-badge f3">F3</span></button>
+
+  <div class="sb-sec">Referência</div>
+  <button class="sb-link" onclick="nav('errors',this)"><span class="sb-n">09</span>Erros & Retries</button>
+  <button class="sb-link" onclick="nav('security',this)"><span class="sb-n">10</span>Segurança</button>
+</nav>
+
+<!-- ── MAIN ── -->
+<div class="main">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tags">
+    <span class="htag ht-r">BaaS · Capital de Giro</span>
+    <span class="htag ht-b">API Specification</span>
+    <span class="htag ht-g">OpenAPI 3.1</span>
+    <span class="htag ht-a">Multi-tenant</span>
+    <span class="htag ht-p">OAuth2 + mTLS</span>
+  </div>
+  <h1>Fluxo de <em>APIs</em><br>White Label BaaS</h1>
+  <p class="hero-desc">Especificação técnica completa dos três fluxos de API que sustentam os MFEs: autenticação e tokens de parceiro, Customer Registry e as APIs de produto (simulação, originação e consulta de status).</p>
+  <div class="hero-kpis">
+    <div><div class="kpi-val" style="color:var(--red)">3</div><div class="kpi-lbl">Fluxos</div></div>
+    <div><div class="kpi-val" style="color:var(--blue)">14</div><div class="kpi-lbl">Endpoints</div></div>
+    <div><div class="kpi-val" style="color:var(--green)">4</div><div class="kpi-lbl">Tokens</div></div>
+    <div><div class="kpi-val" style="color:var(--amber)">&lt;200ms</div><div class="kpi-lbl">Target p99 BFF</div></div>
+  </div>
+</div>
+
+<!-- ══ 00 OVERVIEW ══ -->
+<div class="section active" id="sec-overview">
+  <div class="sec-hdr"><span class="sec-num">00</span><span class="sec-title">Arquitetura & Cadeia de Chamadas</span><div class="sec-bar"></div></div>
+  <p class="sec-intro">Três fluxos independentes mas encadeados. O Fluxo 1 ocorre uma vez no bootstrap (identidade do parceiro). O Fluxo 2 ocorre no início de cada sessão (identidade do cliente). O Fluxo 3 ocorre em cada interação do usuário com o MFE.</p>
+
+  <div class="seq-diagram">
+    <div class="sd-title">Cadeia completa — do parceiro ao produto</div>
+    <div class="sd-actors">
+      <div class="sda"><div class="sda-box a-partner">Parceiro (B)</div><div class="sda-line"></div></div>
+      <div class="sda"><div class="sda-box a-shell">Shell/MFE</div><div class="sda-line"></div></div>
+      <div class="sda"><div class="sda-box a-bff">BFF</div><div class="sda-line"></div></div>
+      <div class="sda"><div class="sda-box a-auth">Auth Server</div><div class="sda-line"></div></div>
+      <div class="sda"><div class="sda-box a-core">Core Platform</div><div class="sda-line"></div></div>
+      <div class="sda"><div class="sda-box a-laas">LaaS API</div><div class="sda-line"></div></div>
+    </div>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">Cadeia completa · pseudocódigo</span></div>
+    <pre><span class="cm">━━━ FLUXO 1: Bootstrap de Identidade do Parceiro ━━━━━━━━━━━━━━━</span>
+
+<span class="amber-t">Parceiro → Auth Server</span>
+  POST /oauth2/token
+  client_credentials + <span class="kw">mTLS</span>
+  → <span class="amber-t">PAT</span> (Partner Access Token · 15 min)
+
+<span class="amber-t">Shell → Partner Config API</span>
+  GET  /v1/partners/{partnerId}/config
+  Authorization: Bearer <span class="amber-t">{PAT}</span>
+  → design_tokens + products + auth_mode + session_config
+
+<span class="amber-t">Parceiro → Auth Server</span>  <span class="cm">(autenticou o cliente X em seus sistemas)</span>
+  POST /oauth2/token/exchange  <span class="cm">(RFC 8693)</span>
+  subject_token: {partner_user_token}
+  → <span class="amber-t">UCT</span> (User Context Token · 15 min)
+
+<span class="cm">━━━ FLUXO 2: Customer Registry ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+
+<span class="blue-t">BFF → Core Platform</span>
+  GET /v1/customers/{document}         <span class="cm">(CPF/CNPJ)</span>
+  Authorization: Bearer <span class="blue-t">{ServiceToken}</span>
+  X-Partner-Id: {partnerId}
+  → customer_profile + pre_approved_limit + risk_score
+
+<span class="cm">━━━ FLUXO 3: MFE → BFF → LaaS ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+
+<span class="green-t">MFE → BFF → LaaS</span>
+  POST /v1/credit/capital-giro/simulate
+  POST /v1/credit/capital-giro/apply
+  GET  /v1/credit/operations/{operationId}
+  GET  /v1/credit/operations/{operationId}/documents
+  POST /v1/credit/operations/{operationId}/sign</pre>
+  </div>
+
+  <div class="grid3">
+    <div class="info-card">
+      <div class="ic-tag" style="color:var(--amber)">Fluxo 1 · Bootstrap</div>
+      <div class="ic-title" style="color:var(--amber)">Tokens do Parceiro</div>
+      <div class="ic-body">Ocorre uma vez por sessão de parceiro. O PAT autentica o B, o Token Exchange gera o UCT para o X. Os design tokens chegam junto com a config.</div>
+    </div>
+    <div class="info-card">
+      <div class="ic-tag" style="color:var(--blue)">Fluxo 2 · Session</div>
+      <div class="ic-title" style="color:var(--blue)">Customer Registry</div>
+      <div class="ic-body">Consulta CPF/CNPJ para verificar cadastro, limite pré-aprovado e rating. Alimenta o hero do B2C e o banner do embedded antes do usuário interagir.</div>
+    </div>
+    <div class="info-card">
+      <div class="ic-tag" style="color:var(--green)">Fluxo 3 · Produto</div>
+      <div class="ic-title" style="color:var(--green)">APIs de MFE</div>
+      <div class="ic-body">Cada interação do usuário (simular, aplicar, consultar) passa pelo BFF que valida o UCT, troca por Service Token e agrega as respostas das APIs de LaaS/CaaS.</div>
+    </div>
+  </div>
+
+  <div class="hbox amber">
+    <div class="hbox-title">⚡ Regra de ouro: o MFE nunca chama APIs de plataforma diretamente</div>
+    <p>Todo tráfego do MFE passa pelo BFF. O BFF é a única camada que detém credenciais de serviço (mTLS + Service Token). O browser nunca tem acesso a credenciais de backend.</p>
+  </div>
+</div>
+
+<!-- ══ 01 AUTH M2M ══ -->
+<div class="section" id="sec-auth">
+  <div class="sec-hdr"><span class="sec-num">01</span><span class="sec-title">Autenticação M2M do Parceiro</span><div class="sec-bar"></div></div>
+  <p class="sec-intro">O parceiro autentica com a plataforma usando <strong>OAuth2 client_credentials + mTLS</strong>. Esse fluxo acontece server-side no backend do parceiro — nunca no browser. O resultado é o PAT que autoriza todas as operações subsequentes do parceiro.</p>
+
+  <div class="inline-flow">
+    <div class="if-node">
+      <div class="if-box a-partner">Backend Parceiro</div>
+      <div class="if-sub">certificado mTLS configurado</div>
+    </div>
+    <div class="if-arrow">
+      <div class="if-arrow-lbl">POST /oauth2/token</div>
+      <div class="if-arrow-line" style="background:linear-gradient(90deg,var(--amber),transparent)"></div>
+      <div class="if-arrow-head">→</div>
+    </div>
+    <div class="if-node">
+      <div class="if-box a-auth">Auth Server</div>
+      <div class="if-sub">valida cert + client_id</div>
+    </div>
+    <div class="if-arrow">
+      <div class="if-arrow-lbl">PAT · 15 min</div>
+      <div class="if-arrow-line" style="background:linear-gradient(90deg,var(--green),transparent)"></div>
+      <div class="if-arrow-head">→</div>
+    </div>
+    <div class="if-node">
+      <div class="if-box a-partner">Backend Parceiro</div>
+      <div class="if-sub">armazena PAT server-side</div>
+    </div>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">HTTP · POST /oauth2/token</span><button class="code-copy" onclick="copyCode(this)">copiar</button></div>
+    <pre><span class="cm"># Executado no backend do parceiro (nunca no browser)</span>
+<span class="kw">POST</span> https://auth.baas.bradesco.com.br/oauth2/token
+<span class="key">Content-Type</span>: application/x-www-form-urlencoded
+<span class="cm"># Certificado mTLS apresentado automaticamente pelo client TLS</span>
+
+<span class="key">grant_type</span>=client_credentials
+&<span class="key">client_id</span>=<span class="str">cacaushow-prod-8f3a2</span>
+&<span class="key">scope</span>=<span class="str">partner:config:read credit:capital-giro token:exchange</span>
+
+<span class="cm">── RESPONSE 200 ─────────────────────────────────────────────────</span>
+{
+  <span class="str">"access_token"</span>:  <span class="amber-t">"{PAT}"</span>,
+  <span class="str">"token_type"</span>:    <span class="str">"Bearer"</span>,
+  <span class="str">"expires_in"</span>:    <span class="num">900</span>,          <span class="cm">← 15 minutos</span>
+  <span class="str">"scope"</span>:         <span class="str">"partner:config:read credit:capital-giro token:exchange"</span>,
+  <span class="str">"partner_id"</span>:    <span class="str">"cacaushow"</span>,
+  <span class="str">"tenant"</span>:        <span class="str">"cacaushow-prod"</span>
+}</pre>
+  </div>
+
+  <h4>Payload do PAT (JWT claims)</h4>
+  <div class="code-wrap">
+    <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">JWT · PAT payload</span></div>
+    <pre>{
+  <span class="str">"iss"</span>:        <span class="str">"https://auth.baas.bradesco.com.br"</span>,
+  <span class="str">"aud"</span>:        <span class="str">"api.baas.bradesco.com.br"</span>,
+  <span class="str">"sub"</span>:        <span class="str">"cacaushow-prod-8f3a2"</span>,   <span class="cm">← client_id</span>
+  <span class="str">"partner_id"</span>: <span class="str">"cacaushow"</span>,
+  <span class="str">"tenant"</span>:     <span class="str">"cacaushow-prod"</span>,
+  <span class="str">"scope"</span>:      <span class="str">"partner:config:read credit:capital-giro token:exchange"</span>,
+  <span class="str">"token_type"</span>: <span class="str">"partner_access_token"</span>,
+  <span class="str">"exp"</span>:        <span class="num">1748300000</span>,
+  <span class="str">"jti"</span>:        <span class="str">"pat_8f3a2b1c-..."</span>        <span class="cm">← único por emissão</span>
+}</pre>
+  </div>
+
+  <div class="hbox green">
+    <div class="hbox-title">✓ Renovação automática do PAT</div>
+    <p>O backend do parceiro deve implementar renovação proativa: quando o PAT tiver menos de 3 minutos para expirar, iniciar novo request de client_credentials antes de precisar. Nunca deixar o PAT expirar em produção.</p>
+  </div>
+</div>
+
+<!-- ══ 02 PARTNER CONFIG ══ -->
+<div class="section" id="sec-tokens">
+  <div class="sec-hdr"><span class="sec-num">02</span><span class="sec-title">Partner Config API — Design Tokens</span><div class="sec-bar"></div></div>
+  <p class="sec-intro">Com o PAT em mãos, o Shell faz uma chamada à Partner Config API para receber todo o contexto de identidade do parceiro: design tokens, produtos habilitados, modo de autenticação e configurações de sessão.</p>
+
+  <div class="endpoint-list">
+    <div class="ep open">
+      <div class="ep-head" onclick="toggleEp(this)">
+        <span class="ep-method m-get">GET</span>
+        <span class="ep-path">/v1/partners/{partnerId}/config</span>
+        <span class="ep-desc">Configuração completa do parceiro incluindo design tokens</span>
+        <div class="ep-tags"><span class="ep-tag ht-a">Bootstrap</span><span class="ep-tag ht-g">Cache: 5min</span></div>
+      </div>
+      <div class="ep-body">
+        <h4>Request</h4>
+        <div class="code-wrap">
+          <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">HTTP · GET config</span></div>
+          <pre><span class="kw">GET</span> https://api.baas.bradesco.com.br/v1/partners/<span class="str">cacaushow</span>/config
+<span class="key">Authorization</span>: Bearer <span class="amber-t">{PAT}</span>
+<span class="key">X-Correlation-Id</span>: boot_9f2a-8b3c
+<span class="key">Accept</span>: application/json</pre>
+        </div>
+        <h4>Response 200</h4>
+        <div class="code-wrap">
+          <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">JSON · Partner Config</span></div>
+          <pre>{
+  <span class="str">"partnerId"</span>:  <span class="str">"cacaushow"</span>,
+  <span class="str">"tenant"</span>:     <span class="str">"cacaushow-prod"</span>,
+  <span class="str">"displayName"</span>:<span class="str">"Portal do Franqueado Cacau Show"</span>,
+
+  <span class="cm">// Design Tokens — injetados como CSS Custom Properties</span>
+  <span class="str">"designTokens"</span>: {
+    <span class="str">"color"</span>: {
+      <span class="str">"primary"</span>:    <span class="str">"#7B2D00"</span>,    <span class="cm">← marrom chocolate</span>
+      <span class="str">"secondary"</span>:  <span class="str">"#C4501A"</span>,    <span class="cm">← caramelo</span>
+      <span class="str">"accent"</span>:     <span class="str">"#F5A623"</span>,    <span class="cm">← dourado</span>
+      <span class="str">"surface"</span>:    <span class="str">"#FFF8F0"</span>,    <span class="cm">← creme</span>
+      <span class="str">"text"</span>:       <span class="str">"#2C1A00"</span>
+    },
+    <span class="str">"shape"</span>: {
+      <span class="str">"radius"</span>:     <span class="str">"3px"</span>,        <span class="cm">← bordas retas</span>
+      <span class="str">"radiusSm"</span>:   <span class="str">"2px"</span>
+    },
+    <span class="str">"typography"</span>: {
+      <span class="str">"heading"</span>:    <span class="str">"'Playfair Display', serif"</span>,
+      <span class="str">"body"</span>:       <span class="str">"'Inter', sans-serif"</span>
+    },
+    <span class="str">"elevation"</span>: {
+      <span class="str">"card"</span>:       <span class="str">"0 4px 20px rgba(123,45,0,.15)"</span>
+    },
+    <span class="str">"assets"</span>: {
+      <span class="str">"logoUrl"</span>:    <span class="str">"https://cdn.cacaushow.com.br/logo.svg"</span>,
+      <span class="str">"faviconUrl"</span>: <span class="str">"https://cdn.cacaushow.com.br/favicon.ico"</span>,
+      <span class="str">"appName"</span>:    <span class="str">"Capital de Giro · Cacau Show"</span>
+    }
+  },
+
+  <span class="cm">// Produtos habilitados para este parceiro</span>
+  <span class="str">"products"</span>: [<span class="str">"capital-giro"</span>],
+  <span class="str">"productConfig"</span>: {
+    <span class="str">"capital-giro"</span>: {
+      <span class="str">"maxAmount"</span>:    <span class="num">300000</span>,
+      <span class="str">"maxTerm"</span>:      <span class="num">36</span>,
+      <span class="str">"spreadBps"</span>:    <span class="num">85</span>,        <span class="cm">← 0,85% sobre taxa base</span>
+      <span class="str">"gracePeriods"</span>: [<span class="num">0</span>,<span class="num">30</span>,<span class="num">60</span>,<span class="num">90</span>],
+      <span class="str">"minAmount"</span>:    <span class="num">10000</span>
+    }
+  },
+
+  <span class="cm">// Modo de autenticação do cliente X</span>
+  <span class="str">"authMode"</span>: <span class="str">"federated"</span>,   <span class="cm">← "federated" | "standalone"</span>
+
+  <span class="cm">// Configurações de sessão</span>
+  <span class="str">"sessionConfig"</span>: {
+    <span class="str">"timeoutMs"</span>:    <span class="num">600000</span>,    <span class="cm">← 10 minutos inatividade</span>
+    <span class="str">"mfaRequired"</span>:  <span class="kw">false</span>      <span class="cm">← true em modo standalone</span>
+  },
+
+  <span class="cm">// MFE Registry — versões ativas dos módulos</span>
+  <span class="str">"mfeRegistry"</span>: {
+    <span class="str">"capital-giro"</span>: <span class="str">"2.4.1"</span>
+  }
+}</pre>
+        </div>
+        <div class="hbox blue">
+          <div class="hbox-title">Cache e atualização de tokens</div>
+          <p>A resposta tem Cache-Control: max-age=300 (5 min). O Shell deve respeitar o cache. Mudanças de tema pelo parceiro no Portal de Parceiros propagam via cache bust — novo config_version força revalidação. Design tokens nunca são hardcoded no bundle do MFE.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="ep">
+      <div class="ep-head" onclick="toggleEp(this)">
+        <span class="ep-method m-get">GET</span>
+        <span class="ep-path">/v1/partners/{partnerId}/config/design-tokens</span>
+        <span class="ep-desc">Apenas o pacote de tokens (sem config de produto)</span>
+        <div class="ep-tags"><span class="ep-tag ht-a">Lightweight</span></div>
+      </div>
+      <div class="ep-body">
+        <p>Endpoint reduzido para cenários onde o Shell já tem a config e só precisa atualizar o tema (ex: troca de tema pelo parceiro em tempo real). Responde com apenas o objeto <code>designTokens</code>.</p>
+        <div class="code-wrap">
+          <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">Response · design tokens only</span></div>
+          <pre>{
+  <span class="str">"designTokens"</span>: { <span class="cm">/* ... */</span> },
+  <span class="str">"configVersion"</span>: <span class="str">"v3.2.1-a4f2"</span>,
+  <span class="str">"updatedAt"</span>: <span class="str">"2026-06-18T10:30:00Z"</span>
+}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 03 TOKEN EXCHANGE ══ -->
+<div class="section" id="sec-tokenex">
+  <div class="sec-hdr"><span class="sec-num">03</span><span class="sec-title">Token Exchange — UCT para o Cliente X</span><div class="sec-bar"></div></div>
+  <p class="sec-intro">Após o parceiro autenticar o cliente X em seus próprios sistemas, ele chama o Token Exchange (RFC 8693) para emitir o UCT — o token que o Shell e os MFEs usam para todas as operações subsequentes.</p>
+
+  <div class="inline-flow">
+    <div class="if-node"><div class="if-box a-partner">Parceiro<br>autentica X</div><div class="if-sub">sistemas próprios</div></div>
+    <div class="if-arrow"><div class="if-arrow-lbl">partner_user_token + PAT</div><div class="if-arrow-line" style="background:linear-gradient(90deg,var(--amber),transparent)"></div><div class="if-arrow-head">→</div></div>
+    <div class="if-node"><div class="if-box a-auth">Auth Server<br>Token Exchange</div><div class="if-sub">RFC 8693</div></div>
+    <div class="if-arrow"><div class="if-arrow-lbl">UCT · 15min</div><div class="if-arrow-line" style="background:linear-gradient(90deg,var(--green),transparent)"></div><div class="if-arrow-head">→</div></div>
+    <div class="if-node"><div class="if-box a-shell">Shell<br>Memory only</div><div class="if-sub">nunca localStorage</div></div>
+  </div>
+
+  <div class="endpoint-list">
+    <div class="ep open">
+      <div class="ep-head" onclick="toggleEp(this)">
+        <span class="ep-method m-post">POST</span>
+        <span class="ep-path">/oauth2/token/exchange</span>
+        <span class="ep-desc">Emite UCT a partir do token do parceiro · RFC 8693</span>
+        <div class="ep-tags"><span class="ep-tag ht-r">mTLS obrigatório</span></div>
+      </div>
+      <div class="ep-body">
+        <div class="code-wrap">
+          <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">HTTP · Token Exchange</span></div>
+          <pre><span class="kw">POST</span> https://auth.baas.bradesco.com.br/oauth2/token/exchange
+<span class="key">Authorization</span>: Bearer <span class="amber-t">{PAT}</span>          <span class="cm">← autentica o Parceiro B</span>
+<span class="key">Content-Type</span>: application/x-www-form-urlencoded
+<span class="cm"># mTLS do parceiro apresentado automaticamente</span>
+
+<span class="key">grant_type</span>=<span class="str">urn:ietf:params:oauth:grant-type:token-exchange</span>
+&<span class="key">subject_token</span>=<span class="str">{partner_user_token}</span>    <span class="cm">← token do X no sistema do parceiro</span>
+&<span class="key">subject_token_type</span>=<span class="str">urn:ietf:params:oauth:token-type:access_token</span>
+&<span class="key">requested_token_type</span>=<span class="str">urn:ietf:params:oauth:token-type:access_token</span>
+&<span class="key">scope</span>=<span class="str">credit.capital-giro:simulate credit.capital-giro:apply customer:read</span>
+
+<span class="cm">── RESPONSE 200 ─────────────────────────────────────────────────</span>
+{
+  <span class="str">"access_token"</span>:   <span class="blue-t">"{UCT}"</span>,
+  <span class="str">"token_type"</span>:     <span class="str">"Bearer"</span>,
+  <span class="str">"expires_in"</span>:     <span class="num">900</span>,
+  <span class="str">"issued_token_type"</span>: <span class="str">"urn:ietf:params:oauth:token-type:access_token"</span>,
+  <span class="str">"scope"</span>:          <span class="str">"credit.capital-giro:simulate credit.capital-giro:apply customer:read"</span>
+  <span class="cm">// Refresh Token em HttpOnly Cookie — nunca no body</span>
+}</pre>
+        </div>
+        <h4>UCT · JWT Claims</h4>
+        <div class="code-wrap">
+          <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">JWT · UCT payload</span></div>
+          <pre>{
+  <span class="str">"iss"</span>:            <span class="str">"https://auth.baas.bradesco.com.br"</span>,
+  <span class="str">"aud"</span>:            <span class="str">"bff.baas.bradesco.com.br"</span>,
+  <span class="str">"sub"</span>:            <span class="str">"usr_h8x3k2p9"</span>,       <span class="cm">← ID anonimizado do X</span>
+  <span class="str">"partner_id"</span>:     <span class="str">"cacaushow"</span>,
+  <span class="str">"partner_tenant"</span>: <span class="str">"cacaushow-prod"</span>,
+  <span class="str">"exchange_chain"</span>: <span class="str">"pat_8f3a2b1c"</span>,       <span class="cm">← rastreabilidade</span>
+  <span class="str">"scope"</span>:          <span class="str">"credit.capital-giro:simulate credit.capital-giro:apply customer:read"</span>,
+  <span class="str">"document_hash"</span>:  <span class="str">"sha256:a1b2c3..."</span>,    <span class="cm">← hash do CPF/CNPJ</span>
+  <span class="str">"session_id"</span>:     <span class="str">"sess_4d2e8a71"</span>,
+  <span class="str">"correlation_id"</span>: <span class="str">"req_9a1cf3b2"</span>,
+  <span class="str">"exp"</span>:            <span class="num">1748300900</span>,
+  <span class="str">"jti"</span>:            <span class="str">"uct_f3a1b2c4-..."</span>
+}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 04 CUSTOMER REGISTRY ══ -->
+<div class="section" id="sec-registry">
+  <div class="sec-hdr"><span class="sec-num">04</span><span class="sec-title">Customer Registry</span><div class="sec-bar"></div></div>
+  <p class="sec-intro">O Customer Registry é o repositório central de identidade dos clientes finais (X) dentro da plataforma BaaS. Ele é consultado no bootstrap da sessão para alimentar o hero do B2C, o banner do embedded, e verificar se o cliente já tem cadastro ativo ou precisa ser criado.</p>
+
+  <div class="hbox amber">
+    <div class="hbox-title">Dois momentos de consulta ao Registry</div>
+    <p><strong>Momento 1 — Bootstrap da sessão:</strong> BFF consulta o registry com o document_hash do UCT para trazer limit pré-aprovado e rating. Alimenta a UI antes do usuário interagir.<br><strong>Momento 2 — Originação:</strong> ao aplicar para crédito, o Core Platform verifica o registry novamente para dados atualizados e cria/atualiza o registro da operação.</p>
+  </div>
+
+  <div class="endpoint-list">
+    <div class="ep open">
+      <div class="ep-head" onclick="toggleEp(this)">
+        <span class="ep-method m-get">GET</span>
+        <span class="ep-path">/v1/customers/{documentHash}</span>
+        <span class="ep-desc">Consulta cliente por hash do documento · chamado pelo BFF</span>
+        <div class="ep-tags"><span class="ep-tag ht-b">BFF → Core</span><span class="ep-tag ht-g">Cache: 60s</span></div>
+      </div>
+      <div class="ep-body">
+        <p>O BFF nunca envia o CPF/CNPJ raw para a API — sempre o hash SHA-256 do documento. O Core Platform faz o lookup internamente. Isso reduz a superfície de exposição de PII no tráfego inter-serviço.</p>
+        <div class="code-wrap">
+          <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">HTTP · GET customer</span></div>
+          <pre><span class="kw">GET</span> https://core.baas.bradesco.com.br/v1/customers/<span class="str">sha256:a1b2c3...</span>
+<span class="key">Authorization</span>: Bearer <span class="green-t">{ServiceToken}</span>    <span class="cm">← emitido pelo BFF via mTLS</span>
+<span class="key">X-Partner-Id</span>: cacaushow
+<span class="key">X-Tenant</span>: cacaushow-prod
+<span class="key">X-Correlation-Id</span>: req_9a1cf3b2
+
+<span class="cm">── RESPONSE 200 · Cliente encontrado ────────────────────────────</span>
+{
+  <span class="str">"customerId"</span>:     <span class="str">"cust_h8x3k2p9"</span>,
+  <span class="str">"status"</span>:         <span class="str">"active"</span>,          <span class="cm">← active | pending | blocked</span>
+  <span class="str">"type"</span>:           <span class="str">"pj"</span>,               <span class="cm">← pf | pj</span>
+  <span class="str">"displayName"</span>:    <span class="str">"Distribuidora Paulistana Ltda."</span>,
+  <span class="str">"partnerTenant"</span>:  <span class="str">"cacaushow-prod"</span>,
+
+  <span class="cm">// Dados de crédito pré-computados</span>
+  <span class="str">"creditProfile"</span>: {
+    <span class="str">"preApprovedLimit"</span>: <span class="num">180000</span>,
+    <span class="str">"riskScore"</span>:        <span class="num">82</span>,             <span class="cm">← 0–100</span>
+    <span class="str">"riskGrade"</span>:        <span class="str">"A"</span>,             <span class="cm">← A+ | A | B | C | D</span>
+    <span class="str">"activeOperations"</span>: <span class="num">0</span>,
+    <span class="str">"totalExposure"</span>:    <span class="num">0</span>,
+    <span class="str">"bureauStatus"</span>:     <span class="str">"clear"</span>,        <span class="cm">← clear | restricted | blocked</span>
+    <span class="str">"lastUpdated"</span>:      <span class="str">"2026-06-17T08:00:00Z"</span>
+  },
+
+  <span class="cm">// Metadados de parceiro</span>
+  <span class="str">"partnerMeta"</span>: {
+    <span class="str">"externalId"</span>:     <span class="str">"franqueado-0847"</span>,  <span class="cm">← ID no sistema do parceiro</span>
+    <span class="str">"onboardedAt"</span>:    <span class="str">"2024-03-15"</span>,
+    <span class="str">"segment"</span>:        <span class="str">"franqueado"</span>
+  }
+}
+
+<span class="cm">── RESPONSE 404 · Cliente não encontrado ────────────────────────</span>
+{
+  <span class="str">"error"</span>:   <span class="str">"CUSTOMER_NOT_FOUND"</span>,
+  <span class="str">"message"</span>: <span class="str">"Cliente não cadastrado neste tenant"</span>,
+  <span class="str">"action"</span>:  <span class="str">"POST /v1/customers to register"</span>
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="ep">
+      <div class="ep-head" onclick="toggleEp(this)">
+        <span class="ep-method m-post">POST</span>
+        <span class="ep-path">/v1/customers</span>
+        <span class="ep-desc">Registra novo cliente · chamado na primeira operação</span>
+        <div class="ep-tags"><span class="ep-tag ht-b">BFF → Core</span></div>
+      </div>
+      <div class="ep-body">
+        <p>Criação de cliente no registry. Chamado automaticamente pelo BFF se o GET retornar 404. Dados mínimos necessários — nunca armazena documento raw, apenas hash e dados necessários para crédito.</p>
+        <div class="code-wrap">
+          <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">HTTP · POST /v1/customers</span></div>
+          <pre><span class="kw">POST</span> https://core.baas.bradesco.com.br/v1/customers
+<span class="key">Authorization</span>: Bearer <span class="green-t">{ServiceToken}</span>
+<span class="key">X-Partner-Id</span>: cacaushow
+<span class="key">X-Tenant</span>: cacaushow-prod
+
+{
+  <span class="str">"documentHash"</span>:  <span class="str">"sha256:a1b2c3..."</span>,
+  <span class="str">"documentType"</span>:  <span class="str">"cnpj"</span>,
+  <span class="str">"type"</span>:           <span class="str">"pj"</span>,
+  <span class="str">"displayName"</span>:    <span class="str">"Distribuidora Paulistana Ltda."</span>,
+  <span class="str">"externalId"</span>:     <span class="str">"franqueado-0847"</span>,  <span class="cm">← ID do parceiro</span>
+  <span class="str">"segment"</span>:        <span class="str">"franqueado"</span>,
+  <span class="str">"contactEmail"</span>:   <span class="str">"roberto@loja0847.com.br"</span>,
+  <span class="str">"contactPhone"</span>:   <span class="str">"+5511988472310"</span>
+}
+
+<span class="cm">── RESPONSE 201 ─────────────────────────────────────────────────</span>
+{
+  <span class="str">"customerId"</span>:  <span class="str">"cust_newXk2p9"</span>,
+  <span class="str">"status"</span>:      <span class="str">"pending_analysis"</span>,
+  <span class="str">"creditProfile"</span>: {
+    <span class="str">"preApprovedLimit"</span>: <span class="num">0</span>,
+    <span class="str">"riskScore"</span>: <span class="kw">null</span>,
+    <span class="str">"bureauStatus"</span>: <span class="str">"pending"</span>
+  }
+}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 05 LIMIT LOOKUP ══ -->
+<div class="section" id="sec-lookup">
+  <div class="sec-hdr"><span class="sec-num">05</span><span class="sec-title">Limit Lookup — Bootstrap da UI</span><div class="sec-bar"></div></div>
+  <p class="sec-intro">Endpoint chamado no início da sessão do MFE para popular o hero do B2C e o banner do embedded com o limite pré-aprovado e rating do cliente, sem que o usuário precise interagir.</p>
+
+  <div class="endpoint-list">
+    <div class="ep open">
+      <div class="ep-head" onclick="toggleEp(this)">
+        <span class="ep-method m-get">GET</span>
+        <span class="ep-path">/v1/credit/capital-giro/limits</span>
+        <span class="ep-desc">Limite pré-aprovado e condições do cliente · chamado pelo BFF no bootstrap</span>
+        <div class="ep-tags"><span class="ep-tag ht-g">MFE Bootstrap</span><span class="ep-tag ht-a">Cache: 60s</span></div>
+      </div>
+      <div class="ep-body">
+        <div class="code-wrap">
+          <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">HTTP · GET limits · MFE → BFF</span></div>
+          <pre><span class="cm"># Chamada do MFE para o BFF — UCT no header</span>
+<span class="kw">GET</span> https://bff-capital-giro.baas.bradesco.com.br/v1/limits
+<span class="key">Authorization</span>: Bearer <span class="blue-t">{UCT}</span>
+<span class="key">X-Partner-Id</span>: cacaushow
+<span class="key">X-Correlation-Id</span>: sess_4d2e8a71
+
+<span class="cm">── BFF valida UCT, chama Core Platform em paralelo ──────────────</span>
+<span class="cm"># BFF → Core: GET /v1/customers/{hash}/credit-limits · ServiceToken + mTLS</span>
+<span class="cm"># BFF → LaaS: GET /v1/products/capital-giro/conditions/{partnerId} · ServiceToken</span>
+
+<span class="cm">── RESPONSE 200 ao MFE (agregado pelo BFF) ──────────────────────</span>
+{
+  <span class="str">"customer"</span>: {
+    <span class="str">"displayName"</span>:  <span class="str">"Roberto Bianchi"</span>,
+    <span class="str">"riskGrade"</span>:    <span class="str">"A"</span>,
+    <span class="str">"bureauStatus"</span>: <span class="str">"clear"</span>
+  },
+  <span class="str">"limit"</span>: {
+    <span class="str">"available"</span>:    <span class="num">180000</span>,
+    <span class="str">"total"</span>:        <span class="num">180000</span>,
+    <span class="str">"used"</span>:         <span class="num">0</span>,
+    <span class="str">"currency"</span>:     <span class="str">"BRL"</span>
+  },
+  <span class="str">"conditions"</span>: {
+    <span class="str">"minAmount"</span>:    <span class="num">10000</span>,
+    <span class="str">"maxAmount"</span>:    <span class="num">180000</span>,
+    <span class="str">"maxTerm"</span>:      <span class="num">36</span>,
+    <span class="str">"gracePeriods"</span>: [<span class="num">0</span>, <span class="num">30</span>, <span class="num">60</span>, <span class="num">90</span>],
+    <span class="str">"baseRate"</span>:     <span class="num">1.09</span>,       <span class="cm">← % a.m. pré-fixada</span>
+    <span class="str">"spreadBps"</span>:    <span class="num">85</span>           <span class="cm">← spread do parceiro</span>
+  },
+  <span class="str">"meta"</span>: {
+    <span class="str">"correlationId"</span>: <span class="str">"sess_4d2e8a71"</span>,
+    <span class="str">"cachedUntil"</span>:   <span class="str">"2026-06-18T14:40:00Z"</span>
+  }
+}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 06 SIMULATE ══ -->
+<div class="section" id="sec-simulate">
+  <div class="sec-hdr"><span class="sec-num">06</span><span class="sec-title">API de Simulação</span><div class="sec-bar"></div></div>
+  <p class="sec-intro">Chamado a cada mudança no simulador do MFE. Deve responder em menos de 150ms no p99. O BFF agrega condições do parceiro antes de devolver ao MFE.</p>
+
+  <div class="endpoint-list">
+    <div class="ep open">
+      <div class="ep-head" onclick="toggleEp(this)">
+        <span class="ep-method m-post">POST</span>
+        <span class="ep-path">/v1/credit/capital-giro/simulate</span>
+        <span class="ep-desc">Simulação de parcela, taxa e CET · sem compromisso</span>
+        <div class="ep-tags"><span class="ep-tag ht-g">Target: &lt;150ms</span><span class="ep-tag ht-b">Stateless</span></div>
+      </div>
+      <div class="ep-body">
+        <div class="code-wrap">
+          <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">HTTP · POST simulate · MFE → BFF</span></div>
+          <pre><span class="kw">POST</span> https://bff-capital-giro.baas.bradesco.com.br/v1/simulate
+<span class="key">Authorization</span>: Bearer <span class="blue-t">{UCT}</span>
+<span class="key">X-Partner-Id</span>: cacaushow
+<span class="key">X-Correlation-Id</span>: sim_7f2a9c
+
+{
+  <span class="str">"amount"</span>:      <span class="num">120000</span>,     <span class="cm">← valor em centavos ou reais?</span>
+  <span class="str">"term"</span>:        <span class="num">18</span>,          <span class="cm">← meses</span>
+  <span class="str">"gracePeriod"</span>: <span class="num">30</span>,          <span class="cm">← dias</span>
+  <span class="str">"rateMode"</span>:    <span class="str">"fixed"</span>      <span class="cm">← "fixed" | "floating"</span>
+}
+
+<span class="cm">── RESPONSE 200 ─────────────────────────────────────────────────</span>
+{
+  <span class="str">"simulation"</span>: {
+    <span class="str">"amount"</span>:         <span class="num">120000</span>,
+    <span class="str">"term"</span>:           <span class="num">18</span>,
+    <span class="str">"gracePeriod"</span>:    <span class="num">30</span>,
+    <span class="str">"monthlyRate"</span>:    <span class="num">1.24</span>,          <span class="cm">← já com spread do parceiro</span>
+    <span class="str">"annualRate"</span>:     <span class="num">15.96</span>,
+    <span class="str">"monthlyPayment"</span>: <span class="num">7420.15</span>,
+    <span class="str">"totalPayment"</span>:   <span class="num">133562.70</span>,
+    <span class="str">"totalInterest"</span>:  <span class="num">13562.70</span>,
+    <span class="str">"cet"</span>:            <span class="num">18.76</span>,        <span class="cm">← Custo Efetivo Total anual</span>
+    <span class="str">"iof"</span>:            <span class="num">438.00</span>,
+    <span class="str">"firstPaymentDate"</span>:<span class="str">"2026-07-18"</span>,
+    <span class="str">"lastPaymentDate"</span>: <span class="str">"2027-12-18"</span>,
+    <span class="str">"rateMode"</span>:       <span class="str">"fixed"</span>
+  },
+  <span class="str">"validUntil"</span>: <span class="str">"2026-06-19T14:38:00Z"</span>,   <span class="cm">← simulação válida 24h</span>
+  <span class="str">"simulationId"</span>: <span class="str">"sim_7f2a9c4d"</span>,        <span class="cm">← referenciado na originação</span>
+  <span class="str">"meta"</span>: { <span class="str">"correlationId"</span>: <span class="str">"sim_7f2a9c"</span>, <span class="str">"durationMs"</span>: <span class="num">98</span> }
+}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 07 ORIGINATION ══ -->
+<div class="section" id="sec-origination">
+  <div class="sec-hdr"><span class="sec-num">07</span><span class="sec-title">API de Originação</span><div class="sec-bar"></div></div>
+  <p class="sec-intro">Criação formal da proposta de crédito. O cliente confirma as condições simuladas e envia para análise. O BFF valida o UCT, verifica o Customer Registry e cria a operação no LaaS.</p>
+
+  <div class="endpoint-list">
+    <div class="ep open">
+      <div class="ep-head" onclick="toggleEp(this)">
+        <span class="ep-method m-post">POST</span>
+        <span class="ep-path">/v1/credit/capital-giro/apply</span>
+        <span class="ep-desc">Submete proposta de crédito para análise · idempotente por simulationId</span>
+        <div class="ep-tags"><span class="ep-tag ht-r">Idempotente</span><span class="ep-tag ht-a">Gera operationId</span></div>
+      </div>
+      <div class="ep-body">
+        <div class="code-wrap">
+          <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">HTTP · POST apply · MFE → BFF</span></div>
+          <pre><span class="kw">POST</span> https://bff-capital-giro.baas.bradesco.com.br/v1/apply
+<span class="key">Authorization</span>: Bearer <span class="blue-t">{UCT}</span>
+<span class="key">X-Partner-Id</span>: cacaushow
+<span class="key">X-Idempotency-Key</span>: <span class="str">idem_sim_7f2a9c4d</span>   <span class="cm">← evita duplicação</span>
+<span class="key">X-Correlation-Id</span>: appl_9b3d2a
+
+{
+  <span class="str">"simulationId"</span>:  <span class="str">"sim_7f2a9c4d"</span>,  <span class="cm">← vincula à simulação aprovada</span>
+  <span class="str">"amount"</span>:        <span class="num">120000</span>,
+  <span class="str">"term"</span>:          <span class="num">18</span>,
+  <span class="str">"gracePeriod"</span>:   <span class="num">30</span>,
+  <span class="str">"purpose"</span>:       <span class="str">"capital_giro_operacional"</span>,
+
+  <span class="cm">// Conta para crédito</span>
+  <span class="str">"disbursement"</span>: {
+    <span class="str">"method"</span>:   <span class="str">"bank_transfer"</span>,
+    <span class="str">"bankCode"</span>: <span class="str">"237"</span>,
+    <span class="str">"branch"</span>:   <span class="str">"0042"</span>,
+    <span class="str">"account"</span>:  <span class="str">"58321-4"</span>
+  },
+
+  <span class="cm">// Consentimento (obrigatório)</span>
+  <span class="str">"consents"</span>: {
+    <span class="str">"termsAccepted"</span>:   <span class="kw">true</span>,
+    <span class="str">"scrAuthorized"</span>:   <span class="kw">true</span>,   <span class="cm">← Sistema de Informações de Crédito Bacen</span>
+    <span class="str">"bureauAuthorized"</span>:<span class="kw">true</span>,
+    <span class="str">"acceptedAt"</span>:      <span class="str">"2026-06-18T14:38:00Z"</span>
+  }
+}
+
+<span class="cm">── RESPONSE 202 Accepted ────────────────────────────────────────</span>
+{
+  <span class="str">"operationId"</span>:  <span class="str">"op_CG2026-08341"</span>,
+  <span class="str">"status"</span>:       <span class="str">"under_analysis"</span>,
+  <span class="str">"expectedBy"</span>:   <span class="str">"2026-06-18T16:38:00Z"</span>,   <span class="cm">← SLA de análise</span>
+  <span class="str">"nextSteps"</span>: {
+    <span class="str">"polling"</span>:  <span class="str">"GET /v1/operations/op_CG2026-08341"</span>,
+    <span class="str">"webhook"</span>:  <span class="str">"POST parceiro webhook (se configurado)"</span>
+  },
+  <span class="str">"notifications"</span>: {
+    <span class="str">"email"</span>:   <span class="kw">true</span>,
+    <span class="str">"sms"</span>:     <span class="kw">true</span>,
+    <span class="str">"webhook"</span>: <span class="kw">true</span>
+  }
+}</pre>
+        </div>
+        <div class="hbox red">
+          <div class="hbox-title">⚠ Idempotência obrigatória</div>
+          <p>O header <code>X-Idempotency-Key</code> é obrigatório. Use o <code>simulationId</code> como chave. Se a request for repetida com a mesma chave dentro de 24h, o servidor retorna o resultado original sem criar nova operação. Protege contra duplo-clique do usuário e retries de rede.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 08 STATUS ══ -->
+<div class="section" id="sec-status">
+  <div class="sec-hdr"><span class="sec-num">08</span><span class="sec-title">Status & Consulta de Operação</span><div class="sec-bar"></div></div>
+  <p class="sec-intro">Endpoints para acompanhar o ciclo de vida da operação após a originação — desde "under_analysis" até "disbursed". O MFE pode fazer polling ou receber webhook do parceiro.</p>
+
+  <div class="endpoint-list">
+    <div class="ep open">
+      <div class="ep-head" onclick="toggleEp(this)">
+        <span class="ep-method m-get">GET</span>
+        <span class="ep-path">/v1/credit/operations/{operationId}</span>
+        <span class="ep-desc">Status e detalhes de uma operação · polling seguro</span>
+        <div class="ep-tags"><span class="ep-tag ht-g">Polling: 30s</span></div>
+      </div>
+      <div class="ep-body">
+        <div class="code-wrap">
+          <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">Response · operation status</span></div>
+          <pre>{
+  <span class="str">"operationId"</span>:  <span class="str">"op_CG2026-08341"</span>,
+  <span class="str">"status"</span>:       <span class="str">"approved"</span>,
+  <span class="cm">// status: under_analysis | approved | rejected | pending_signature
+  //         signed | disbursed | cancelled | overdue</span>
+  <span class="str">"product"</span>:      <span class="str">"capital-giro"</span>,
+  <span class="str">"amount"</span>:       <span class="num">120000</span>,
+  <span class="str">"term"</span>:         <span class="num">18</span>,
+  <span class="str">"monthlyRate"</span>:  <span class="num">1.24</span>,
+  <span class="str">"approvedAt"</span>:   <span class="str">"2026-06-18T16:10:00Z"</span>,
+  <span class="str">"nextStep"</span>: {
+    <span class="str">"action"</span>: <span class="str">"sign_contract"</span>,
+    <span class="str">"url"</span>:    <span class="str">"https://sign.baas.bradesco.com.br/op_CG2026-08341"</span>,
+    <span class="str">"expiresAt"</span>: <span class="str">"2026-06-25T23:59:59Z"</span>
+  },
+  <span class="str">"timeline"</span>: [
+    { <span class="str">"event"</span>: <span class="str">"submitted"</span>,     <span class="str">"at"</span>: <span class="str">"2026-06-18T14:38:00Z"</span> },
+    { <span class="str">"event"</span>: <span class="str">"under_analysis"</span>, <span class="str">"at"</span>: <span class="str">"2026-06-18T14:38:30Z"</span> },
+    { <span class="str">"event"</span>: <span class="str">"approved"</span>,       <span class="str">"at"</span>: <span class="str">"2026-06-18T16:10:00Z"</span> }
+  ]
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="ep">
+      <div class="ep-head" onclick="toggleEp(this)">
+        <span class="ep-method m-post">POST</span>
+        <span class="ep-path">/v1/credit/operations/{operationId}/sign</span>
+        <span class="ep-desc">Assinatura digital do contrato · consentimento final</span>
+        <div class="ep-tags"><span class="ep-tag ht-r">Irreversível</span></div>
+      </div>
+      <div class="ep-body">
+        <div class="code-wrap">
+          <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">HTTP · POST sign</span></div>
+          <pre>{
+  <span class="str">"signatureMethod"</span>: <span class="str">"click_to_sign"</span>,   <span class="cm">← ICP-Brasil light</span>
+  <span class="str">"confirmedAt"</span>:     <span class="str">"2026-06-18T16:25:00Z"</span>,
+  <span class="str">"deviceInfo"</span>: {
+    <span class="str">"ip"</span>:        <span class="str">"177.75.43.2"</span>,
+    <span class="str">"userAgent"</span>: <span class="str">"Mozilla/5.0 ..."</span>,
+    <span class="str">"sessionId"</span>: <span class="str">"sess_4d2e8a71"</span>
+  }
+}
+<span class="cm">── RESPONSE 200 → status: signed → inicia desembolso ────────────</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="ep">
+      <div class="ep-head" onclick="toggleEp(this)">
+        <span class="ep-method m-get">GET</span>
+        <span class="ep-path">/v1/credit/operations?customerId={id}</span>
+        <span class="ep-desc">Lista todas as operações do cliente neste tenant</span>
+        <div class="ep-tags"><span class="ep-tag ht-g">Dashboard B2C</span></div>
+      </div>
+      <div class="ep-body">
+        <p>Usado pelo MFE de dashboard para exibir operações ativas, histórico e próximas parcelas. Paginado com cursor. Filtros: <code>status</code>, <code>product</code>, <code>from</code>, <code>to</code>.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 09 ERRORS ══ -->
+<div class="section" id="sec-errors">
+  <div class="sec-hdr"><span class="sec-num">09</span><span class="sec-title">Erros, Retries & Circuit Breaker</span><div class="sec-bar"></div></div>
+  <p class="sec-intro">Padrão de erros consistente em todos os endpoints. O BFF é responsável por implementar retry com backoff e circuit breaker antes de expor erros ao MFE.</p>
+
+  <div class="code-wrap">
+    <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">Error response · padrão RFC 7807</span></div>
+    <pre>{
+  <span class="str">"type"</span>:       <span class="str">"https://errors.baas.bradesco.com.br/credit/LIMIT_EXCEEDED"</span>,
+  <span class="str">"title"</span>:      <span class="str">"Limite de crédito excedido"</span>,
+  <span class="str">"status"</span>:     <span class="num">422</span>,
+  <span class="str">"detail"</span>:     <span class="str">"O valor solicitado (R$ 250.000) excede o limite disponível (R$ 180.000)"</span>,
+  <span class="str">"code"</span>:       <span class="str">"LIMIT_EXCEEDED"</span>,
+  <span class="str">"instance"</span>:   <span class="str">"/v1/credit/capital-giro/apply"</span>,
+  <span class="str">"correlationId"</span>: <span class="str">"appl_9b3d2a"</span>,
+  <span class="str">"retryable"</span>:  <span class="kw">false</span>,
+  <span class="str">"userMessage"</span>: <span class="str">"Seu limite disponível é R$ 180.000. Ajuste o valor e tente novamente."</span>
+}</pre>
+  </div>
+
+  <h4>Tabela de códigos de erro</h4>
+  <table class="param-table">
+    <thead><tr><th>Código</th><th>HTTP</th><th>Retryable</th><th>Ação do BFF / MFE</th></tr></thead>
+    <tbody>
+      <tr><td>TOKEN_EXPIRED</td><td style="color:var(--amber)">401</td><td style="color:var(--green)">Sim</td><td>Silent refresh do UCT via Refresh Token Cookie</td></tr>
+      <tr><td>TOKEN_REVOKED</td><td style="color:var(--red)">401</td><td style="color:var(--red)">Não</td><td>Redirecionar para reautenticação do parceiro</td></tr>
+      <tr><td>PARTNER_MISMATCH</td><td style="color:var(--red)">403</td><td style="color:var(--red)">Não</td><td>Log de segurança + bloquear operação</td></tr>
+      <tr><td>LIMIT_EXCEEDED</td><td style="color:var(--amber)">422</td><td style="color:var(--red)">Não</td><td>Exibir limite disponível ao usuário</td></tr>
+      <tr><td>CUSTOMER_BLOCKED</td><td style="color:var(--red)">403</td><td style="color:var(--red)">Não</td><td>Exibir mensagem e canal de suporte</td></tr>
+      <tr><td>SIMULATION_EXPIRED</td><td style="color:var(--amber)">410</td><td style="color:var(--green)">Sim</td><td>Re-simular automaticamente antes de apply</td></tr>
+      <tr><td>DUPLICATE_OPERATION</td><td style="color:var(--amber)">409</td><td style="color:var(--red)">Não</td><td>Retornar operationId existente</td></tr>
+      <tr><td>BUREAU_UNAVAILABLE</td><td style="color:var(--amber)">503</td><td style="color:var(--green)">Sim</td><td>Retry 3x com backoff exponencial (1s, 2s, 4s)</td></tr>
+      <tr><td>RATE_LIMIT_PARTNER</td><td style="color:var(--amber)">429</td><td style="color:var(--green)">Sim</td><td>Respeitar Retry-After header</td></tr>
+    </tbody>
+  </table>
+
+  <div class="code-wrap">
+    <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">TypeScript · BFF · retry + circuit breaker</span></div>
+    <pre><span class="kw">const</span> circuitBreaker = <span class="kw">new</span> <span class="fn">CircuitBreaker</span>({
+  failureThreshold: <span class="num">5</span>,         <span class="cm">// abre após 5 falhas em 60s</span>
+  recoveryTimeout:  <span class="num">30000</span>,      <span class="cm">// testa recovery após 30s</span>
+  monitoringWindow: <span class="num">60000</span>,
+});
+
+<span class="kw">async function</span> <span class="fn">callLaaS</span>(endpoint, payload) {
+  <span class="kw">return</span> circuitBreaker.<span class="fn">execute</span>(<span class="kw">async</span> () => {
+    <span class="kw">let</span> attempt = <span class="num">0</span>;
+    <span class="kw">while</span> (attempt < <span class="num">3</span>) {
+      <span class="kw">try</span> {
+        <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(endpoint, { <span class="cm">/* mTLS + ServiceToken */</span> });
+        <span class="kw">if</span> (res.ok) <span class="kw">return</span> res.<span class="fn">json</span>();
+        <span class="kw">const</span> err = <span class="kw">await</span> res.<span class="fn">json</span>();
+        <span class="kw">if</span> (!err.retryable) <span class="kw">throw new</span> <span class="fn">NonRetryableError</span>(err);
+      } <span class="kw">catch</span> (e) {
+        attempt++;
+        <span class="kw">if</span> (attempt === <span class="num">3</span>) <span class="kw">throw</span> e;
+        <span class="kw">await</span> <span class="fn">sleep</span>(<span class="num">1000</span> * Math.<span class="fn">pow</span>(<span class="num">2</span>, attempt)); <span class="cm">// 1s, 2s, 4s</span>
+      }
+    }
+  });
+}</pre>
+  </div>
+</div>
+
+<!-- ══ 10 SECURITY ══ -->
+<div class="section" id="sec-security">
+  <div class="sec-hdr"><span class="sec-num">10</span><span class="sec-title">Segurança — Resumo dos Controles</span><div class="sec-bar"></div></div>
+  <p class="sec-intro">Resumo dos controles de segurança por camada. Cada camada tem responsabilidade específica — nenhum controle é delegado para cima ou para baixo da cadeia.</p>
+
+  <div class="grid2">
+    <div class="info-card">
+      <div class="ic-tag" style="color:var(--amber)">Browser (MFE)</div>
+      <div class="ic-title" style="color:var(--amber)">Responsabilidades</div>
+      <div class="ic-body">UCT apenas em memória JS. Refresh Token em HttpOnly Cookie. PKCE em todo authorization_code flow. Sem credenciais de serviço. CSP Header enforced.</div>
+    </div>
+    <div class="info-card">
+      <div class="ic-tag" style="color:var(--green)">BFF</div>
+      <div class="ic-title" style="color:var(--green)">Responsabilidades</div>
+      <div class="ic-body">Validação de UCT (assinatura + blacklist + partner_match). Token Exchange para Service Token via mTLS. Rate limit por usuário. Sanitização de inputs. Log de toda operação.</div>
+    </div>
+    <div class="info-card">
+      <div class="ic-tag" style="color:var(--blue)">Auth Server</div>
+      <div class="ic-title" style="color:var(--blue)">Responsabilidades</div>
+      <div class="ic-body">Emissão e revogação de PAT, UCT e Service Token. Validação de certificados mTLS. Token blacklist no Redis. Rastreabilidade via jti. Rotação de chaves JWKS.</div>
+    </div>
+    <div class="info-card">
+      <div class="ic-tag" style="color:var(--purple)">Core Platform</div>
+      <div class="ic-title" style="color:var(--purple)">Responsabilidades</div>
+      <div class="ic-body">Aceita apenas Service Token (nunca UCT direto). Isolamento multi-tenant via X-Tenant header. Rate limit global por parceiro. Auditoria de todas as operações financeiras (retenção 5 anos).</div>
+    </div>
+  </div>
+
+  <div class="hbox red">
+    <div class="hbox-title">🔒 Controles inegociáveis</div>
+    <p>
+      <strong>UCT em memória</strong> · nunca localStorage ou sessionStorage<br>
+      <strong>mTLS obrigatório</strong> · para qualquer chamada BFF → Core Platform ou Auth Server<br>
+      <strong>Document hash</strong> · CPF/CNPJ nunca trafega raw entre serviços — apenas SHA-256<br>
+      <strong>Idempotency Key</strong> · obrigatório em todos os endpoints de escrita<br>
+      <strong>Audit log</strong> · toda operação de crédito armazenada por mínimo 5 anos (Bacen Res. 4.658)
+    </p>
+  </div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+function nav(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.sb-link').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function toggleEp(head) {
+  head.closest('.ep').classList.toggle('open');
+}
+
+function copyCode(btn) {
+  const pre = btn.closest('.code-wrap').querySelector('pre');
+  navigator.clipboard.writeText(pre.textContent).then(() => {
+    btn.textContent = 'copiado!';
+    setTimeout(() => btn.textContent = 'copiar', 2000);
+  });
+}
+</script>
+</body>
+</html>

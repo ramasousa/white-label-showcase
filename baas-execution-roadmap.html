@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BaaS White Label — Roadmap de Execução</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Neue+Haas+Grotesk+Display+Pro:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#05070c;--s1:#0b0e17;--s2:#10141f;--s3:#161c2a;--s4:#1c2336;
+  --border:rgba(255,255,255,0.055);--b2:rgba(255,255,255,0.1);--b3:rgba(255,255,255,0.16);
+  --text:#d8dfee;--muted:#44526a;--dim:#1a2132;--dim2:#222d42;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Instrument Sans',sans-serif;
+  --disp:'Syne',sans-serif;
+
+  /* squad colors */
+  --s1c:#e8294a;  --s1g:rgba(232,41,74,.13);   --s1b:rgba(232,41,74,.28);
+  --s2c:#3d9fff;  --s2g:rgba(61,159,255,.12);   --s2b:rgba(61,159,255,.28);
+  --s3c:#00d4a8;  --s3g:rgba(0,212,168,.11);    --s3b:rgba(0,212,168,.28);
+  --s4c:#a87cf8;  --s4g:rgba(168,124,248,.11);  --s4b:rgba(168,124,248,.28);
+
+  /* phase colors */
+  --p1:#f0a020;   --p1g:rgba(240,160,32,.11);   --p1b:rgba(240,160,32,.3);
+  --p2:#3d9fff;   --p2g:rgba(61,159,255,.1);    --p2b:rgba(61,159,255,.28);
+  --p3:#00d4a8;   --p3g:rgba(0,212,168,.1);     --p3b:rgba(0,212,168,.28);
+  --p4:#a87cf8;   --p4g:rgba(168,124,248,.1);   --p4b:rgba(168,124,248,.28);
+}
+
+body{background:var(--bg);color:var(--text);font-family:var(--sans);overflow-x:hidden;line-height:1.6}
+
+/* noise */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.88' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.038'/%3E%3C/svg%3E");opacity:.5}
+
+/* ── SIDEBAR + LAYOUT ── */
+.shell{display:flex;min-height:100vh}
+
+.sidebar{
+  width:240px;min-width:240px;
+  background:var(--s1);border-right:1px solid var(--border);
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+  padding:28px 0;scrollbar-width:none;
+}
+.sidebar::-webkit-scrollbar{display:none}
+
+.sb-brand{padding:0 20px 24px;border-bottom:1px solid var(--border);margin-bottom:20px}
+.sb-badge{display:inline-flex;align-items:center;gap:6px;
+  background:var(--s1g);border:1px solid var(--s1b);border-radius:20px;
+  padding:4px 10px;margin-bottom:10px;
+  font-family:var(--mono);font-size:8.5px;letter-spacing:2px;text-transform:uppercase;color:var(--s1c)}
+.sb-dot{width:5px;height:5px;border-radius:50%;background:var(--s1c);
+  box-shadow:0 0 6px var(--s1c);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.sb-title{font-family:var(--disp);font-size:14px;font-weight:700;line-height:1.3;color:var(--text)}
+.sb-sub{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:4px}
+
+.sb-section{font-family:var(--mono);font-size:8px;letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--muted);padding:0 20px;margin-bottom:6px;margin-top:16px}
+
+.sb-link{display:flex;align-items:center;gap:9px;padding:8px 20px;
+  color:var(--muted);text-decoration:none;font-size:12px;font-weight:500;
+  border-left:2px solid transparent;transition:all .18s;cursor:pointer;border:none;
+  background:transparent;width:100%;text-align:left}
+.sb-link:hover{color:var(--text);background:rgba(255,255,255,.025)}
+.sb-link.active{color:var(--s1c);border-left-color:var(--s1c);background:var(--s1g)}
+.sb-link-num{font-family:var(--mono);font-size:9px;color:var(--dim2);min-width:18px}
+
+/* ── MAIN ── */
+.main{flex:1;overflow-x:hidden}
+
+/* ── HERO ── */
+.hero{
+  padding:64px 60px 56px;border-bottom:1px solid var(--border);
+  position:relative;overflow:hidden;
+}
+.hero::after{content:'';position:absolute;top:-100px;right:-100px;
+  width:500px;height:500px;
+  background:radial-gradient(circle,rgba(232,41,74,.07) 0%,transparent 65%);
+  pointer-events:none}
+.hero-tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.htag{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  padding:4px 12px;border-radius:20px;font-weight:600}
+.ht-red{background:var(--s1g);color:var(--s1c);border:1px solid var(--s1b)}
+.ht-blue{background:var(--s2g);color:var(--s2c);border:1px solid var(--s2b)}
+.ht-teal{background:var(--s3g);color:var(--s3c);border:1px solid var(--s3b)}
+.ht-purple{background:var(--s4g);color:var(--s4c);border:1px solid var(--s4b)}
+
+h1{font-family:var(--disp);font-size:clamp(30px,4vw,54px);font-weight:800;
+  letter-spacing:-2px;line-height:1.03;margin-bottom:14px}
+h1 em{font-style:normal;color:var(--s1c)}
+h1 .dim{color:var(--muted)}
+.hero-desc{font-size:14px;color:var(--muted);max-width:620px;line-height:1.8;margin-bottom:32px}
+.hero-kpis{display:flex;gap:32px;flex-wrap:wrap}
+.kpi{display:flex;flex-direction:column;gap:3px}
+.kpi-val{font-family:var(--disp);font-size:28px;font-weight:800;letter-spacing:-1px}
+.kpi-lbl{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+
+/* ── SECTION ── */
+.section{padding:56px 60px;border-bottom:1px solid var(--border);display:none}
+.section.active{display:block}
+
+.sec-eyebrow{display:flex;align-items:center;gap:14px;margin-bottom:28px}
+.sec-num{font-family:var(--mono);font-size:10px;color:var(--s1c);letter-spacing:1px;font-weight:600}
+.sec-title{font-family:var(--disp);font-size:28px;font-weight:700;letter-spacing:-.8px}
+.sec-bar{flex:1;height:1px;background:var(--border)}
+.sec-intro{font-size:14px;color:var(--muted);line-height:1.8;max-width:700px;margin-bottom:44px}
+
+/* ── PRINCIPLE CARDS ── */
+.principle-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-bottom:44px}
+.pc{background:var(--s1);border:1px solid var(--border);border-radius:14px;
+  padding:24px;position:relative;overflow:hidden;transition:border-color .2s,transform .2s}
+.pc:hover{border-color:var(--b2);transform:translateY(-2px)}
+.pc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.pc.red::before{background:linear-gradient(90deg,var(--s1c),transparent)}
+.pc.blue::before{background:linear-gradient(90deg,var(--s2c),transparent)}
+.pc.teal::before{background:linear-gradient(90deg,var(--s3c),transparent)}
+.pc.purple::before{background:linear-gradient(90deg,var(--s4c),transparent)}
+.pc.amber::before{background:linear-gradient(90deg,var(--p1),transparent)}
+.pc-num{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:10px}
+.pc-title{font-family:var(--disp);font-size:15px;font-weight:700;margin-bottom:8px}
+.pc-body{font-size:13px;color:var(--muted);line-height:1.7}
+.pc.red .pc-title{color:var(--s1c)}
+.pc.blue .pc-title{color:var(--s2c)}
+.pc.teal .pc-title{color:var(--s3c)}
+.pc.purple .pc-title{color:var(--s4c)}
+.pc.amber .pc-title{color:var(--p1)}
+
+/* ── SQUAD CARDS ── */
+.squad-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:44px}
+.sq{background:var(--s1);border:1px solid var(--border);border-radius:14px;overflow:hidden;
+  transition:border-color .2s}
+.sq:hover{border-color:var(--b2)}
+.sq-head{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.sq-badge{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;
+  padding:4px 10px;border-radius:6px;font-weight:600;white-space:nowrap}
+.sq-name{font-family:var(--disp);font-size:16px;font-weight:700;margin-bottom:4px}
+.sq-mission{font-size:12px;color:var(--muted);line-height:1.6}
+.sq-body{padding:20px 24px}
+.sq-items{display:flex;flex-direction:column;gap:8px}
+.sq-item{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--muted)}
+.sq-item-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:6px}
+
+.sq.s1 .sq-badge{background:var(--s1g);color:var(--s1c);border:1px solid var(--s1b)}
+.sq.s1 .sq-name{color:var(--s1c)}
+.sq.s1 .sq-item-dot{background:var(--s1c)}
+.sq.s2 .sq-badge{background:var(--s2g);color:var(--s2c);border:1px solid var(--s2b)}
+.sq.s2 .sq-name{color:var(--s2c)}
+.sq.s2 .sq-item-dot{background:var(--s2c)}
+.sq.s3 .sq-badge{background:var(--s3g);color:var(--s3c);border:1px solid var(--s3b)}
+.sq.s3 .sq-name{color:var(--s3c)}
+.sq.s3 .sq-item-dot{background:var(--s3c)}
+.sq.s4 .sq-badge{background:var(--s4g);color:var(--s4c);border:1px solid var(--s4b)}
+.sq.s4 .sq-name{color:var(--s4c)}
+.sq.s4 .sq-item-dot{background:var(--s4c)}
+
+/* ── DEPENDENCY MAP ── */
+.dep-map{background:var(--s1);border:1px solid var(--border);border-radius:14px;
+  padding:28px;margin-bottom:44px}
+.dep-map-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:20px}
+.dep-flow{display:flex;align-items:center;gap:0;overflow-x:auto;padding-bottom:8px}
+.dep-node{
+  background:var(--s2);border:1px solid var(--border);border-radius:10px;
+  padding:16px 20px;min-width:140px;text-align:center;flex-shrink:0;
+}
+.dep-node-name{font-family:var(--disp);font-size:13px;font-weight:700;margin-bottom:4px}
+.dep-node-sub{font-family:var(--mono);font-size:9px;color:var(--muted)}
+.dep-arrow{
+  display:flex;flex-direction:column;align-items:center;
+  padding:0 12px;flex-shrink:0;gap:3px;
+}
+.dep-arrow-line{width:40px;height:1.5px;background:var(--dim2);position:relative;overflow:hidden}
+.dep-arrow-line::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,var(--s3c),transparent);
+  animation:depflow 2s linear infinite}
+@keyframes depflow{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.dep-arrow-head{font-size:10px;color:var(--s3c)}
+.dep-arrow-lbl{font-family:var(--mono);font-size:8px;color:var(--muted);white-space:nowrap}
+
+/* ── ROADMAP PHASES ── */
+.phases{display:flex;flex-direction:column;gap:20px;margin-bottom:44px}
+.phase{border-radius:16px;overflow:hidden;border:1px solid var(--border)}
+.phase-head{
+  padding:24px 28px;border-bottom:1px solid var(--border);
+  display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  cursor:pointer;user-select:none;
+  transition:background .2s;
+}
+.phase-head:hover{background:rgba(255,255,255,.02)}
+.phase-left{}
+.phase-tag{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  font-weight:600;margin-bottom:8px}
+.phase-name{font-family:var(--disp);font-size:22px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}
+.phase-dates{font-family:var(--mono);font-size:10px;color:var(--muted)}
+.phase-right{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.phase-goal{font-size:13px;color:var(--muted);max-width:320px;line-height:1.6}
+.phase-toggle{font-size:18px;color:var(--muted);transition:transform .3s;flex-shrink:0}
+.phase.open .phase-toggle{transform:rotate(180deg)}
+
+.phase-body{display:none;padding:28px}
+.phase.open .phase-body{display:block}
+
+.phase-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:24px}
+.ptask{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:18px}
+.ptask-sq{font-family:var(--mono);font-size:8.5px;letter-spacing:1px;font-weight:600;
+  margin-bottom:8px;display:inline-flex;align-items:center;gap:6px;
+  padding:3px 8px;border-radius:5px}
+.ptask-title{font-family:var(--disp);font-size:14px;font-weight:700;margin-bottom:6px}
+.ptask-items{display:flex;flex-direction:column;gap:4px}
+.ptask-item{font-size:12px;color:var(--muted);display:flex;align-items:flex-start;gap:7px;line-height:1.5}
+.ptask-bullet{flex-shrink:0;margin-top:2px}
+
+.phase-milestone{
+  display:flex;align-items:center;gap:12px;
+  background:var(--s2);border:1px solid var(--border);border-radius:10px;
+  padding:16px 20px;
+}
+.pm-icon{font-size:18px;flex-shrink:0}
+.pm-label{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+.pm-text{font-size:13px;font-weight:600;color:var(--text)}
+
+/* phase color schemes */
+.phase.ph1{background:rgba(240,160,32,.03)}
+.phase.ph1 .phase-tag{color:var(--p1)}
+.phase.ph1 .phase-name{color:var(--p1)}
+.phase.ph1 .phase-head{border-bottom-color:rgba(240,160,32,.15)}
+.phase.ph1 .ptask-sq.s1{background:var(--s1g);color:var(--s1c);border:1px solid var(--s1b)}
+.phase.ph1 .ptask-sq.s4{background:var(--s4g);color:var(--s4c);border:1px solid var(--s4b)}
+
+.phase.ph2{background:rgba(61,159,255,.03)}
+.phase.ph2 .phase-tag{color:var(--p2)}
+.phase.ph2 .phase-name{color:var(--p2)}
+.phase.ph2 .phase-head{border-bottom-color:rgba(61,159,255,.15)}
+.phase.ph2 .ptask-sq.s1{background:var(--s1g);color:var(--s1c);border:1px solid var(--s1b)}
+.phase.ph2 .ptask-sq.s2{background:var(--s2g);color:var(--s2c);border:1px solid var(--s2b)}
+.phase.ph2 .ptask-sq.s3{background:var(--s3g);color:var(--s3c);border:1px solid var(--s3b)}
+.phase.ph2 .ptask-sq.s4{background:var(--s4g);color:var(--s4c);border:1px solid var(--s4b)}
+
+.phase.ph3{background:rgba(0,212,168,.03)}
+.phase.ph3 .phase-tag{color:var(--p3)}
+.phase.ph3 .phase-name{color:var(--p3)}
+.phase.ph3 .phase-head{border-bottom-color:rgba(0,212,168,.15)}
+.phase.ph3 .ptask-sq.s1{background:var(--s1g);color:var(--s1c);border:1px solid var(--s1b)}
+.phase.ph3 .ptask-sq.s2{background:var(--s2g);color:var(--s2c);border:1px solid var(--s2b)}
+.phase.ph3 .ptask-sq.s3{background:var(--s3g);color:var(--s3c);border:1px solid var(--s3b)}
+.phase.ph3 .ptask-sq.s4{background:var(--s4g);color:var(--s4c);border:1px solid var(--s4b)}
+
+.phase.ph4{background:rgba(168,124,248,.03)}
+.phase.ph4 .phase-tag{color:var(--p4)}
+.phase.ph4 .phase-name{color:var(--p4)}
+.phase.ph4 .phase-head{border-bottom-color:rgba(168,124,248,.15)}
+.phase.ph4 .ptask-sq.s1{background:var(--s1g);color:var(--s1c);border:1px solid var(--s1b)}
+.phase.ph4 .ptask-sq.s2{background:var(--s2g);color:var(--s2c);border:1px solid var(--s2b)}
+.phase.ph4 .ptask-sq.s3{background:var(--s3g);color:var(--s3c);border:1px solid var(--s3b)}
+.phase.ph4 .ptask-sq.s4{background:var(--s4g);color:var(--s4c);border:1px solid var(--s4b)}
+
+/* ── METRICS ── */
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:44px}
+.metric{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:22px;
+  transition:border-color .2s}
+.metric:hover{border-color:var(--b2)}
+.metric-label{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:12px}
+.metric-val{font-family:var(--disp);font-size:30px;font-weight:800;letter-spacing:-1px;margin-bottom:4px}
+.metric-target{font-size:12px;color:var(--muted);margin-bottom:14px}
+.metric-bar-wrap{height:3px;background:var(--dim2);border-radius:2px;overflow:hidden}
+.metric-bar-fill{height:100%;border-radius:2px}
+.metric-phases{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.metric-phase-tag{font-family:var(--mono);font-size:8.5px;padding:2px 7px;border-radius:4px;font-weight:600}
+
+/* ── RISK TABLE ── */
+.risk-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:44px}
+.risk-table th{font-family:var(--mono);font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--muted);padding:10px 14px;text-align:left;border-bottom:1px solid var(--b2)}
+.risk-table td{padding:14px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--muted);line-height:1.6}
+.risk-table tr:hover td{background:rgba(255,255,255,.015)}
+.risk-table td:first-child{color:var(--text);font-weight:500}
+.rb{font-family:var(--mono);font-size:9px;letter-spacing:.5px;padding:3px 8px;border-radius:5px;font-weight:700;white-space:nowrap}
+.rb-h{background:rgba(232,41,74,.15);color:var(--s1c);border:1px solid rgba(232,41,74,.3)}
+.rb-m{background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.3)}
+.rb-l{background:var(--s3g);color:var(--s3c);border:1px solid var(--s3b)}
+.ract{color:var(--s3c)!important;font-size:12px}
+
+/* ── GOVERNANCE ── */
+.gov-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:44px}
+.gov-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:24px}
+.gov-card-title{font-family:var(--disp);font-size:14px;font-weight:700;letter-spacing:.3px;margin-bottom:14px}
+.gov-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;
+  border-bottom:1px solid var(--border);font-size:13px;color:var(--muted)}
+.gov-item:last-child{border-bottom:none}
+.gov-item-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;
+  justify-content:center;font-size:13px;flex-shrink:0}
+
+/* ── CODE BLOCK ── */
+.code-wrap{background:var(--s2);border:1px solid var(--border);border-radius:10px;
+  overflow:hidden;margin:16px 0}
+.code-head{display:flex;align-items:center;justify-content:space-between;
+  padding:9px 14px;border-bottom:1px solid var(--border);background:var(--s3)}
+.code-dots{display:flex;gap:5px}
+.cd{width:9px;height:9px;border-radius:50%}
+.cd.r{background:#ff5f57}.cd.y{background:#ffbd2e}.cd.g{background:#28c840}
+.code-lang{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase}
+pre{padding:18px;font-family:var(--mono);font-size:11.5px;line-height:1.85;color:#7a8faa;overflow-x:auto}
+.kw{color:#f07178}.str{color:#c3e88d}.cm{color:#3a4d62;font-style:italic}
+.fn{color:#82aaff}.key{color:#89ddff}.ok{color:var(--s3c)}.warn{color:#f59e0b}
+
+/* ── HIGHLIGHT BOX ── */
+.hbox{border-radius:12px;padding:20px 24px;margin:16px 0;border:1px solid}
+.hbox.green{background:var(--s3g);border-color:var(--s3b)}
+.hbox.amber{background:var(--p1g);border-color:var(--p1b)}
+.hbox.red{background:var(--s1g);border-color:var(--s1b)}
+.hbox.blue{background:var(--s2g);border-color:var(--s2b)}
+.hbox-title{font-family:var(--disp);font-size:13px;font-weight:700;margin-bottom:6px}
+.hbox.green .hbox-title{color:var(--s3c)}
+.hbox.amber .hbox-title{color:var(--p1)}
+.hbox.red .hbox-title{color:var(--s1c)}
+.hbox.blue .hbox-title{color:var(--s2c)}
+.hbox p{font-size:13px;color:var(--muted);line-height:1.7}
+
+h3.sub{font-family:var(--disp);font-size:18px;font-weight:700;letter-spacing:-.3px;
+  margin:32px 0 14px;color:var(--text)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .sidebar{display:none}
+  .section{padding:36px 24px}
+  .hero{padding:40px 24px}
+  .squad-row,.gov-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ── SIDEBAR ── -->
+<nav class="sidebar">
+  <div class="sb-brand">
+    <div class="sb-badge"><div class="sb-dot"></div>Confidencial</div>
+    <div class="sb-title">BaaS White Label<br>Roadmap de Execução</div>
+    <div class="sb-sub">Bradesco / Aarin · 2026–2027</div>
+  </div>
+
+  <div class="sb-section">Estratégia</div>
+  <button class="sb-link active" onclick="nav('principles',this)"><span class="sb-link-num">01</span>Princípios</button>
+  <button class="sb-link" onclick="nav('squads',this)"><span class="sb-link-num">02</span>Squads & Times</button>
+  <button class="sb-link" onclick="nav('dependencies',this)"><span class="sb-link-num">03</span>Dependências</button>
+
+  <div class="sb-section">Execução</div>
+  <button class="sb-link" onclick="nav('roadmap',this)"><span class="sb-link-num">04</span>Roadmap Trimestral</button>
+  <button class="sb-link" onclick="nav('metrics',this)"><span class="sb-link-num">05</span>Métricas & OKRs</button>
+  <button class="sb-link" onclick="nav('contracts',this)"><span class="sb-link-num">06</span>Contratos Técnicos</button>
+
+  <div class="sb-section">Governança</div>
+  <button class="sb-link" onclick="nav('risks',this)"><span class="sb-link-num">07</span>Riscos</button>
+  <button class="sb-link" onclick="nav('governance',this)"><span class="sb-link-num">08</span>Governança</button>
+  <button class="sb-link" onclick="nav('rollout',this)"><span class="sb-link-num">09</span>Plano de Rollout</button>
+</nav>
+
+<!-- ── MAIN ── -->
+<div class="main">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tags">
+    <span class="htag ht-red">Bradesco as a Service</span>
+    <span class="htag ht-blue">4 Squads</span>
+    <span class="htag ht-teal">12 Meses</span>
+    <span class="htag ht-purple">White Label · Crédito</span>
+  </div>
+  <h1>Roadmap de <em>Execução</em><br><span class="dim">Independente do Modelo</span></h1>
+  <p class="hero-desc">Estratégia de plataforma, organização de times, dependências entre squads, métricas de sucesso e governança — válido tanto para o modelo Federado quanto Standalone, ou para os dois em coexistência.</p>
+  <div class="hero-kpis">
+    <div class="kpi"><span class="kpi-val" style="color:var(--s1c)">4</span><span class="kpi-lbl">Squads</span></div>
+    <div class="kpi"><span class="kpi-val" style="color:var(--p1)">4</span><span class="kpi-lbl">Fases · 12 meses</span></div>
+    <div class="kpi"><span class="kpi-val" style="color:var(--s3c)">6</span><span class="kpi-lbl">Métricas-chave</span></div>
+    <div class="kpi"><span class="kpi-val" style="color:var(--s4c)">2</span><span class="kpi-lbl">Modelos de Auth</span></div>
+  </div>
+</div>
+
+<!-- ══ 01 PRINCÍPIOS ══ -->
+<div class="section active" id="sec-principles">
+  <div class="sec-eyebrow"><span class="sec-num">01</span><span class="sec-title">Princípios Inegociáveis</span><div class="sec-bar"></div></div>
+  <p class="sec-intro">Antes de qualquer sprint começar, esses seis princípios precisam estar acordados entre todos os times. Eles não são valores — são restrições de design que moldam todas as decisões de arquitetura, produto e processo.</p>
+
+  <div class="principle-grid">
+    <div class="pc red">
+      <div class="pc-num">P-01</div>
+      <div class="pc-title">Plataforma, não Projeto</div>
+      <div class="pc-body">O frontend white label tem PM dedicado, OKRs próprios e roadmap contínuo. Não tem prazo de encerramento. Qualquer decisão que otimiza entrega de curto prazo às custas da extensibilidade futura é errada.</div>
+    </div>
+    <div class="pc blue">
+      <div class="pc-num">P-02</div>
+      <div class="pc-title">Contrato antes do Código</div>
+      <div class="pc-body">A interface <code>CreditProductMFE</code>, o schema do UCT, a Partner Config API e o payload do PartnerContext são definidos e versionados antes do primeiro sprint de produto. Quebrar contratos é mais caro que definir bem no início.</div>
+    </div>
+    <div class="pc teal">
+      <div class="pc-num">P-03</div>
+      <div class="pc-title">Times por Produto, não por Camada</div>
+      <div class="pc-body">Cada squad entrega end-to-end — da API ao MFE ao BFF. Nenhum ticket de feature atravessa mais de dois times. Se atravessa, o design organizacional está errado.</div>
+    </div>
+    <div class="pc purple">
+      <div class="pc-num">P-04</div>
+      <div class="pc-title">Segurança como Requisito de Entrada</div>
+      <div class="pc-body">UCT em memória, mTLS, revogação em tempo real e logs por 5 anos são inegociáveis. Pentest e threat modeling acontecem antes do go-live do primeiro parceiro, não depois. Isso não é negociável por prazo.</div>
+    </div>
+    <div class="pc amber">
+      <div class="pc-num">P-05</div>
+      <div class="pc-title">Documentação é Produto</div>
+      <div class="pc-body">Cada endpoint tem exemplos reais, não só schema. Cada erro tem código + causa + ação. Se dois parceiros fazem a mesma pergunta ao suporte, isso é um bug de documentação — não de suporte.</div>
+    </div>
+    <div class="pc red">
+      <div class="pc-num">P-06</div>
+      <div class="pc-title">Primeiro Parceiro Testa a Plataforma</div>
+      <div class="pc-body">A pergunta não é "o parceiro ficou satisfeito?" — é "quanto do time central foi acionado para essa integração?". Se a resposta for "muito", você ainda não tem plataforma. Meça o tempo de onboarding desde o dia um.</div>
+    </div>
+  </div>
+
+  <div class="hbox green">
+    <div class="hbox-title">✦ O princípio que não pode ser terceirizado</div>
+    <p>O modelo de autenticação (Federado ou Standalone) é uma decisão de segmentação de mercado, não de arquitetura. A plataforma suporta os dois. O que o Head decide é qual modelo cada segmento de parceiro recebe como padrão — e isso precisa estar explícito no contrato de onboarding antes de qualquer integração começar.</p>
+  </div>
+</div>
+
+<!-- ══ 02 SQUADS ══ -->
+<div class="section" id="sec-squads">
+  <div class="sec-eyebrow"><span class="sec-num">02</span><span class="sec-title">Squads & Times</span><div class="sec-bar"></div></div>
+  <p class="sec-intro">Quatro squads com missões complementares e sem sobreposição. Cada squad é responsável por seu domínio end-to-end — da infraestrutura ao produto ao parceiro.</p>
+
+  <div class="squad-row">
+    <div class="sq s1">
+      <div class="sq-head">
+        <div>
+          <div class="sq-name">Core Platform</div>
+          <div class="sq-mission">Backbone reutilizável que sustenta todos os produtos. Sem essa squad sólida, as demais constroem sobre areia.</div>
+        </div>
+        <span class="sq-badge">Squad 1 · Foundation</span>
+      </div>
+      <div class="sq-body">
+        <div class="sq-items">
+          <div class="sq-item"><div class="sq-item-dot"></div>OAuth2 + mTLS + Token Exchange (RFC 8693)</div>
+          <div class="sq-item"><div class="sq-item-dot"></div>Multi-tenant IAM e isolamento por parceiro</div>
+          <div class="sq-item"><div class="sq-item-dot"></div>Partner Config API e MFE Registry</div>
+          <div class="sq-item"><div class="sq-item-dot"></div>Rate limiting por parceiro, produto e usuário</div>
+          <div class="sq-item"><div class="sq-item-dot"></div>Redis — token blacklist e revogação em tempo real</div>
+          <div class="sq-item"><div class="sq-item-dot"></div>Kafka — eventos de sessão, risco e auditoria</div>
+          <div class="sq-item"><div class="sq-item-dot"></div>Observabilidade e SLOs da plataforma</div>
+        </div>
+      </div>
+    </div>
+    <div class="sq s4">
+      <div class="sq-head">
+        <div>
+          <div class="sq-name">Experience & Ecosystem</div>
+          <div class="sq-mission">Principal diferencial competitivo do BaaS. Responsável pela jornada completa do parceiro — do primeiro contato ao go-live.</div>
+        </div>
+        <span class="sq-badge">Squad 4 · Experience</span>
+      </div>
+      <div class="sq-body">
+        <div class="sq-items">
+          <div class="sq-item"><div class="sq-item-dot"></div>Shell App — orquestração de MFEs e tema runtime</div>
+          <div class="sq-item"><div class="sq-item-dot"></div>MFEs dos produtos de crédito (React + Module Federation)</div>
+          <div class="sq-item"><div class="sq-item-dot"></div>BFF por produto (Node.js + Fastify)</div>
+          <div class="sq-item"><div class="sq-item-dot"></div>Design System e Design Tokens</div>
+          <div class="sq-item"><div class="sq-item-dot"></div>Portal do Desenvolvedor e Sandbox</div>
+          <div class="sq-item"><div class="sq-item-dot"></div>Onboarding self-service de parceiros</div>
+          <div class="sq-item"><div class="sq-item-dot"></div>SDKs de UI e documentação técnica</div>
+        </div>
+      </div>
+    </div>
+    <div class="sq s2">
+      <div class="sq-head">
+        <div>
+          <div class="sq-name">LaaS — Lending as a Service</div>
+          <div class="sq-mission">Produtos de crédito estruturado com jornadas completas — da originação à gestão do contrato.</div>
+        </div>
+        <span class="sq-badge">Squad 2 · Produto</span>
+      </div>
+      <div class="sq-body">
+        <div class="sq-items">
+          <div class="sq-item"><div class="sq-item-dot"></div>Capital de Giro — API e motor de originação</div>
+          <div class="sq-item"><div class="sq-item-dot"></div>Crédito Emergencial e Mais Prazo</div>
+          <div class="sq-item"><div class="sq-item-dot"></div>Motor de risco e score integrado</div>
+          <div class="sq-item"><div class="sq-item-dot"></div>Gestão de contratos e formalização digital</div>
+          <div class="sq-item"><div class="sq-item-dot"></div>Integração com sistemas core bancários Bradesco</div>
+        </div>
+      </div>
+    </div>
+    <div class="sq s3">
+      <div class="sq-head">
+        <div>
+          <div class="sq-name">CaaS — Credit as a Service</div>
+          <div class="sq-mission">Crédito composable e API-first. Parceiros embute capacidades sem precisar da complexidade do LaaS.</div>
+        </div>
+        <span class="sq-badge">Squad 3 · Produto</span>
+      </div>
+      <div class="sq-body">
+        <div class="sq-items">
+          <div class="sq-item"><div class="sq-item-dot"></div>Antecipação de Recebíveis — API granular</div>
+          <div class="sq-item"><div class="sq-item-dot"></div>Simulação e scoring em tempo real</div>
+          <div class="sq-item"><div class="sq-item-dot"></div>Originação simplificada (embedded credit)</div>
+          <div class="sq-item"><div class="sq-item-dot"></div>BNPL e limite rotativo (fase 2+)</div>
+          <div class="sq-item"><div class="sq-item-dot"></div>SDK de integração CaaS</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hbox amber">
+    <div class="hbox-title">⚠ Regra de Ouro da Organização</div>
+    <p>Uma squad consegue fazer um deploy completo da sua feature sem aprovação ou trabalho de outra squad? Se não, o design organizacional está errado. A Squad 1 (Core Platform) é a única exceção justificada — ela provê infraestrutura para todas. Por isso ela precisa ter capacidade proporcional ao consumo das demais.</p>
+  </div>
+</div>
+
+<!-- ══ 03 DEPENDÊNCIAS ══ -->
+<div class="section" id="sec-dependencies">
+  <div class="sec-eyebrow"><span class="sec-num">03</span><span class="sec-title">Mapa de Dependências</span><div class="sec-bar"></div></div>
+  <p class="sec-intro">Fluxo de dependências entre squads, camadas e parceiros. Cada seta representa um contrato técnico que deve ser definido e versionado antes de qualquer integração começar.</p>
+
+  <div class="dep-map">
+    <div class="dep-map-title">Fluxo de dependência — runtime</div>
+    <div class="dep-flow">
+      <div class="dep-node" style="border-color:rgba(168,124,248,.3);background:rgba(168,124,248,.06)">
+        <div class="dep-node-name" style="color:var(--s4c)">Parceiro (B)</div>
+        <div class="dep-node-sub">App / Portal próprio</div>
+      </div>
+      <div class="dep-arrow">
+        <div class="dep-arrow-lbl">UCT · postMessage</div>
+        <div class="dep-arrow-line"></div>
+        <div class="dep-arrow-head">→</div>
+      </div>
+      <div class="dep-node" style="border-color:rgba(232,41,74,.3);background:rgba(232,41,74,.06)">
+        <div class="dep-node-name" style="color:var(--s1c)">Shell App</div>
+        <div class="dep-node-sub">Squad 4 · AWS</div>
+      </div>
+      <div class="dep-arrow">
+        <div class="dep-arrow-lbl">Module Federation</div>
+        <div class="dep-arrow-line"></div>
+        <div class="dep-arrow-head">→</div>
+      </div>
+      <div class="dep-node" style="border-color:rgba(61,159,255,.3);background:rgba(61,159,255,.06)">
+        <div class="dep-node-name" style="color:var(--s2c)">MFEs</div>
+        <div class="dep-node-sub">Squad 4 · AWS CloudFront</div>
+      </div>
+      <div class="dep-arrow">
+        <div class="dep-arrow-lbl">HTTPS · UCT</div>
+        <div class="dep-arrow-line"></div>
+        <div class="dep-arrow-head">→</div>
+      </div>
+      <div class="dep-node" style="border-color:rgba(0,212,168,.3);background:rgba(0,212,168,.06)">
+        <div class="dep-node-name" style="color:var(--s3c)">BFF</div>
+        <div class="dep-node-sub">Squad 4 · Azure AKS</div>
+      </div>
+      <div class="dep-arrow">
+        <div class="dep-arrow-lbl">mTLS · Service Token</div>
+        <div class="dep-arrow-line"></div>
+        <div class="dep-arrow-head">→</div>
+      </div>
+      <div class="dep-node" style="border-color:rgba(232,41,74,.3);background:rgba(232,41,74,.06)">
+        <div class="dep-node-name" style="color:var(--s1c)">Core Platform</div>
+        <div class="dep-node-sub">Squad 1 · Azure AKS</div>
+      </div>
+      <div class="dep-arrow">
+        <div class="dep-arrow-lbl">APIs internas</div>
+        <div class="dep-arrow-line"></div>
+        <div class="dep-arrow-head">→</div>
+      </div>
+      <div class="dep-node" style="border-color:rgba(61,159,255,.3);background:rgba(61,159,255,.06)">
+        <div class="dep-node-name" style="color:var(--s2c)">LaaS / CaaS</div>
+        <div class="dep-node-sub">Squads 2 & 3 · Azure</div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub">Contratos entre Squads</h3>
+  <div class="code-wrap">
+    <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">Contratos obrigatórios · Sprint Zero</span></div>
+    <pre><span class="cm">── Squad 1 → Squad 4 ──────────────────────────────────────────────</span>
+<span class="ok">✓</span> Partner Config API schema  <span class="cm">→ versão semântica, breaking changes com 90d aviso</span>
+<span class="ok">✓</span> UCT JWT payload            <span class="cm">→ claims obrigatórios e opcionais definidos</span>
+<span class="ok">✓</span> Token Exchange endpoint    <span class="cm">→ RFC 8693 implementado e testado</span>
+<span class="ok">✓</span> MFE Registry API schema    <span class="cm">→ GET /v1/mfe/registry resposta tipada</span>
+
+<span class="cm">── Squad 4 → Squads 2 & 3 (via BFF) ──────────────────────────────</span>
+<span class="ok">✓</span> OpenAPI spec dos BFFs      <span class="cm">→ versionado, sempre atualizado no CI/CD</span>
+<span class="ok">✓</span> Propagação de correlationId <span class="cm">→ rastreabilidade ponta a ponta obrigatória</span>
+<span class="ok">✓</span> Contrato CreditProductMFE  <span class="cm">→ interface TypeScript, todos os MFEs implementam</span>
+
+<span class="cm">── Squads 2 & 3 → Squad 1 ─────────────────────────────────────────</span>
+<span class="ok">✓</span> SLO das APIs de produto    <span class="cm">→ p99 &lt; 500ms, disponibilidade 99.9%</span>
+<span class="ok">✓</span> Eventos Kafka              <span class="cm">→ schemas registrados no Schema Registry</span>
+<span class="ok">✓</span> Scopes de autorização      <span class="cm">→ credit.laas:apply, credit.caas:simulate, etc.</span></pre>
+  </div>
+</div>
+
+<!-- ══ 04 ROADMAP ══ -->
+<div class="section" id="sec-roadmap">
+  <div class="sec-eyebrow"><span class="sec-num">04</span><span class="sec-title">Roadmap Trimestral · 12 Meses</span><div class="sec-bar"></div></div>
+  <p class="sec-intro">Quatro fases com entregas claras e critérios de saída. Clique em cada fase para ver o detalhamento por squad. As fases são sequenciais por design — cada uma valida as premissas da próxima.</p>
+
+  <div class="phases">
+
+    <!-- FASE 1 -->
+    <div class="phase ph1 open">
+      <div class="phase-head" onclick="togglePhase(this)">
+        <div class="phase-left">
+          <div class="phase-tag">Fase 1 · T1 2026 · Meses 1–3</div>
+          <div class="phase-name">Fundação & Contratos</div>
+          <div class="phase-dates">Janeiro → Março 2026</div>
+        </div>
+        <div class="phase-right">
+          <div class="phase-goal">Definir contratos, construir infraestrutura base, validar autenticação B2B2X com parceiro interno (Aarin).</div>
+          <div class="phase-toggle">⌄</div>
+        </div>
+      </div>
+      <div class="phase-body">
+        <div class="phase-grid">
+          <div class="ptask">
+            <div class="ptask-sq s1">Squad 1 · Core Platform</div>
+            <div class="ptask-title">Infraestrutura de Auth</div>
+            <div class="ptask-items">
+              <div class="ptask-item"><span class="ptask-bullet">→</span>OAuth2 + mTLS com certificados intragrupo</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Token Exchange RFC 8693 implementado</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Redis — blacklist de tokens em produção</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Partner Config API v1 com schema fixo</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>MFE Registry API v1</div>
+            </div>
+          </div>
+          <div class="ptask">
+            <div class="ptask-sq s4">Squad 4 · Experience</div>
+            <div class="ptask-title">Shell App & Design System</div>
+            <div class="ptask-items">
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Shell App com Module Federation configurado</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Theming runtime via CSS Custom Properties</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Contrato CreditProductMFE definido e publicado</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Pipeline CI/CD dos MFEs em AWS (S3 + CloudFront)</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>BFF base (Fastify + validação de UCT)</div>
+            </div>
+          </div>
+          <div class="ptask">
+            <div class="ptask-sq s1">Squad 1 · Core Platform</div>
+            <div class="ptask-title">Segurança & Compliance</div>
+            <div class="ptask-items">
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Threat modeling com área de Cibersegurança Bradesco</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Rate limiting por parceiro e por usuário</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Kafka — eventos de auditoria de sessão</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Multi-tenant validado e isolado</div>
+            </div>
+          </div>
+          <div class="ptask">
+            <div class="ptask-sq s4">Squad 4 · Experience</div>
+            <div class="ptask-title">Validação com Aarin (piloto interno)</div>
+            <div class="ptask-items">
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Onboarding da Aarin como primeiro parceiro</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Fluxo Federado end-to-end com dados sintéticos</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Medir: tempo de onboarding, tickets de suporte</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Documentação da Partner Config API v1</div>
+            </div>
+          </div>
+        </div>
+        <div class="phase-milestone">
+          <div class="pm-icon">🏁</div>
+          <div>
+            <div class="pm-label">Critério de saída da Fase 1</div>
+            <div class="pm-text">Aarin integrada como parceiro piloto · Shell rodando com 2 temas distintos · Token Exchange validado em staging · Threat modeling aprovado pela área de Segurança Bradesco</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FASE 2 -->
+    <div class="phase ph2">
+      <div class="phase-head" onclick="togglePhase(this)">
+        <div class="phase-left">
+          <div class="phase-tag">Fase 2 · T2 2026 · Meses 4–6</div>
+          <div class="phase-name">Produtos & Parceiro Âncora</div>
+          <div class="phase-dates">Abril → Junho 2026</div>
+        </div>
+        <div class="phase-right">
+          <div class="phase-goal">Lançar os 4 produtos de crédito, integrar parceiro âncora estratégico (alto nível técnico), validar BFF e modo Standalone.</div>
+          <div class="phase-toggle">⌄</div>
+        </div>
+      </div>
+      <div class="phase-body">
+        <div class="phase-grid">
+          <div class="ptask">
+            <div class="ptask-sq s2">Squad 2 · LaaS</div>
+            <div class="ptask-title">APIs de Produto — Crédito Estruturado</div>
+            <div class="ptask-items">
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Capital de Giro API v1 (simulação + originação)</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Crédito Emergencial API v1</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Mais Prazo API v1</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Motor de risco integrado</div>
+            </div>
+          </div>
+          <div class="ptask">
+            <div class="ptask-sq s3">Squad 3 · CaaS</div>
+            <div class="ptask-title">Antecipação de Recebíveis</div>
+            <div class="ptask-items">
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Antecipação de Recebíveis API v1 (composable)</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Simulação em tempo real &lt;200ms</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>SDK de integração CaaS v1</div>
+            </div>
+          </div>
+          <div class="ptask">
+            <div class="ptask-sq s4">Squad 4 · Experience</div>
+            <div class="ptask-title">MFEs dos 4 Produtos + BFFs</div>
+            <div class="ptask-items">
+              <div class="ptask-item"><span class="ptask-bullet">→</span>MFE Capital de Giro (jornada completa)</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>MFE Crédito Emergencial e Mais Prazo</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>MFE Antecipação de Recebíveis</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>BFFs com agregação de APIs e filtros de parceiro</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Canary release pipeline (5% → 100%)</div>
+            </div>
+          </div>
+          <div class="ptask">
+            <div class="ptask-sq s4">Squad 4 · Experience</div>
+            <div class="ptask-title">Modo Standalone (Com Login)</div>
+            <div class="ptask-items">
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Tela de login + MFA (TOTP obrigatório)</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Anti-credential-stuffing e rate limit por CPF</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Recuperação de senha com validação Serpro</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Logs de auth em Azure — retenção 5 anos (Bacen)</div>
+            </div>
+          </div>
+          <div class="ptask">
+            <div class="ptask-sq s1">Squad 1 · Core Platform</div>
+            <div class="ptask-title">Parceiro Âncora — Onboarding</div>
+            <div class="ptask-items">
+              <div class="ptask-item"><span class="ptask-bullet">→</span>1 parceiro estratégico co-construindo</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Pentest do fluxo completo (Segurança Bradesco)</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Medir tempo de onboarding: target &lt;15 dias</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Sandbox de integração com dados sintéticos</div>
+            </div>
+          </div>
+          <div class="ptask">
+            <div class="ptask-sq s4">Squad 4 · Experience</div>
+            <div class="ptask-title">Portal do Desenvolvedor v1</div>
+            <div class="ptask-items">
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Documentação dos 4 produtos com exemplos reais</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Guia de Token Exchange passo a passo</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Postman Collection publicada</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Changelog público com RSS</div>
+            </div>
+          </div>
+        </div>
+        <div class="phase-milestone">
+          <div class="pm-icon">🏁</div>
+          <div>
+            <div class="pm-label">Critério de saída da Fase 2</div>
+            <div class="pm-text">4 MFEs em produção · Parceiro âncora ativo · Pentest aprovado · Modo Standalone funcional com MFA · Portal do Desenvolvedor v1 publicado · Tempo de onboarding medido e abaixo de 15 dias</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FASE 3 -->
+    <div class="phase ph3">
+      <div class="phase-head" onclick="togglePhase(this)">
+        <div class="phase-left">
+          <div class="phase-tag">Fase 3 · T3 2026 · Meses 7–9</div>
+          <div class="phase-name">Abertura Controlada</div>
+          <div class="phase-dates">Julho → Setembro 2026</div>
+        </div>
+        <div class="phase-right">
+          <div class="phase-goal">3 a 5 parceiros em produção. Refinamento do playbook de onboarding. Redução do custo de suporte. Início do modo self-service.</div>
+          <div class="phase-toggle">⌄</div>
+        </div>
+      </div>
+      <div class="phase-body">
+        <div class="phase-grid">
+          <div class="ptask">
+            <div class="ptask-sq s4">Squad 4 · Experience</div>
+            <div class="ptask-title">Onboarding Self-Service</div>
+            <div class="ptask-items">
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Portal do Parceiro: configuração de tema self-service</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Geração de credenciais sem intervenção humana</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Ativação de produtos via checkbox no portal</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Preview em tempo real do tema configurado</div>
+            </div>
+          </div>
+          <div class="ptask">
+            <div class="ptask-sq s1">Squad 1 · Core Platform</div>
+            <div class="ptask-title">Observabilidade por Parceiro</div>
+            <div class="ptask-items">
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Dashboard de métricas por parceiro (Azure Monitor)</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Alertas de anomalia por tenant</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Billing e usage-based metering</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>SLA report automático por parceiro</div>
+            </div>
+          </div>
+          <div class="ptask">
+            <div class="ptask-sq s2">Squad 2 · LaaS</div>
+            <div class="ptask-title">Maturidade dos Produtos</div>
+            <div class="ptask-items">
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Renegociação e gestão pós-contratação</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Download de contrato em PDF assinado</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Notificações e status da operação</div>
+            </div>
+          </div>
+          <div class="ptask">
+            <div class="ptask-sq s3">Squad 3 · CaaS</div>
+            <div class="ptask-title">Expansão CaaS</div>
+            <div class="ptask-items">
+              <div class="ptask-item"><span class="ptask-bullet">→</span>BNPL v1 para parceiros embedded</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Webhooks de eventos de crédito</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>SDK mobile (React Native) v1</div>
+            </div>
+          </div>
+        </div>
+        <div class="phase-milestone">
+          <div class="pm-icon">🏁</div>
+          <div>
+            <div class="pm-label">Critério de saída da Fase 3</div>
+            <div class="pm-text">5 parceiros em produção · Onboarding sem intervenção do time central (&lt;5 dias) · &lt;3 tickets de suporte por parceiro/mês · Billing ativo e auditado</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FASE 4 -->
+    <div class="phase ph4">
+      <div class="phase-head" onclick="togglePhase(this)">
+        <div class="phase-left">
+          <div class="phase-tag">Fase 4 · T4 2026 · Meses 10–12</div>
+          <div class="phase-name">Plataforma Madura</div>
+          <div class="phase-dates">Outubro → Dezembro 2026</div>
+        </div>
+        <div class="phase-right">
+          <div class="phase-goal">Self-service completo. Novos produtos sem envolvimento do time central. DX Score acima de 82. Expansão para novos segmentos.</div>
+          <div class="phase-toggle">⌄</div>
+        </div>
+      </div>
+      <div class="phase-body">
+        <div class="phase-grid">
+          <div class="ptask">
+            <div class="ptask-sq s4">Squad 4 · Experience</div>
+            <div class="ptask-title">Expansão de Produtos Self-Service</div>
+            <div class="ptask-items">
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Novo MFE de produto sem intervenção do Head</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Parceiro ativa produto via Portal &lt;1 dia</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Feature flags por parceiro via Portal</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>A/B testing de jornadas por parceiro</div>
+            </div>
+          </div>
+          <div class="ptask">
+            <div class="ptask-sq s1">Squad 1 · Core Platform</div>
+            <div class="ptask-title">API Economy</div>
+            <div class="ptask-items">
+              <div class="ptask-item"><span class="ptask-bullet">→</span>API marketplace público</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Precificação por uso (usage-based billing)</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>DX Score target: 82+ (referência nacional)</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>SDK em 3 linguagens (Node, Python, Java)</div>
+            </div>
+          </div>
+          <div class="ptask">
+            <div class="ptask-sq s2">Squad 2 · LaaS</div>
+            <div class="ptask-title">Novos Produtos de Crédito</div>
+            <div class="ptask-items">
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Crédito Rural ou Consignado v1</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Financiamento de equipamentos</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Custo marginal do novo produto &lt;40% do primeiro</div>
+            </div>
+          </div>
+          <div class="ptask">
+            <div class="ptask-sq s4">Squad 4 · Experience</div>
+            <div class="ptask-title">Developer Community</div>
+            <div class="ptask-items">
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Fórum público de devs de parceiros</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>DevRel com presença em eventos</div>
+              <div class="ptask-item"><span class="ptask-bullet">→</span>Programa de parceiros certificados</div>
+            </div>
+          </div>
+        </div>
+        <div class="phase-milestone">
+          <div class="pm-icon">🎯</div>
+          <div>
+            <div class="pm-label">Objetivo de plataforma madura</div>
+            <div class="pm-text">Novo produto lançado em &lt;8 semanas · Novo parceiro em produção em &lt;5 dias sem intervenção humana · DX Score ≥ 82 · &gt;10 parceiros ativos · NPS de parceiros ≥ 50</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /phases -->
+</div>
+
+<!-- ══ 05 MÉTRICAS ══ -->
+<div class="section" id="sec-metrics">
+  <div class="sec-eyebrow"><span class="sec-num">05</span><span class="sec-title">Métricas & OKRs</span><div class="sec-bar"></div></div>
+  <p class="sec-intro">Seis métricas definidas antes do lançamento. Cada uma tem target por fase e responsável claro. Métricas sem responsável são decorativas.</p>
+
+  <div class="metrics-grid">
+    <div class="metric">
+      <div class="metric-label">Tempo de Onboarding de Parceiro</div>
+      <div class="metric-val" style="color:var(--p1)">5 dias</div>
+      <div class="metric-target">Target Fase 4 · Hoje: estimado 30+ dias</div>
+      <div class="metric-bar-wrap"><div class="metric-bar-fill" style="width:15%;background:var(--p1)"></div></div>
+      <div class="metric-phases">
+        <span class="metric-phase-tag" style="background:var(--p1g);color:var(--p1);border:1px solid var(--p1b)">F1: &lt;30d</span>
+        <span class="metric-phase-tag" style="background:var(--p2g);color:var(--p2);border:1px solid var(--p2b)">F2: &lt;15d</span>
+        <span class="metric-phase-tag" style="background:var(--p3g);color:var(--p3);border:1px solid var(--p3b)">F3: &lt;7d</span>
+        <span class="metric-phase-tag" style="background:var(--p4g);color:var(--p4);border:1px solid var(--p4b)">F4: &lt;5d</span>
+      </div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Tickets de Suporte / Parceiro / Mês</div>
+      <div class="metric-val" style="color:var(--s3c)">&lt;3</div>
+      <div class="metric-target">Target Fase 4 · Responsável: Squad 4</div>
+      <div class="metric-bar-wrap"><div class="metric-bar-fill" style="width:60%;background:var(--s3c)"></div></div>
+      <div class="metric-phases">
+        <span class="metric-phase-tag" style="background:var(--p1g);color:var(--p1);border:1px solid var(--p1b)">F1: medir</span>
+        <span class="metric-phase-tag" style="background:var(--p2g);color:var(--p2);border:1px solid var(--p2b)">F2: &lt;10</span>
+        <span class="metric-phase-tag" style="background:var(--p3g);color:var(--p3);border:1px solid var(--p3b)">F3: &lt;5</span>
+        <span class="metric-phase-tag" style="background:var(--p4g);color:var(--p4);border:1px solid var(--p4b)">F4: &lt;3</span>
+      </div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Tempo para Novo Produto (semanas)</div>
+      <div class="metric-val" style="color:var(--s2c)">&lt;8</div>
+      <div class="metric-target">Target Fase 4 · Sprint 1 → go-live</div>
+      <div class="metric-bar-wrap"><div class="metric-bar-fill" style="width:40%;background:var(--s2c)"></div></div>
+      <div class="metric-phases">
+        <span class="metric-phase-tag" style="background:var(--p2g);color:var(--p2);border:1px solid var(--p2b)">F2: medir</span>
+        <span class="metric-phase-tag" style="background:var(--p3g);color:var(--p3);border:1px solid var(--p3b)">F3: &lt;12</span>
+        <span class="metric-phase-tag" style="background:var(--p4g);color:var(--p4);border:1px solid var(--p4b)">F4: &lt;8</span>
+      </div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Disponibilidade do Shell (SLA)</div>
+      <div class="metric-val" style="color:var(--s3c)">99,9%</div>
+      <div class="metric-target">Target mensal · Responsável: Squad 4 + Squad 1</div>
+      <div class="metric-bar-wrap"><div class="metric-bar-fill" style="width:85%;background:var(--s3c)"></div></div>
+      <div class="metric-phases">
+        <span class="metric-phase-tag" style="background:var(--p1g);color:var(--p1);border:1px solid var(--p1b)">F1: 99,5%</span>
+        <span class="metric-phase-tag" style="background:var(--p2g);color:var(--p2);border:1px solid var(--p2b)">F2: 99,8%</span>
+        <span class="metric-phase-tag" style="background:var(--p3g);color:var(--p3);border:1px solid var(--p3b)">F3+: 99,9%</span>
+      </div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Latência BFF p99</div>
+      <div class="metric-val" style="color:var(--s4c)">&lt;300ms</div>
+      <div class="metric-target">Para simulação de crédito · Responsável: Squad 4</div>
+      <div class="metric-bar-wrap"><div class="metric-bar-fill" style="width:70%;background:var(--s4c)"></div></div>
+      <div class="metric-phases">
+        <span class="metric-phase-tag" style="background:var(--p2g);color:var(--p2);border:1px solid var(--p2b)">F2: medir</span>
+        <span class="metric-phase-tag" style="background:var(--p3g);color:var(--p3);border:1px solid var(--p3b)">F3: &lt;500ms</span>
+        <span class="metric-phase-tag" style="background:var(--p4g);color:var(--p4);border:1px solid var(--p4b)">F4: &lt;300ms</span>
+      </div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">DX Score (Developer Experience)</div>
+      <div class="metric-val" style="color:var(--p1)">82+</div>
+      <div class="metric-target">Target 12 meses · Hoje: 45/100 (Bradesco)</div>
+      <div class="metric-bar-wrap"><div class="metric-bar-fill" style="width:45%;background:linear-gradient(90deg,var(--s1c),var(--p1))"></div></div>
+      <div class="metric-phases">
+        <span class="metric-phase-tag" style="background:var(--p1g);color:var(--p1);border:1px solid var(--p1b)">F1: 52</span>
+        <span class="metric-phase-tag" style="background:var(--p2g);color:var(--p2);border:1px solid var(--p2b)">F2: 65</span>
+        <span class="metric-phase-tag" style="background:var(--p3g);color:var(--p3);border:1px solid var(--p3b)">F3: 74</span>
+        <span class="metric-phase-tag" style="background:var(--p4g);color:var(--p4);border:1px solid var(--p4b)">F4: 82+</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 06 CONTRATOS ══ -->
+<div class="section" id="sec-contracts">
+  <div class="sec-eyebrow"><span class="sec-num">06</span><span class="sec-title">Contratos Técnicos</span><div class="sec-bar"></div></div>
+  <p class="sec-intro">Definidos no Sprint Zero, antes do primeiro commit de produto. Quebrar esses contratos é mais caro que definir bem no início.</p>
+
+  <div class="code-wrap">
+    <div class="code-head"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">TypeScript · Contratos da Plataforma</span></div>
+    <pre><span class="cm">// ── CONTRATO 1: Todo MFE de produto deve implementar ────────────</span>
+<span class="kw">interface</span> <span class="fn">CreditProductMFE</span> {
+  productId:     <span class="str">string</span>;          <span class="cm">// "capital-giro" | "antecipacao-recebiveis"</span>
+  version:       <span class="str">string</span>;          <span class="cm">// semver obrigatório</span>
+  capabilities:  <span class="fn">Capability</span>[];    <span class="cm">// simulate | apply | track | renegotiate</span>
+
+  <span class="fn">mount</span>(el: HTMLElement, ctx: PartnerContext): <span class="kw">void</span>;
+  <span class="fn">unmount</span>(): <span class="kw">void</span>;
+  <span class="fn">onSessionExpired</span>(): <span class="kw">void</span>;
+  <span class="fn">onThemeChange</span>(theme: PartnerTheme): <span class="kw">void</span>;
+}
+
+<span class="cm">// ── CONTRATO 2: PartnerContext injetado pelo Shell ───────────────</span>
+<span class="kw">interface</span> <span class="fn">PartnerContext</span> {
+  partnerId:     <span class="str">string</span>;          <span class="cm">// "banco-xpto" | "vivo" | "claro"</span>
+  partnerTenant: <span class="str">string</span>;          <span class="cm">// isolamento multi-tenant</span>
+  theme:         <span class="fn">PartnerTheme</span>;    <span class="cm">// tokens de design resolvidos</span>
+  accessToken:   <span class="str">string</span>;          <span class="cm">// UCT — apenas em memória</span>
+  sessionId:     <span class="str">string</span>;
+  correlationId: <span class="str">string</span>;          <span class="cm">// rastreabilidade ponta a ponta</span>
+  authMode:      <span class="str">'federated'</span> | <span class="str">'standalone'</span>;
+}
+
+<span class="cm">// ── CONTRATO 3: Partner Config API response ──────────────────────</span>
+<span class="kw">interface</span> <span class="fn">PartnerConfig</span> {
+  partnerId:    <span class="str">string</span>;
+  brand:        <span class="fn">PartnerBrand</span>;     <span class="cm">// cores, fonte, logo, favicon</span>
+  products:     <span class="str">string</span>[];         <span class="cm">// produtos habilitados</span>
+  features:     <span class="fn">FeatureFlags</span>;    <span class="cm">// flags por parceiro</span>
+  authMode:     <span class="str">'federated'</span> | <span class="str">'standalone'</span>;
+  sessionConfig: {
+    timeoutMs:  <span class="fn">number</span>;           <span class="cm">// inatividade em ms</span>
+    mfaRequired: <span class="fn">boolean</span>;         <span class="cm">// obrigatório no Standalone</span>
+  };
+}</pre>
+  </div>
+
+  <div class="hbox blue">
+    <div class="hbox-title">Política de Versionamento</div>
+    <p>Contratos usam semver. Breaking changes (remoção de campo, mudança de tipo) exigem 90 dias de aviso e migration guide publicado no Portal do Desenvolvedor antes de entrar em vigor. Additive changes (novos campos opcionais) não exigem versão nova.</p>
+  </div>
+</div>
+
+<!-- ══ 07 RISCOS ══ -->
+<div class="section" id="sec-risks">
+  <div class="sec-eyebrow"><span class="sec-num">07</span><span class="sec-title">Riscos & Mitigações</span><div class="sec-bar"></div></div>
+  <p class="sec-intro">Riscos estruturais que, se não tratados na Fase 1, explodem na Fase 3. Cada um tem responsável e ação concreta — não é lista de preocupações, é plano de mitigação.</p>
+
+  <table class="risk-table">
+    <thead>
+      <tr>
+        <th>Risco</th>
+        <th>Impacto</th>
+        <th>Severidade</th>
+        <th>Mitigação · Responsável</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Core Platform vira gargalo</td>
+        <td>Todas as squads bloqueadas aguardando Squad 1</td>
+        <td><span class="rb rb-h">ALTO</span></td>
+        <td class="ract">API-first design: contratos definidos antes do código. Backlog S1 tem prioridade de liderança. Squad 1 não pode ter menos de 40% da capacidade total. · <strong>Head de Tecnologia</strong></td>
+      </tr>
+      <tr>
+        <td>Phishing via portal Standalone</td>
+        <td>Infraestrutura legítima usada para coletar credenciais em larga escala</td>
+        <td><span class="rb rb-h">ALTO</span></td>
+        <td class="ract">Certificate Transparency monitoring, DMARC/DKIM, selo Bradesco verificável em toda tela de login, monitoramento de domínios similares. · <strong>Cibersegurança Bradesco + Squad 4</strong></td>
+      </tr>
+      <tr>
+        <td>Credential stuffing no modo Standalone</td>
+        <td>Ataque automatizado compromete contas em escala</td>
+        <td><span class="rb rb-h">ALTO</span></td>
+        <td class="ract">Rate limit por IP + por CPF + por parceiro. CAPTCHA adaptativo. HaveIBeenPwned na criação de senha. Bloqueio progressivo. · <strong>Squad 1 + Squad 4</strong></td>
+      </tr>
+      <tr>
+        <td>Duplicação entre LaaS e CaaS</td>
+        <td>Duas squads resolvendo o mesmo problema — inconsistência e custo duplo</td>
+        <td><span class="rb rb-m">MÉDIO</span></td>
+        <td class="ract">Chapter de Arquitetura com revisões cruzadas obrigatórias antes de qualquer nova capacidade de crédito. Backlog compartilhado visível para os dois PMs. · <strong>Chapter de Arquitetura</strong></td>
+      </tr>
+      <tr>
+        <td>MFE Registry desatualizado</td>
+        <td>Shell carrega versão desatualizada ou quebrada de um produto</td>
+        <td><span class="rb rb-m">MÉDIO</span></td>
+        <td class="ract">Registry atualizado só após 100% do tráfego canary estável. Rollback automático com versões mantidas por 90 dias no S3. · <strong>Squad 4</strong></td>
+      </tr>
+      <tr>
+        <td>Dados de clientes na AWS</td>
+        <td>Violação de compliance bancário e LGPD</td>
+        <td><span class="rb rb-h">ALTO</span></td>
+        <td class="ract">AWS CloudFront serve apenas artefatos estáticos (JS/CSS). Zero dados pessoais na AWS. Auditoria semestral pela área de Compliance Bradesco. · <strong>Head de Tecnologia + Compliance</strong></td>
+      </tr>
+      <tr>
+        <td>SIM Swap no MFA por SMS</td>
+        <td>Atacante intercepta OTP após obter a senha</td>
+        <td><span class="rb rb-m">MÉDIO</span></td>
+        <td class="ract">TOTP (Google Authenticator / app nativo) como padrão. SMS apenas como fallback com aviso de risco. Re-autenticação obrigatória para contratação de crédito. · <strong>Squad 4</strong></td>
+      </tr>
+      <tr>
+        <td>Parceiro fraudulento capturando credenciais</td>
+        <td>Parceiro desonesto usa o portal para coletar dados de usuários</td>
+        <td><span class="rb rb-m">MÉDIO</span></td>
+        <td class="ract">Due diligence reforçada no contrato de parceiro para modo Standalone. Auditoria de logs de acesso por parceiro. Revogação de credenciais imediata. · <strong>Jurídico + Squad 1</strong></td>
+      </tr>
+      <tr>
+        <td>Tech debt acumulado sem Chapter</td>
+        <td>Proliferação de padrões incompatíveis entre squads — explode na Fase 3</td>
+        <td><span class="rb rb-l">BAIXO</span></td>
+        <td class="ract">Golden path documentado e enforced no CI/CD desde o Sprint Zero. Chapter técnico com reunião quinzenal entre tech leads. ADRs (Architecture Decision Records) obrigatórios para decisões estruturais. · <strong>Chapter de Engenharia</strong></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══ 08 GOVERNANÇA ══ -->
+<div class="section" id="sec-governance">
+  <div class="sec-eyebrow"><span class="sec-num">08</span><span class="sec-title">Governança</span><div class="sec-bar"></div></div>
+  <p class="sec-intro">Chapters horizontais garantem padrão técnico entre squads. Rituais claros evitam que decisões importantes fiquem nos corredores.</p>
+
+  <div class="gov-grid">
+    <div class="gov-card">
+      <div class="gov-card-title" style="color:var(--s1c)">Chapters Horizontais</div>
+      <div class="gov-item">
+        <div class="gov-item-icon" style="background:var(--s1g)">🔐</div>
+        <div><strong style="color:var(--text)">Chapter de Segurança</strong><br>Pentest semestral, threat modeling de novos produtos, revisão de controles antes de qualquer go-live. Reporta para Cibersegurança Bradesco.</div>
+      </div>
+      <div class="gov-item">
+        <div class="gov-item-icon" style="background:var(--s2g)">🏗️</div>
+        <div><strong style="color:var(--text)">Chapter de Arquitetura</strong><br>ADRs obrigatórios para decisões estruturais. Revisão cruzada antes de nova capacidade de crédito. Golden path documentado e enforced no CI/CD.</div>
+      </div>
+      <div class="gov-item">
+        <div class="gov-item-icon" style="background:var(--s3g)">📐</div>
+        <div><strong style="color:var(--text)">Chapter de Qualidade</strong><br>Coverage mínimo 80% nas jornadas críticas. SAST/DAST em todo pipeline. Regressão visual no Chromatic antes de qualquer MFE ir a produção.</div>
+      </div>
+      <div class="gov-item">
+        <div class="gov-item-icon" style="background:var(--s4g)">📝</div>
+        <div><strong style="color:var(--text)">Chapter de Documentação</strong><br>Todo endpoint tem exemplo real antes de sair do PR. Erro tem código + causa + ação. Dois parceiros com a mesma dúvida = bug de doc a corrigir na semana.</div>
+      </div>
+    </div>
+    <div class="gov-card">
+      <div class="gov-card-title" style="color:var(--s4c)">Rituais de Governança</div>
+      <div class="gov-item">
+        <div class="gov-item-icon" style="background:var(--s4g)">🗓️</div>
+        <div><strong style="color:var(--text)">Weekly de Tech Leads</strong> — toda segunda<br>Bloqueios de dependência entre squads, decisões de contrato, ADRs em aberto. Max 45 minutos.</div>
+      </div>
+      <div class="gov-item">
+        <div class="gov-item-icon" style="background:var(--s3g)">📊</div>
+        <div><strong style="color:var(--text)">Review de Métricas</strong> — quinzenal<br>6 métricas-chave com owner claro. Se métrica piorou, owner apresenta causa e plano. Sem PowerPoint.</div>
+      </div>
+      <div class="gov-item">
+        <div class="gov-item-icon" style="background:var(--s2g)">🔁</div>
+        <div><strong style="color:var(--text)">Retro de Plataforma</strong> — mensal<br>O que impediu parceiros de se integrarem sozinhos? Qualquer fricção de onboarding vira backlog prioritário de Experience.</div>
+      </div>
+      <div class="gov-item">
+        <div class="gov-item-icon" style="background:var(--p1g)">🎯</div>
+        <div><strong style="color:var(--text)">Revisão de OKRs</strong> — trimestral<br>Fases do roadmap revisadas. Ajuste de prioridades entre squads. Head de Tecnologia + PMs. Inclui revisão do DX Score.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hbox amber">
+    <div class="hbox-title">⚠ Governança Aarin × Bradesco</div>
+    <p>Desenvolvimento na Aarin exige SLA intragrupo formal com penalidades reais. PI (Propriedade Intelectual) 100% Bradesco em contrato. Pentest e aprovações de segurança sempre pela área Bradesco — nunca pela Aarin. Dados de clientes e ambientes de produção sempre no perímetro Bradesco/Azure. A Aarin opera como fábrica de software do grupo, não como detentora do produto.</p>
+  </div>
+</div>
+
+<!-- ══ 09 ROLLOUT ══ -->
+<div class="section" id="sec-rollout">
+  <div class="sec-eyebrow"><span class="sec-num">09</span><span class="sec-title">Plano de Rollout por Parceiro</span><div class="sec-bar"></div></div>
+  <p class="sec-intro">O rollout de parceiros segue quatro estágios deliberados. Cada estágio valida premissas do próximo — pular estágios é o erro mais comum em plataformas financeiras.</p>
+
+  <div class="principle-grid">
+    <div class="pc red">
+      <div class="pc-num">Estágio 1 · Fase 1</div>
+      <div class="pc-title">Piloto Interno — Aarin</div>
+      <div class="pc-body">Valida a plataforma sem pressão externa. Ambiente controlado, dados sintéticos, time técnico interno. Meta: descobrir todos os problemas antes que um parceiro real os encontre. Duração: 4–6 semanas.</div>
+    </div>
+    <div class="pc blue">
+      <div class="pc-num">Estágio 2 · Fase 2</div>
+      <div class="pc-title">Parceiro Âncora</div>
+      <div class="pc-body">Um parceiro estratégico com alto nível técnico co-constrói com o time. Acesso antecipado em troca de feedback estruturado. Suporte dedicado. Meta: validar o playbook de onboarding e medir tempo real de integração. Duração: 6–8 semanas.</div>
+    </div>
+    <div class="pc teal">
+      <div class="pc-num">Estágio 3 · Fase 3</div>
+      <div class="pc-title">Abertura Controlada · 3–5 Parceiros</div>
+      <div class="pc-body">Com o playbook validado, abre para um grupo pequeno e diverso de parceiros. Monitoramento intenso de métricas de onboarding e suporte. Cada novo parceiro testa uma hipótese de go-to-market. Duração: 1 trimestre.</div>
+    </div>
+    <div class="pc purple">
+      <div class="pc-num">Estágio 4 · Fase 4</div>
+      <div class="pc-title">Self-Service Completo</div>
+      <div class="pc-body">Parceiro acessa o portal, configura o tema, habilita produtos e recebe credenciais sem nenhuma interação humana do time Bradesco. Esse é o critério de maturidade de plataforma. Meta: onboarding em &lt;5 dias sem ticket de suporte.</div>
+    </div>
+  </div>
+
+  <div class="hbox green">
+    <div class="hbox-title">✦ Critério de Maturidade — a pergunta que define tudo</div>
+    <p>Em cada estágio, a pergunta a fazer após cada integração é: <strong>"quanto do time central foi acionado para que esse parceiro fosse ao ar?"</strong> Se a resposta for "muito", você ainda não tem plataforma — tem um projeto customizado com visual branco. A redução sistemática dessa fricção, medida sprint a sprint, é o indicador mais honesto de que a estratégia está funcionando.</p>
+  </div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+function nav(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.sb-link').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function togglePhase(head) {
+  const phase = head.closest('.phase');
+  phase.classList.toggle('open');
+}
+</script>
+</body>
+</html>

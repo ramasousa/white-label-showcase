@@ -1,0 +1,2109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CG · Portal Operador · Multi-Produto · RBAC</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ─── DESIGN TOKENS ─── */
+:root{
+  --brand:#CC0000;--brand-d:#990000;--brand-l:rgba(204,0,0,.08);--brand-b:rgba(204,0,0,.2);
+  --bg:#F4F5F7;--surface:#FFFFFF;--surface2:#F8F9FA;--surface3:#EEF0F3;
+  --border:#E2E5EA;--border2:#CDD1DA;
+  --text:#0F1923;--text2:#374151;--muted:#6B7280;--dim:#9CA3AF;
+  --green:#059669;--gg:rgba(5,150,105,.09);--gb:rgba(5,150,105,.22);
+  --amber:#D97706;--ag:rgba(217,119,6,.09);--ab:rgba(217,119,6,.22);
+  --blue:#1D4ED8;--bg2:rgba(29,78,216,.08);--bb:rgba(29,78,216,.22);
+  --red2:#DC2626;--rg:rgba(220,38,38,.08);--rb:rgba(220,38,38,.2);
+  --purple:#7C3AED;--pg:rgba(124,58,237,.09);--pb:rgba(124,58,237,.22);
+  --teal:#0891B2;--tg:rgba(8,145,178,.09);
+  --cap-color:#CC0000;--eme-color:#7C3AED;--ant-color:#0891B2;
+  --radius:6px;--radius-lg:10px;--shadow:0 1px 4px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.05);
+  --shadow-lg:0 4px 16px rgba(0,0,0,.1);
+  --mono:'JetBrains Mono',monospace;--sans:'Inter',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font-family:var(--sans)}
+button{cursor:pointer}
+
+/* ─── PARTNER BAR ─── */
+.partner-bar{background:var(--text);padding:7px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:500;font-size:11px}
+.pb-lbl{color:rgba(255,255,255,.4);font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase}
+.pb-btn{padding:3px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.18);background:transparent;color:rgba(255,255,255,.6);font-size:10px;cursor:pointer;transition:all .15s}
+.pb-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+.pb-btn.active{background:#fff;color:var(--text);font-weight:700}
+.pb-sep{width:1px;height:14px;background:rgba(255,255,255,.12);flex-shrink:0}
+
+/* ─── LOGIN SCREEN ─── */
+#loginScreen{position:fixed;inset:0;z-index:400;display:flex;flex-direction:column;background:var(--bg)}
+.login-layout{flex:1;display:grid;grid-template-columns:420px 1fr;overflow:hidden}
+@media(max-width:800px){.login-layout{grid-template-columns:1fr}}
+
+.login-left{
+  background:var(--brand);display:flex;flex-direction:column;
+  justify-content:space-between;padding:48px 44px;position:relative;overflow:hidden;
+}
+.login-left::before{content:'';position:absolute;inset:0;background:linear-gradient(145deg,rgba(0,0,0,.18),transparent 55%)}
+.login-left::after{content:'';position:absolute;bottom:-60px;right:-60px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.06)}
+.ll-top{position:relative;z-index:1}
+.ll-logo{display:flex;align-items:center;gap:12px;margin-bottom:52px}
+.ll-logo-mark{width:40px;height:40px;background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.3);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff}
+.ll-logo-name{font-size:16px;font-weight:700;color:#fff}
+.ll-logo-tag{font-size:10px;color:rgba(255,255,255,.55);letter-spacing:1px;text-transform:uppercase;margin-top:1px}
+.ll-headline{font-size:32px;font-weight:800;color:#fff;letter-spacing:-.8px;line-height:1.1;margin-bottom:14px}
+.ll-sub{font-size:13.5px;color:rgba(255,255,255,.65);line-height:1.75;max-width:280px}
+.ll-features{margin-top:32px;display:flex;flex-direction:column;gap:10px}
+.ll-feat{display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(255,255,255,.82)}
+.ll-feat-icon{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.ll-products{display:flex;gap:8px;flex-wrap:wrap;position:relative;z-index:1}
+.ll-prod-badge{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:5px 12px;font-size:11px;color:rgba(255,255,255,.85);font-weight:500}
+.ll-bottom{position:relative;z-index:1}
+.ll-powered{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:6px 14px;font-size:11px;color:rgba(255,255,255,.7)}
+.ll-powered-dot{width:5px;height:5px;border-radius:50%;background:#4ade80;box-shadow:0 0 5px #4ade80}
+
+.login-right{background:var(--surface);display:flex;align-items:center;justify-content:center;padding:40px;overflow-y:auto}
+.login-card{width:100%;max-width:400px}
+.login-title{font-size:24px;font-weight:800;color:var(--text);letter-spacing:-.4px;margin-bottom:4px}
+.login-sub{font-size:13.5px;color:var(--muted);margin-bottom:28px;line-height:1.6}
+
+/* profile selector */
+.profile-selector{display:flex;flex-direction:column;gap:10px;margin-bottom:24px}
+.profile-card{
+  display:flex;align-items:center;gap:14px;padding:14px 16px;
+  border:2px solid var(--border2);border-radius:var(--radius-lg);
+  cursor:pointer;transition:all .2s;background:var(--surface2);
+}
+.profile-card:hover{border-color:var(--brand);background:var(--brand-l)}
+.profile-card.selected{border-color:var(--brand);background:var(--brand-l)}
+.profile-radio{width:18px;height:18px;border-radius:50%;border:2px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.profile-card.selected .profile-radio{border-color:var(--brand);background:var(--brand)}
+.profile-radio-dot{width:7px;height:7px;border-radius:50%;background:#fff;opacity:0;transition:opacity .2s}
+.profile-card.selected .profile-radio-dot{opacity:1}
+.profile-icon{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.pi-gerente{background:rgba(124,58,237,.12)}
+.pi-op1{background:rgba(5,150,105,.1)}
+.pi-op2{background:rgba(8,145,178,.1)}
+.profile-info{flex:1}
+.profile-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px}
+.profile-role{font-size:11.5px;color:var(--muted);line-height:1.5}
+.profile-products{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap}
+.prod-pip{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:4px}
+.pp-cap{background:rgba(204,0,0,.1);color:var(--cap-color)}
+.pp-eme{background:rgba(124,58,237,.1);color:var(--eme-color)}
+.pp-ant{background:rgba(8,145,178,.1);color:var(--ant-color)}
+
+/* login form */
+.lf-group{margin-bottom:14px}
+.lf-label{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px;display:flex;align-items:center;justify-content:space-between}
+.lf-label a{font-size:11px;color:var(--brand);text-decoration:none}
+.lf-input{width:100%;height:40px;border:1.5px solid var(--border2);border-radius:var(--radius);padding:0 12px;font-size:13.5px;color:var(--text);background:var(--surface);outline:none;transition:border-color .15s,box-shadow .15s}
+.lf-input:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-l)}
+.lf-input-wrap{position:relative}
+.lf-icon{position:absolute;right:11px;top:50%;transform:translateY(-50%);font-size:14px;cursor:pointer;color:var(--dim)}
+.login-btn{width:100%;height:42px;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.login-btn:hover{background:var(--brand-d);transform:translateY(-1px);box-shadow:var(--shadow-lg)}
+.login-btn:active{transform:translateY(0)}
+.login-footer{margin-top:20px;text-align:center;font-size:11px;color:var(--dim);line-height:1.8}
+.login-footer a{color:var(--brand);text-decoration:none}
+
+/* ─── APP SHELL ─── */
+#appShell{display:none;flex-direction:column;min-height:calc(100vh - 33px)}
+#appShell.show{display:flex}
+
+/* topbar */
+.topbar{height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:14px;position:sticky;top:33px;z-index:100}
+.tb-logo{display:flex;align-items:center;gap:9px;padding-right:14px;border-right:1px solid var(--border)}
+.tb-logo-mark{width:28px;height:28px;background:var(--brand);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff}
+.tb-logo-name{font-size:13px;font-weight:700;color:var(--text)}
+.tb-logo-tag{font-size:10px;color:var(--muted)}
+.tb-nav{display:flex;gap:0;height:100%}
+.tb-nav-item{padding:0 14px;display:flex;align-items:center;font-size:13px;color:var(--muted);font-weight:500;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+.tb-nav-item:hover{color:var(--text2)}
+.tb-nav-item.active{color:var(--brand);border-bottom-color:var(--brand)}
+.tb-spacer{flex:1}
+.tb-role-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap}
+.role-gerente{background:var(--pg);color:var(--purple);border:1px solid var(--pb)}
+.role-op{background:var(--gg);color:var(--green);border:1px solid var(--gb)}
+.tb-user{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:var(--radius);background:var(--surface2);border:1px solid var(--border);cursor:pointer}
+.tb-avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff}
+.av-gerente{background:var(--purple)}
+.av-op1{background:var(--green)}
+.av-op2{background:var(--teal)}
+.tb-user-name{font-size:12.5px;font-weight:600;color:var(--text)}
+.tb-user-sub{font-size:10.5px;color:var(--muted)}
+.tb-logout{background:none;border:none;font-size:13px;color:var(--muted);cursor:pointer;padding:4px 8px;border-radius:4px;transition:all .15s}
+.tb-logout:hover{color:var(--red2);background:var(--rg)}
+
+/* ─── LAYOUT ─── */
+.app-layout{display:flex;flex:1}
+
+/* sidebar */
+.sidebar{width:220px;min-width:220px;background:var(--surface);border-right:1px solid var(--border);padding:16px 0;overflow-y:auto;display:flex;flex-direction:column}
+.sb-section{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);padding:0 16px;margin:12px 0 5px}
+.sb-link{display:flex;align-items:center;gap:9px;padding:9px 16px;color:var(--muted);font-size:13px;font-weight:500;border-left:2px solid transparent;cursor:pointer;transition:all .15s;border-top:none;border-right:none;border-bottom:none;background:none;width:100%;text-align:left}
+.sb-link:hover{color:var(--text2);background:var(--surface2)}
+.sb-link.active{color:var(--brand);border-left-color:var(--brand);background:var(--brand-l)}
+.sb-link.active .sb-icon{color:var(--brand)}
+.sb-icon{font-size:16px;flex-shrink:0}
+.sb-badge{margin-left:auto;font-family:var(--mono);font-size:10px;font-weight:700;background:var(--brand);color:#fff;border-radius:10px;padding:1px 7px;min-width:20px;text-align:center}
+.sb-prod-badge{margin-left:auto;font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:4px}
+.sb-bottom{margin-top:auto;padding:12px 16px;border-top:1px solid var(--border)}
+.sb-bottom-label{font-size:10px;color:var(--dim);margin-bottom:4px}
+.sb-bottom-val{font-family:var(--mono);font-size:10.5px;font-weight:600;color:var(--muted)}
+
+/* ─── MAIN ─── */
+.main-area{flex:1;overflow-y:auto;padding:24px}
+
+/* ─── PAGE HEADER ─── */
+.page-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.page-title{font-size:20px;font-weight:800;color:var(--text);letter-spacing:-.4px}
+.page-sub{font-size:13px;color:var(--muted);margin-top:2px}
+.btn-primary{padding:9px 18px;border-radius:var(--radius);border:none;background:var(--brand);color:#fff;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.btn-primary:hover{background:var(--brand-d);transform:translateY(-1px);box-shadow:var(--shadow-lg)}
+.btn-primary:active{transform:translateY(0)}
+.btn-secondary{padding:9px 16px;border-radius:var(--radius);border:1.5px solid var(--border2);background:var(--surface);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:7px}
+.btn-secondary:hover{border-color:var(--brand);color:var(--brand);background:var(--brand-l)}
+
+/* ─── STAT CARDS ─── */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;transition:border-color .2s}
+.stat-card:hover{border-color:var(--border2)}
+.sc-label{font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.sc-val{font-size:26px;font-weight:800;color:var(--text);letter-spacing:-.5px;font-family:var(--mono)}
+.sc-sub{font-size:11.5px;color:var(--muted);margin-top:3px}
+.sc-trend{font-size:11px;font-weight:600;margin-top:3px}
+.trend-up{color:var(--green)}.trend-dn{color:var(--red2)}.trend-eq{color:var(--muted)}
+
+/* ─── PRODUCT TABS ─── */
+.product-tabs{display:flex;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:20px}
+.prod-tab{
+  flex:1;padding:12px 16px;display:flex;align-items:center;justify-content:center;gap:8px;
+  font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;
+  border-right:1px solid var(--border);border-bottom:3px solid transparent;
+  transition:all .18s;background:var(--surface2);
+}
+.prod-tab:last-child{border-right:none}
+.prod-tab:hover{color:var(--text2);background:var(--surface)}
+.prod-tab.active{color:var(--text);background:var(--surface);border-bottom-color:var(--active-color,var(--brand))}
+.prod-tab.cap.active{--active-color:var(--cap-color);color:var(--cap-color)}
+.prod-tab.eme.active{--active-color:var(--eme-color);color:var(--eme-color)}
+.prod-tab.ant.active{--active-color:var(--ant-color);color:var(--ant-color)}
+.prod-tab.locked{opacity:.4;cursor:not-allowed}
+.prod-tab.locked:hover{color:var(--muted);background:var(--surface2)}
+.pt-icon{font-size:16px}
+.pt-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px}
+.badge-cap{background:rgba(204,0,0,.1);color:var(--cap-color)}
+.badge-eme{background:rgba(124,58,237,.1);color:var(--eme-color)}
+.badge-ant{background:rgba(8,145,178,.1);color:var(--ant-color)}
+.lock-icon{font-size:12px;opacity:.5}
+
+/* ─── PROPOSALS TABLE ─── */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.table-toolbar{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.search-input{height:34px;border:1px solid var(--border2);border-radius:var(--radius);padding:0 10px 0 32px;font-size:13px;color:var(--text);background:var(--surface2);outline:none;width:220px;transition:all .15s;position:relative}
+.search-input:focus{border-color:var(--brand);background:var(--surface);box-shadow:0 0 0 2px var(--brand-l)}
+.search-wrap{position:relative}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--dim)}
+.filter-select{height:34px;border:1px solid var(--border2);border-radius:var(--radius);padding:0 10px;font-size:12.5px;color:var(--text2);background:var(--surface2);cursor:pointer;outline:none}
+.filter-select:focus{border-color:var(--brand)}
+.tt-spacer{flex:1}
+.tt-count{font-size:12px;color:var(--muted);font-family:var(--mono)}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);padding:10px 16px;text-align:left;border-bottom:2px solid var(--border);background:var(--surface2);white-space:nowrap}
+tbody td{padding:13px 16px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle}
+tbody tr:hover td{background:rgba(0,0,0,.015)}
+tbody tr:last-child td{border-bottom:none}
+.td-id{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.td-client{font-weight:600;color:var(--text)}
+.td-cnpj{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.td-amount{font-family:var(--mono);font-weight:700;color:var(--text)}
+.td-op{display:flex;align-items:center;gap:6px}
+.td-op-avatar{width:22px;height:22px;border-radius:50%;font-size:8px;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.av-s-op1{background:var(--green)}
+.av-s-op2{background:var(--teal)}
+.av-s-ge{background:var(--purple)}
+
+/* status badges */
+.status{font-size:11px;font-weight:700;padding:4px 9px;border-radius:10px;white-space:nowrap}
+.s-analysis{background:var(--ag);color:var(--amber);border:1px solid var(--ab)}
+.s-approved{background:var(--gg);color:var(--green);border:1px solid var(--gb)}
+.s-rejected{background:var(--rg);color:var(--red2);border:1px solid var(--rb)}
+.s-draft{background:var(--surface3);color:var(--muted);border:1px solid var(--border2)}
+.s-signed{background:var(--bg2);color:var(--blue);border:1px solid var(--bb)}
+.s-disbursed{background:var(--gg);color:var(--green);border:1px solid var(--gb)}
+
+/* product tag */
+.prod-tag{font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px}
+.pt-cap{background:rgba(204,0,0,.1);color:var(--cap-color)}
+.pt-eme{background:rgba(124,58,237,.1);color:var(--eme-color)}
+.pt-ant{background:rgba(8,145,178,.1);color:var(--ant-color)}
+
+/* actions */
+.td-actions{display:flex;gap:5px}
+.act-btn{padding:5px 10px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--surface2);font-size:11.5px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s}
+.act-btn:hover{border-color:var(--brand);color:var(--brand);background:var(--brand-l)}
+.act-btn.edit:hover{border-color:var(--amber);color:var(--amber);background:var(--ag)}
+.act-btn.danger:hover{border-color:var(--red2);color:var(--red2);background:var(--rg)}
+
+/* ─── PERMISSION BANNER ─── */
+.perm-banner{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:14px;font-size:12.5px;color:var(--muted)}
+.pb-icon{font-size:16px;flex-shrink:0}
+
+/* ─── CARD ─── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:16px}
+.card-head{padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:space-between}
+.card-head-title{font-size:13.5px;font-weight:700;color:var(--text)}
+.card-body{padding:18px}
+
+/* ─── FORM ─── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-full{grid-column:1/-1}
+.field{display:flex;flex-direction:column;gap:5px}
+.field-label{font-size:12px;font-weight:600;color:var(--text2)}
+.field-req{color:var(--brand);font-size:13px;margin-left:2px}
+.field-input{height:36px;border:1px solid var(--border2);border-radius:var(--radius);padding:0 10px;font-size:13px;color:var(--text);background:var(--surface);outline:none;transition:border-color .15s,box-shadow .15s}
+.field-input:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-l)}
+.field-select{height:36px;border:1px solid var(--border2);border-radius:var(--radius);padding:0 10px;font-size:13px;color:var(--text);background:var(--surface);appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%236B7280' d='M5 6L0 0h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;outline:none;cursor:pointer}
+.field-select:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-l)}
+
+/* simulator strip */
+.sim-strip{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;align-items:center;margin-top:12px}
+.ss-item{display:flex;flex-direction:column;gap:3px}
+.ss-label{font-size:11px;color:var(--muted);font-weight:500}
+.ss-val{font-size:18px;font-weight:800;color:var(--text);font-family:var(--mono);letter-spacing:-.5px}
+.ss-val.brand{color:var(--brand)}
+.ss-sub{font-size:10.5px;color:var(--muted)}
+
+/* ─── MODAL ─── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:600;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.show{opacity:1;pointer-events:auto}
+.modal{background:var(--surface);border-radius:var(--radius-lg);width:520px;max-width:92vw;box-shadow:0 20px 60px rgba(0,0,0,.2);overflow:hidden;transform:scale(.96);transition:transform .2s}
+.modal-overlay.show .modal{transform:scale(1)}
+.modal-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:17px;font-weight:800;color:var(--text);letter-spacing:-.3px}
+.modal-close{background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;line-height:1;transition:color .15s}
+.modal-close:hover{color:var(--text)}
+.modal-body{padding:22px}
+.modal-foot{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+
+/* ─── TOAST ─── */
+.toast{position:fixed;bottom:24px;right:24px;z-index:700;padding:13px 18px;border-radius:var(--radius);box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;transform:translateX(120%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none;min-width:240px}
+.toast.show{transform:translateX(0)}
+.toast.success{background:var(--green);color:#fff}
+.toast.error{background:var(--red2);color:#fff}
+.toast.info{background:var(--text);color:#fff}
+.toast.warning{background:var(--amber);color:#fff}
+
+/* product colors on form */
+.new-form-header-cap{border-top:3px solid var(--cap-color)}
+.new-form-header-eme{border-top:3px solid var(--eme-color)}
+.new-form-header-ant{border-top:3px solid var(--ant-color)}
+
+/* info box */
+.info-box{background:var(--bg2);border:1px solid var(--bb);border-radius:var(--radius);padding:10px 14px;font-size:12.5px;color:#1e3a8a;display:flex;gap:8px;align-items:flex-start;margin-bottom:14px}
+.warn-box{background:var(--ag);border:1px solid var(--ab);border-radius:var(--radius);padding:10px 14px;font-size:12.5px;color:#7c2d12;display:flex;gap:8px;align-items:flex-start;margin-bottom:14px}
+
+
+/* ─── LOGIN MODE TABS ─── */
+.login-mode-tabs{display:flex;gap:0;background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:22px}
+.lmt{flex:1;padding:9px 12px;font-size:12.5px;font-weight:600;text-align:center;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:6px}
+.lmt.active{background:var(--surface);color:var(--brand);box-shadow:0 1px 4px rgba(0,0,0,.08);border-radius:4px;margin:2px}
+/* ─── MFA ─── */
+.mfa-digits-row{display:flex;gap:8px;justify-content:center;margin:18px 0 10px}
+.mfa-digit{width:46px;height:54px;border:2px solid var(--border2);border-radius:var(--radius);font-size:22px;font-weight:700;text-align:center;color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s;font-family:var(--mono);background:var(--surface)}
+.mfa-digit:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-l)}
+.mfa-timer{text-align:center;font-size:12px;color:var(--muted);margin-bottom:14px;font-family:var(--mono)}
+.mfa-timer span{color:var(--brand);font-weight:700}
+/* ─── SSO ─── */
+.sso-provider-list{display:flex;flex-direction:column;gap:9px;margin-bottom:16px}
+.sso-provider{width:100%;padding:11px 14px;border-radius:var(--radius-lg);border:1.5px solid var(--border2);background:var(--surface);cursor:pointer;transition:all .18s;display:flex;align-items:center;gap:12px;font-family:var(--sans)}
+.sso-provider:hover{border-color:var(--brand);background:var(--brand-l)}
+.sso-provider-logo{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.sso-provider-name{font-size:13px;font-weight:700;color:var(--text);text-align:left}
+.sso-provider-desc{font-size:11px;color:var(--muted)}
+.sso-provider-arrow{margin-left:auto;color:var(--dim)}
+.sso-btn{width:100%;height:40px;border-radius:var(--radius);border:1.5px solid var(--border2);background:var(--surface);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:9px;font-family:var(--sans)}
+.sso-btn:hover{border-color:var(--brand);background:var(--brand-l);color:var(--brand)}
+/* ─── SSO FLOW STEPS ─── */
+.sso-flow-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:14px}
+.sso-flow-title{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.sso-flow-steps{display:flex;flex-direction:column;gap:8px}
+.sso-flow-step{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted);padding:5px 0;border-bottom:1px solid var(--border)}
+.sso-flow-step:last-child{border-bottom:none}
+.sso-step-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;transition:all .3s}
+.sso-done{background:var(--gg);color:var(--green)}
+.sso-spin{background:var(--brand-l);color:var(--brand);animation:ssoSpin 1s infinite}
+.sso-wait{background:var(--surface3);color:var(--dim)}
+@keyframes ssoSpin{0%,100%{opacity:1}50%{opacity:.3}}
+/* ─── LOGIN LOADING ─── */
+.login-loading{display:flex;flex-direction:column;align-items:center;gap:14px;padding:28px 0;text-align:center}
+.login-spinner{width:36px;height:36px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--brand);animation:lspin .7s linear infinite}
+@keyframes lspin{to{transform:rotate(360deg)}}
+.ls-title{font-size:14px;font-weight:700;color:var(--text)}
+.ls-sub{font-size:12px;color:var(--muted)}
+/* ─── LOGIN DIVIDER ─── */
+.login-or{display:flex;align-items:center;gap:10px;margin:14px 0;font-size:11px;color:var(--dim)}
+.login-or::before,.login-or::after{content:'';flex:1;height:1px;background:var(--border)}
+
+hr.div{border:none;border-top:1px solid var(--border);margin:16px 0}
+
+/* ═══════ WIZARD (5 etapas) — combinado da v1 ═══════ */
+.wiz-layout{display:flex;gap:0;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;background:var(--surface)}
+.wiz-sidebar{width:210px;min-width:210px;background:var(--surface2);border-right:1px solid var(--border);padding:14px 0;display:flex;flex-direction:column}
+.wiz-sidebar-header{padding:0 14px 12px;border-bottom:1px solid var(--border);margin-bottom:6px}
+.wiz-sh-label{font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.wiz-sh-title{font-size:14px;font-weight:700;color:var(--text)}
+.wiz-step{display:flex;align-items:center;gap:9px;padding:9px 14px;cursor:pointer;transition:background .15s;position:relative}
+.wiz-step:hover{background:rgba(0,0,0,.02)}
+.wiz-step.active{background:var(--brand-l)}
+.wiz-step.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--prod-color,var(--brand))}
+.wiz-step-num{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9.5px;font-weight:700;color:var(--muted);flex-shrink:0;transition:all .2s}
+.wiz-step.active .wiz-step-num{background:var(--prod-color,var(--brand));border-color:var(--prod-color,var(--brand));color:#fff}
+.wiz-step.done .wiz-step-num{background:var(--green);border-color:var(--green);color:#fff}
+.wiz-step-info{flex:1}
+.wiz-step-name{font-size:12px;font-weight:500;color:var(--text2)}
+.wiz-step.active .wiz-step-name{color:var(--prod-color,var(--brand));font-weight:700}
+.wiz-step-sub{font-size:10px;color:var(--dim)}
+.wiz-divider{height:1px;background:var(--border);margin:6px 14px}
+.wiz-main{flex:1;padding:20px 22px;display:flex;flex-direction:column;gap:16px;min-height:480px}
+.wiz-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.wiz-tag{font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--prod-color,var(--brand));margin-bottom:3px}
+.wiz-title{font-size:18px;font-weight:700;color:var(--text);letter-spacing:-.3px}
+.wiz-desc{font-size:12.5px;color:var(--muted);margin-top:2px}
+.wiz-badge{font-size:10.5px;font-weight:600;padding:4px 11px;border-radius:18px;white-space:nowrap}
+
+/* simulator */
+.wsim{display:grid;grid-template-columns:1fr 1px 320px;gap:0}
+.wsim-left{padding:16px}
+.wsim-divider{background:var(--border)}
+.wsim-right{padding:16px;background:var(--surface2)}
+.wsim-field{margin-bottom:14px}
+.wsim-field:last-child{margin-bottom:0}
+.wsim-label{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+.wsim-label-val{font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--prod-color,var(--brand))}
+.wsim-slider{width:100%;appearance:none;height:4px;background:linear-gradient(to right,var(--prod-color,var(--brand)) 0%,var(--prod-color,var(--brand)) var(--pct,50%),var(--border2) var(--pct,50%));border-radius:2px;outline:none;cursor:pointer}
+.wsim-slider::-webkit-slider-thumb{appearance:none;width:17px;height:17px;border-radius:50%;background:var(--prod-color,var(--brand));border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2);cursor:pointer}
+.wsim-slider-range{display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin-top:3px;font-family:var(--mono)}
+.wsim-toggle-group{display:flex;gap:4px;flex-wrap:wrap}
+.wsim-toggle{padding:5px 11px;border-radius:18px;border:1.5px solid var(--border2);font-size:11.5px;font-weight:500;color:var(--muted);background:var(--surface);cursor:pointer;transition:all .15s}
+.wsim-toggle:hover{border-color:var(--prod-color,var(--brand));color:var(--prod-color,var(--brand))}
+.wsim-toggle.active{background:var(--prod-color,var(--brand));border-color:var(--prod-color,var(--brand));color:#fff;font-weight:600}
+
+/* risk gauge */
+.wrisk{margin:10px 0}
+.wrisk-label{font-size:10.5px;font-weight:600;color:var(--text2);margin-bottom:7px;display:flex;align-items:center;justify-content:space-between}
+.wrisk-track{height:7px;border-radius:4px;background:linear-gradient(90deg,#059669,#84cc16,#f59e0b,#ef4444);position:relative;overflow:visible}
+.wrisk-needle{position:absolute;top:-4px;width:2px;height:15px;background:var(--text);border-radius:1px;transform:translateX(-50%);transition:left .5s cubic-bezier(.34,1.56,.64,1);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.wrisk-needle::after{content:'';position:absolute;top:-3px;left:50%;transform:translateX(-50%);width:7px;height:7px;border-radius:50%;background:var(--text)}
+.wrisk-labels{display:flex;justify-content:space-between;margin-top:4px;font-size:8.5px;color:var(--dim);font-weight:500}
+.wrisk-chip{font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:10px}
+
+/* result card */
+.wresult{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:10px}
+.wresult-head{padding:9px 13px;background:var(--prod-color,var(--brand));color:#fff;font-size:11.5px;font-weight:600;display:flex;align-items:center;justify-content:space-between}
+.wresult-body{padding:12px}
+.wresult-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)}
+.wresult-row:last-child{border-bottom:none}
+.wresult-key{font-size:11.5px;color:var(--muted)}
+.wresult-val{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--text)}
+.wresult-val.hl{color:var(--prod-color,var(--brand));font-size:15px}
+.wresult-val.gr{color:var(--green)}
+
+.wapprove-btn{width:100%;padding:11px;border-radius:var(--radius);border:none;background:var(--prod-color,var(--brand));color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px;margin-top:2px}
+.wapprove-btn:hover{filter:brightness(.92);transform:translateY(-1px);box-shadow:var(--shadow-lg)}
+.wsave-btn{width:100%;padding:9px;border-radius:var(--radius);border:1.5px solid var(--prod-color,var(--brand));background:transparent;color:var(--prod-color,var(--brand));font-size:12.5px;font-weight:600;cursor:pointer;margin-top:7px;transition:all .2s}
+.wsave-btn:hover{background:var(--brand-l)}
+
+/* client lookup */
+.wcl-lookup{border:1px solid var(--border2);border-radius:var(--radius);overflow:hidden}
+.wcl-row{display:flex;align-items:center;gap:0}
+.wcl-prefix{padding:0 11px;height:36px;background:var(--surface2);border-right:1px solid var(--border2);display:flex;align-items:center;font-size:11.5px;font-weight:600;color:var(--muted);white-space:nowrap}
+.wcl-input{flex:1;height:36px;border:none;outline:none;padding:0 11px;font-size:13px;font-family:var(--mono);color:var(--text);background:var(--surface);letter-spacing:1px}
+.wcl-btn{height:36px;padding:0 13px;background:var(--prod-color,var(--brand));color:#fff;border:none;font-size:11.5px;font-weight:600;cursor:pointer;transition:filter .15s;white-space:nowrap;display:flex;align-items:center;gap:5px}
+.wcl-btn:hover{filter:brightness(.9)}
+.wcl-result{padding:11px 13px;border-top:1px solid var(--border);background:var(--gg);display:flex;align-items:center;gap:11px}
+.wcl-result-icon{font-size:17px}
+.wcl-result-name{font-size:12.5px;font-weight:600;color:var(--text)}
+.wcl-result-meta{font-size:10.5px;color:var(--muted);margin-top:1px;font-family:var(--mono)}
+.wcl-result-score{display:flex;flex-direction:column;align-items:flex-end;gap:1px}
+.wcl-result-score-val{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--green)}
+.wcl-result-score-lbl{font-size:8.5px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+
+/* guarantor */
+.wguarantor{border:1.5px dashed var(--border2);border-radius:var(--radius);padding:13px;display:flex;align-items:center;gap:11px;cursor:pointer;transition:all .2s}
+.wguarantor:hover{border-color:var(--prod-color,var(--brand));background:var(--brand-l)}
+.wguarantor.added{border-style:solid;border-color:var(--green);background:var(--gg)}
+
+/* docs */
+.wdoc-list{display:flex;flex-direction:column;gap:7px}
+.wdoc-item{display:flex;align-items:center;gap:11px;padding:9px 13px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);transition:border-color .15s}
+.wdoc-item:hover{border-color:var(--border2)}
+.wdoc-icon{font-size:17px;flex-shrink:0}
+.wdoc-name{font-size:12.5px;font-weight:500;color:var(--text);flex:1}
+.wdoc-status{font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:10px}
+.wds-req{background:var(--ag);color:var(--amber);border:1px solid var(--ab)}
+.wds-ok{background:var(--gg);color:var(--green);border:1px solid var(--gb)}
+.wds-opt{background:var(--bg2);color:var(--blue);border:1px solid var(--bb)}
+.wdoc-upload{padding:5px 11px;border-radius:var(--radius);border:1.5px solid var(--border2);background:var(--surface);font-size:10.5px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .15s}
+.wdoc-upload:hover{border-color:var(--prod-color,var(--brand));color:var(--prod-color,var(--brand));background:var(--brand-l)}
+.wdoc-upload.uploaded{border-color:var(--green);color:var(--green);background:var(--gg)}
+
+/* summary */
+.wsumm-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:13px}
+.wsumm-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:13px}
+.wsumm-label{font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.wsumm-val{font-size:17px;font-weight:700;color:var(--text);font-family:var(--mono)}
+.wsumm-sub{font-size:10.5px;color:var(--muted);margin-top:2px}
+.wsumm-timeline{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:13px;margin-bottom:13px}
+.wtl-title{font-size:11.5px;font-weight:600;color:var(--text);margin-bottom:11px}
+.wtl-item{display:flex;gap:11px;padding-bottom:11px;position:relative}
+.wtl-item:last-child{padding-bottom:0}
+.wtl-item:not(:last-child)::before{content:'';position:absolute;left:9px;top:18px;bottom:0;width:1px;background:var(--border)}
+.wtl-dot{width:19px;height:19px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8.5px;flex-shrink:0;margin-top:1px}
+.wtl-dot.done{background:var(--green);color:#fff}
+.wtl-dot.pending{background:var(--border);color:var(--muted);border:1.5px dashed var(--border2)}
+.wtl-dot.brand{background:var(--prod-color,var(--brand));color:#fff}
+.wtl-name{font-size:12px;font-weight:600;color:var(--text)}
+.wtl-sub{font-size:10.5px;color:var(--muted)}
+
+/* wizard nav bar */
+.wiz-navbar{display:flex;align-items:center;gap:11px;padding-top:14px;border-top:1px solid var(--border);margin-top:auto}
+.wiz-back{padding:8px 16px;border-radius:var(--radius);border:1.5px solid var(--border2);background:var(--surface);color:var(--text2);font-size:12.5px;font-weight:600;cursor:pointer;transition:all .15s}
+.wiz-back:hover{border-color:var(--border);background:var(--surface2)}
+.wiz-spacer{flex:1}
+.wiz-hint{font-size:11px;color:var(--muted)}
+.wiz-next{padding:8px 20px;border-radius:var(--radius);background:var(--prod-color,var(--brand));color:#fff;font-size:12.5px;font-weight:700;border:none;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:7px}
+.wiz-next:hover{filter:brightness(.92);transform:translateY(-1px);box-shadow:var(--shadow-lg)}
+
+@media(max-width:900px){.wiz-layout{flex-direction:column}.wiz-sidebar{width:100%}.wsim{grid-template-columns:1fr}.wsim-divider{display:none}}
+
+
+/* ─── TEAM VIEW (Gerente only) ─── */
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:20px}
+.team-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;transition:border-color .2s;cursor:pointer}
+.team-card:hover{border-color:var(--border2);box-shadow:var(--shadow)}
+.tc-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.tc-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.tc-name{font-size:13px;font-weight:700;color:var(--text)}
+.tc-role{font-size:11px;color:var(--muted)}
+.tc-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tc-stat{background:var(--surface2);border-radius:5px;padding:8px;text-align:center}
+.tc-stat-val{font-family:var(--mono);font-size:16px;font-weight:800;color:var(--text)}
+.tc-stat-lbl{font-size:10px;color:var(--muted)}
+.tc-products{display:flex;gap:4px;margin-top:10px;flex-wrap:wrap}
+
+/* ─── EMPTY STATE ─── */
+.empty-state{padding:48px 24px;text-align:center}
+.es-icon{font-size:36px;opacity:.3;margin-bottom:12px}
+.es-title{font-size:15px;font-weight:700;color:var(--text2);margin-bottom:4px}
+.es-sub{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<!-- ─── PARTNER BAR ─── -->
+<div class="partner-bar">
+  <span class="pb-lbl">White Label ·</span>
+  <button class="pb-btn active" onclick="setPartner('#CC0000','#990000','B','Bradesco BaaS',this)">Bradesco BaaS</button>
+  <div class="pb-sep"></div>
+  <button class="pb-btn" onclick="setPartner('#005BAA','#004080','X','Banco XPTO',this)">Banco XPTO</button>
+  <button class="pb-btn" onclick="setPartner('#166534','#14532D','FV','Fintech Verde',this)">Fintech Verde</button>
+  <button class="pb-btn" onclick="setPartner('#7C3AED','#6D28D9','CS','Cooperativa Sul',this)">Cooperativa Sul</button>
+  <div class="pb-sep"></div>
+  <span style="font-family:var(--mono);font-size:9px;color:rgba(255,255,255,.35)">v2.0 · RBAC · Multi-Produto</span>
+</div>
+
+<!-- ══════════════════
+     LOGIN SCREEN
+══════════════════ -->
+<div id="loginScreen">
+  <div class="login-layout">
+    <div class="login-left">
+      <div class="ll-top">
+        <div class="ll-logo">
+          <div class="ll-logo-mark" id="ll-mark">B</div>
+          <div>
+            <div class="ll-logo-name" id="ll-name">Bradesco BaaS</div>
+            <div class="ll-logo-tag">Portal de Crédito Empresarial</div>
+          </div>
+        </div>
+        <div class="ll-headline">Crédito empresarial<br>sob sua marca.</div>
+        <div class="ll-sub">Portal multi-produto com perfis de acesso, gestão de equipes e propostas em tempo real.</div>
+        <div class="ll-features" style="margin-top:24px">
+          <div class="ll-feat"><div class="ll-feat-icon">👥</div>Gerente + Operadores com RBAC</div>
+          <div class="ll-feat"><div class="ll-feat-icon">📦</div>3 produtos de crédito</div>
+          <div class="ll-feat"><div class="ll-feat-icon">📊</div>Dashboard por equipe</div>
+          <div class="ll-feat"><div class="ll-feat-icon">⚡</div>Aprovação em até 2h</div>
+        </div>
+      </div>
+      <div>
+        <div class="ll-products" style="margin-bottom:20px">
+          <div class="ll-prod-badge">💼 Capital de Giro</div>
+          <div class="ll-prod-badge">🚨 Crédito Emergencial</div>
+          <div class="ll-prod-badge">📈 Antecipação</div>
+        </div>
+        <div class="ll-powered">
+          <div class="ll-powered-dot"></div>
+          Powered by Bradesco BaaS
+        </div>
+      </div>
+    </div>
+
+    <div class="login-right">
+      <div class="login-card">
+
+        <!-- MODE TABS -->
+        <div class="login-mode-tabs">
+          <button class="lmt active" id="tabOwn" onclick="setLoginMode('own')">🔑 Login Próprio</button>
+          <button class="lmt" id="tabSSO" onclick="setLoginMode('sso')">🏢 SSO Corporativo</button>
+        </div>
+
+        <!-- ── OWN LOGIN ── -->
+        <div id="modeOwn">
+
+          <!-- STEP 1: profile + credentials -->
+          <div id="ownStep1">
+            <div class="login-title">Acesse o portal</div>
+            <div class="login-sub">Selecione seu perfil e entre com suas credenciais</div>
+
+            <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px">Perfil de acesso</div>
+            <div class="profile-selector">
+              <div class="profile-card" id="pc-gerente" onclick="selectProfile('gerente',this)">
+                <div class="profile-radio"><div class="profile-radio-dot"></div></div>
+                <div class="profile-icon pi-gerente">👔</div>
+                <div class="profile-info">
+                  <div class="profile-name">Ana Lima</div>
+                  <div class="profile-role">Gerente Comercial · Todos os produtos · Gestão de equipe</div>
+                  <div class="profile-products">
+                    <span class="prod-pip pp-cap">CapGiro</span>
+                    <span class="prod-pip pp-eme">Emergencial</span>
+                    <span class="prod-pip pp-ant">Antecipação</span>
+                  </div>
+                </div>
+              </div>
+              <div class="profile-card" id="pc-op1" onclick="selectProfile('op1',this)">
+                <div class="profile-radio"><div class="profile-radio-dot"></div></div>
+                <div class="profile-icon pi-op1">💼</div>
+                <div class="profile-info">
+                  <div class="profile-name">Carlos Melo</div>
+                  <div class="profile-role">Operador Comercial 1 · Propostas próprias</div>
+                  <div class="profile-products">
+                    <span class="prod-pip pp-cap">CapGiro</span>
+                    <span class="prod-pip pp-ant">Antecipação</span>
+                  </div>
+                </div>
+              </div>
+              <div class="profile-card" id="pc-op2" onclick="selectProfile('op2',this)">
+                <div class="profile-radio"><div class="profile-radio-dot"></div></div>
+                <div class="profile-icon pi-op2">💼</div>
+                <div class="profile-info">
+                  <div class="profile-name">Fernanda Rocha</div>
+                  <div class="profile-role">Operador Comercial 2 · Propostas próprias</div>
+                  <div class="profile-products">
+                    <span class="prod-pip pp-cap">CapGiro</span>
+                    <span class="prod-pip pp-eme">Emergencial</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="lf-group">
+              <div class="lf-label">E-mail corporativo</div>
+              <input class="lf-input" id="loginEmail" type="email" placeholder="seu@email.com" value="ana.lima@parceiro.com.br">
+            </div>
+            <div class="lf-group">
+              <div class="lf-label">Senha <a href="#" onclick="showForgotPwd();return false">Esqueci a senha</a></div>
+              <div class="lf-input-wrap">
+                <input class="lf-input" id="loginPwd" type="password" value="12345678" style="padding-right:40px">
+                <span class="lf-icon" onclick="togglePwd()">👁</span>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+              <input type="checkbox" id="keepLogged" checked style="accent-color:var(--brand);width:14px;height:14px">
+              <label for="keepLogged" style="font-size:12.5px;color:var(--text2);cursor:pointer">Manter conectado por 8 horas</label>
+            </div>
+            <button class="login-btn" id="loginBtn" onclick="doLogin()" disabled>Entrar no Portal →</button>
+
+            <div class="login-or">ou autentique via</div>
+            <button class="sso-btn" onclick="setLoginMode('sso')">
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect width="20" height="20" rx="4" fill="#0078d4"/><path d="M3 3h6.5v6.5H3V3zm7.5 0H17v6.5h-6.5V3zM3 10.5h6.5V17H3v-6.5zm7.5 0H17V17h-6.5v-6.5z" fill="white"/></svg>
+              Entrar com SSO Corporativo (AD)
+            </button>
+          </div>
+
+          <!-- STEP 2: MFA -->
+          <div id="ownStep2" style="display:none">
+            <div style="text-align:center;margin-bottom:18px">
+              <div style="font-size:40px;margin-bottom:8px">🔐</div>
+              <div class="login-title" style="font-size:19px">Verificação em 2 Fatores</div>
+              <div class="login-sub">Digite o código de 6 dígitos do seu app autenticador ou SMS enviado para <strong id="mfaEmailDisplay">—</strong></div>
+            </div>
+            <div class="mfa-digits-row">
+              <input class="mfa-digit" maxlength="1" id="d0" oninput="mfaNext(0)" onkeydown="mfaBack(event,0)">
+              <input class="mfa-digit" maxlength="1" id="d1" oninput="mfaNext(1)" onkeydown="mfaBack(event,1)">
+              <input class="mfa-digit" maxlength="1" id="d2" oninput="mfaNext(2)" onkeydown="mfaBack(event,2)">
+              <input class="mfa-digit" maxlength="1" id="d3" oninput="mfaNext(3)" onkeydown="mfaBack(event,3)">
+              <input class="mfa-digit" maxlength="1" id="d4" oninput="mfaNext(4)" onkeydown="mfaBack(event,4)">
+              <input class="mfa-digit" maxlength="1" id="d5" oninput="mfaNext(5)" onkeydown="mfaBack(event,5)">
+            </div>
+            <div class="mfa-timer">Código expira em <span id="mfaCountdown">2:59</span></div>
+            <button class="login-btn" id="mfaBtn" onclick="doMFA()" disabled>Verificar código</button>
+            <div style="text-align:center;margin-top:12px;font-size:12px">
+              <a href="#" onclick="backToStep1();return false" style="color:var(--muted);text-decoration:none">← Voltar</a>
+              &nbsp;·&nbsp;
+              <a href="#" onclick="resendMFA();return false" style="color:var(--brand);text-decoration:none">Reenviar código</a>
+            </div>
+          </div>
+
+          <!-- STEP 3: loading -->
+          <div id="ownStep3" style="display:none">
+            <div class="login-loading">
+              <div class="login-spinner"></div>
+              <div class="ls-title">Autenticando...</div>
+              <div class="ls-sub" id="loadingMsg">Validando credenciais e carregando perfil</div>
+            </div>
+          </div>
+
+        </div><!-- /modeOwn -->
+
+        <!-- ── SSO LOGIN ── -->
+        <div id="modeSSO" style="display:none">
+
+          <!-- STEP A: provider select -->
+          <div id="ssoStep1">
+            <div class="login-title">SSO Corporativo</div>
+            <div class="login-sub">Selecione o provedor de identidade configurado pelo seu TI</div>
+
+            <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px">Perfil de acesso</div>
+            <div class="profile-selector" style="margin-bottom:16px">
+              <div class="profile-card" id="sso-pc-gerente" onclick="selectSSOProfile('gerente',this)">
+                <div class="profile-radio"><div class="profile-radio-dot"></div></div>
+                <div class="profile-icon pi-gerente">👔</div>
+                <div class="profile-info">
+                  <div class="profile-name">Ana Lima</div>
+                  <div class="profile-role">Gerente Comercial</div>
+                  <div class="profile-products"><span class="prod-pip pp-cap">CapGiro</span><span class="prod-pip pp-eme">Emergencial</span><span class="prod-pip pp-ant">Antecipação</span></div>
+                </div>
+              </div>
+              <div class="profile-card" id="sso-pc-op1" onclick="selectSSOProfile('op1',this)">
+                <div class="profile-radio"><div class="profile-radio-dot"></div></div>
+                <div class="profile-icon pi-op1">💼</div>
+                <div class="profile-info">
+                  <div class="profile-name">Carlos Melo</div>
+                  <div class="profile-role">Operador Comercial 1</div>
+                  <div class="profile-products"><span class="prod-pip pp-cap">CapGiro</span><span class="prod-pip pp-ant">Antecipação</span></div>
+                </div>
+              </div>
+              <div class="profile-card" id="sso-pc-op2" onclick="selectSSOProfile('op2',this)">
+                <div class="profile-radio"><div class="profile-radio-dot"></div></div>
+                <div class="profile-icon pi-op2">💼</div>
+                <div class="profile-info">
+                  <div class="profile-name">Fernanda Rocha</div>
+                  <div class="profile-role">Operador Comercial 2</div>
+                  <div class="profile-products"><span class="prod-pip pp-cap">CapGiro</span><span class="prod-pip pp-eme">Emergencial</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px">Provedor de identidade</div>
+            <div class="sso-provider-list">
+              <button class="sso-provider" onclick="doSSO('microsoft','Azure AD')">
+                <div class="sso-provider-logo" style="background:#f0f4f8">
+                  <svg width="18" height="18" viewBox="0 0 20 20"><rect width="9.5" height="9.5" fill="#f25022"/><rect x="10.5" width="9.5" height="9.5" fill="#7fba00"/><rect y="10.5" width="9.5" height="9.5" fill="#00a4ef"/><rect x="10.5" y="10.5" width="9.5" height="9.5" fill="#ffb900"/></svg>
+                </div>
+                <div><div class="sso-provider-name">Microsoft Azure AD</div><div class="sso-provider-desc">Entra ID · Conta corporativa (@empresa.com)</div></div>
+                <span class="sso-provider-arrow">›</span>
+              </button>
+              <button class="sso-provider" onclick="doSSO('google','Google Workspace')">
+                <div class="sso-provider-logo" style="background:#f0f4f8">
+                  <svg width="18" height="18" viewBox="0 0 20 20"><path d="M19.6 10.23c0-.68-.06-1.36-.17-2H10v3.79h5.4a4.6 4.6 0 01-2 3.02v2.5h3.23c1.9-1.74 2.97-4.32 2.97-7.31z" fill="#4285f4"/><path d="M10 20c2.7 0 4.97-.9 6.63-2.45l-3.23-2.5c-.9.6-2.04.96-3.4.96-2.6 0-4.82-1.77-5.61-4.14H1.07v2.58A10 10 0 0010 20z" fill="#34a853"/><path d="M4.39 11.87A5.98 5.98 0 014.1 10c0-.65.11-1.29.29-1.87V5.55H1.07A10 10 0 000 10c0 1.61.38 3.14 1.07 4.45l3.32-2.58z" fill="#fbbc04"/><path d="M10 3.96c1.47 0 2.78.5 3.82 1.5l2.86-2.86A9.96 9.96 0 0010 0 10 10 0 001.07 5.55l3.32 2.58C5.18 5.73 7.4 3.96 10 3.96z" fill="#ea4335"/></svg>
+                </div>
+                <div><div class="sso-provider-name">Google Workspace</div><div class="sso-provider-desc">G Suite · Conta Google corporativa</div></div>
+                <span class="sso-provider-arrow">›</span>
+              </button>
+              <button class="sso-provider" onclick="doSSO('okta','Okta Identity')">
+                <div class="sso-provider-logo" style="background:#f0f4f8;font-size:11px;font-weight:800;color:#007dc1">Ok</div>
+                <div><div class="sso-provider-name">Okta Identity</div><div class="sso-provider-desc">SAML 2.0 / OIDC · Configurado pelo TI</div></div>
+                <span class="sso-provider-arrow">›</span>
+              </button>
+              <button class="sso-provider" onclick="doSSO('adfs','ADFS On-Premises')">
+                <div class="sso-provider-logo" style="background:#f0f4f8;font-size:11px;font-weight:700;color:#555">AD</div>
+                <div><div class="sso-provider-name">Active Directory (ADFS)</div><div class="sso-provider-desc">On-premises · Windows Server AD Federation</div></div>
+                <span class="sso-provider-arrow">›</span>
+              </button>
+            </div>
+
+            <div class="login-or">ou</div>
+            <button class="sso-btn" onclick="setLoginMode('own')">🔑 Usar login e senha próprio</button>
+
+            <div style="margin-top:12px;background:var(--bg2);border:1px solid var(--bb);border-radius:var(--radius);padding:10px 12px;font-size:12px;color:#1e3a8a;display:flex;gap:8px">
+              <span>ℹ️</span><span>Não encontrou seu provedor? Contate o suporte para configurar SAML 2.0 ou OIDC personalizado.</span>
+            </div>
+          </div>
+
+          <!-- STEP B: SSO redirect animation -->
+          <div id="ssoStep2" style="display:none">
+            <div style="text-align:center;margin-bottom:16px">
+              <div style="font-size:40px;margin-bottom:8px" id="ssoProvIcon">🏢</div>
+              <div class="login-title" style="font-size:18px" id="ssoProvTitle">Redirecionando...</div>
+              <div class="login-sub">Você será autenticado pelo servidor de identidade da sua organização</div>
+            </div>
+            <div class="sso-flow-box">
+              <div class="sso-flow-title">Fluxo de autenticação</div>
+              <div class="sso-flow-steps">
+                <div class="sso-flow-step"><div class="sso-step-icon sso-done">✓</div><span>Redirecionamento para IdP corporativo</span></div>
+                <div class="sso-flow-step"><div class="sso-step-icon sso-spin" id="sso-s2-icon">↻</div><span id="sso-s2-lbl">Autenticando no provedor...</span></div>
+                <div class="sso-flow-step"><div class="sso-step-icon sso-wait" id="sso-s3-icon">○</div><span>Token Exchange (SAML → UCT)</span></div>
+                <div class="sso-flow-step"><div class="sso-step-icon sso-wait" id="sso-s4-icon">○</div><span>Carregando perfil e permissões</span></div>
+              </div>
+            </div>
+            <div class="login-spinner" style="margin:0 auto;width:26px;height:26px;border-width:2.5px"></div>
+            <div style="text-align:center;margin-top:12px;font-size:12px;color:var(--muted)">
+              <a href="#" onclick="cancelSSO();return false" style="color:var(--brand);text-decoration:none">Cancelar e voltar</a>
+            </div>
+          </div>
+
+        </div><!-- /modeSSO -->
+
+        <div class="login-footer">
+          Ambiente protegido · TLS 1.3 · MFA obrigatório<br>
+          <a href="#">Política de Privacidade</a> · <a href="#">Termos de Uso</a> · <a href="#">Suporte</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════
+     APP SHELL
+══════════════════ -->
+<div id="appShell">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="tb-logo">
+      <div class="tb-logo-mark" id="tb-mark">B</div>
+      <div>
+        <div class="tb-logo-name" id="tb-name">Bradesco BaaS</div>
+        <div class="tb-logo-tag">Crédito Empresarial</div>
+      </div>
+    </div>
+    <div class="tb-nav" id="tbNav">
+      <div class="tb-nav-item active" onclick="showPage('dashboard',this)">Dashboard</div>
+      <div class="tb-nav-item" onclick="showPage('propostas',this)" id="navPropostas">Propostas</div>
+      <div class="tb-nav-item" onclick="showPage('nova',this)" id="navNova">Nova Proposta</div>
+      <div class="tb-nav-item gerente-only" onclick="showPage('equipe',this)" id="navEquipe" style="display:none">Equipe</div>
+    </div>
+    <div class="tb-spacer"></div>
+    <div class="tb-role-badge" id="tbRoleBadge">—</div>
+    <div class="tb-user">
+      <div class="tb-avatar" id="tbAvatar">—</div>
+      <div>
+        <div class="tb-user-name" id="tbUserName">—</div>
+        <div class="tb-user-sub" id="tbUserSub">—</div>
+      </div>
+    </div>
+    <button class="tb-logout" onclick="doLogout()" title="Sair">⎋ Sair</button>
+  </div>
+
+  <div class="app-layout">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="appSidebar">
+      <div class="sb-section">Crédito</div>
+      <button class="sb-link active" onclick="showPage('dashboard',this)"><span class="sb-icon">📊</span>Dashboard</button>
+      <button class="sb-link" onclick="showPage('propostas',this)"><span class="sb-icon">📋</span>Propostas<span class="sb-badge" id="sbBadge">12</span></button>
+      <button class="sb-link" onclick="showPage('nova',this)"><span class="sb-icon">➕</span>Nova Proposta</button>
+
+      <div class="sb-section">Produtos</div>
+      <button class="sb-link" id="sb-cap" onclick="showPage('nova',null);setProduct('cap')"><span class="sb-icon" style="color:var(--cap-color)">💼</span>Capital de Giro<span class="sb-prod-badge" style="background:rgba(204,0,0,.1);color:var(--cap-color)">CG</span></button>
+      <button class="sb-link" id="sb-eme" onclick="sbProduct('eme')"><span class="sb-icon" style="color:var(--eme-color)">🚨</span>Crédito Emergencial<span class="sb-prod-badge" id="sb-eme-badge" style="background:rgba(124,58,237,.1);color:var(--eme-color)">CE</span></button>
+      <button class="sb-link" id="sb-ant" onclick="sbProduct('ant')"><span class="sb-icon" style="color:var(--ant-color)">📈</span>Antecipação<span class="sb-prod-badge" id="sb-ant-badge" style="background:rgba(8,145,178,.1);color:var(--ant-color)">AR</span></button>
+
+      <div class="sb-section gerente-only" id="sb-team-section" style="display:none">Gestão</div>
+      <button class="sb-link gerente-only" id="sb-equipe" style="display:none" onclick="showPage('equipe',null)"><span class="sb-icon">👥</span>Minha Equipe</button>
+      <button class="sb-link gerente-only" id="sb-relat" style="display:none" onclick="showToast('Relatórios em breve','info')"><span class="sb-icon">📈</span>Relatórios</button>
+
+      <div class="sb-bottom">
+        <div class="sb-bottom-label">Versão do portal</div>
+        <div class="sb-bottom-val">v2.0.0 · Jun 2026</div>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main-area" id="mainArea">
+
+      <!-- ══ DASHBOARD ══ -->
+      <div id="page-dashboard" class="page">
+        <div class="page-hdr">
+          <div>
+            <div class="page-title" id="dash-title">Bem-vinda, Ana</div>
+            <div class="page-sub" id="dash-sub">Aqui está o resumo das propostas da sua equipe</div>
+          </div>
+          <button class="btn-primary" onclick="showPage('nova',null)">+ Nova Proposta</button>
+        </div>
+
+        <div class="stats-row" id="dashStats"></div>
+
+        <!-- gerente: team mini cards -->
+        <div id="dashTeamSection" style="display:none;margin-bottom:20px">
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px">Desempenho da Equipe</div>
+          <div class="team-grid" id="dashTeamGrid"></div>
+        </div>
+
+        <!-- recent proposals -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-head-title" id="dashTableTitle">Propostas recentes</div>
+            <button class="btn-secondary" style="font-size:12px;padding:6px 12px" onclick="showPage('propostas',null)">Ver todas</button>
+          </div>
+          <div class="table-wrap" style="border:none;border-radius:0">
+            <table id="dashTable"></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PROPOSTAS ══ -->
+      <div id="page-propostas" class="page" style="display:none">
+        <div class="page-hdr">
+          <div>
+            <div class="page-title" id="prop-title">Propostas</div>
+            <div class="page-sub" id="prop-sub">Gerencie todas as propostas de crédito</div>
+          </div>
+          <button class="btn-primary" onclick="showPage('nova',null)">+ Nova Proposta</button>
+        </div>
+
+        <div class="perm-banner" id="permBanner" style="display:none">
+          <span class="pb-icon">🔐</span>
+          <span id="permBannerText">—</span>
+        </div>
+
+        <div class="product-tabs" id="prodTabs"></div>
+
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <div class="search-wrap">
+              <span class="search-icon">🔍</span>
+              <input type="text" class="search-input" placeholder="Buscar cliente ou CNPJ..." oninput="filterTable(this.value)">
+            </div>
+            <select class="filter-select" id="statusFilter" onchange="filterByStatus(this.value)">
+              <option value="">Todos os status</option>
+              <option>Em análise</option><option>Aprovado</option><option>Rejeitado</option>
+              <option>Rascunho</option><option>Assinado</option><option>Desembolsado</option>
+            </select>
+            <select class="filter-select" id="opFilter" style="display:none" onchange="filterByOp(this.value)">
+              <option value="">Todos os operadores</option>
+              <option value="op1">Carlos Melo</option>
+              <option value="op2">Fernanda Rocha</option>
+            </select>
+            <div class="tt-spacer"></div>
+            <div class="tt-count" id="tableCount">12 propostas</div>
+          </div>
+          <table id="proposalsTable"></table>
+        </div>
+      </div>
+
+      <!-- ══ NOVA PROPOSTA ══ -->
+      <div id="page-nova" class="page" style="display:none">
+        <div class="page-hdr">
+          <div>
+            <div class="page-title">Nova Proposta de Crédito</div>
+            <div class="page-sub">Selecione o produto e siga as etapas da operação</div>
+          </div>
+        </div>
+
+        <div class="product-tabs" id="newProdTabs"></div>
+        <div id="novaFormArea"></div>
+      </div>
+
+      <!-- ══ EQUIPE (Gerente) ══ -->
+      <div id="page-equipe" class="page" style="display:none">
+        <div class="page-hdr">
+          <div>
+            <div class="page-title">Minha Equipe</div>
+            <div class="page-sub">Visão consolidada dos operadores e seus acessos a produtos</div>
+          </div>
+        </div>
+
+        <div class="team-grid">
+          <div class="team-card">
+            <div class="tc-head">
+              <div class="tc-avatar" style="background:var(--green)">CM</div>
+              <div>
+                <div class="tc-name">Carlos Melo</div>
+                <div class="tc-role">Operador Comercial 1</div>
+              </div>
+            </div>
+            <div class="tc-stats">
+              <div class="tc-stat"><div class="tc-stat-val">7</div><div class="tc-stat-lbl">Propostas</div></div>
+              <div class="tc-stat"><div class="tc-stat-val" style="color:var(--green)">5</div><div class="tc-stat-lbl">Aprovadas</div></div>
+              <div class="tc-stat"><div class="tc-stat-val" style="color:var(--brand)">420k</div><div class="tc-stat-lbl">Volume (R$)</div></div>
+              <div class="tc-stat"><div class="tc-stat-val" style="color:var(--amber)">2</div><div class="tc-stat-lbl">Em análise</div></div>
+            </div>
+            <div class="tc-products">
+              <span class="prod-pip pp-cap">CapGiro</span>
+              <span class="prod-pip pp-ant">Antecipação</span>
+            </div>
+          </div>
+          <div class="team-card">
+            <div class="tc-head">
+              <div class="tc-avatar" style="background:var(--teal)">FR</div>
+              <div>
+                <div class="tc-name">Fernanda Rocha</div>
+                <div class="tc-role">Operador Comercial 2</div>
+              </div>
+            </div>
+            <div class="tc-stats">
+              <div class="tc-stat"><div class="tc-stat-val">5</div><div class="tc-stat-lbl">Propostas</div></div>
+              <div class="tc-stat"><div class="tc-stat-val" style="color:var(--green)">3</div><div class="tc-stat-lbl">Aprovadas</div></div>
+              <div class="tc-stat"><div class="tc-stat-val" style="color:var(--brand)">280k</div><div class="tc-stat-lbl">Volume (R$)</div></div>
+              <div class="tc-stat"><div class="tc-stat-val" style="color:var(--amber)">1</div><div class="tc-stat-lbl">Em análise</div></div>
+            </div>
+            <div class="tc-products">
+              <span class="prod-pip pp-cap">CapGiro</span>
+              <span class="prod-pip pp-eme">Emergencial</span>
+            </div>
+          </div>
+          <div class="team-card" style="border-style:dashed;display:flex;align-items:center;justify-content:center;min-height:160px;cursor:pointer" onclick="showToast('Convidar operador em breve','info')">
+            <div style="text-align:center;color:var(--dim)">
+              <div style="font-size:28px;margin-bottom:6px">+</div>
+              <div style="font-size:13px;font-weight:600">Convidar operador</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px">Permissões de Produto por Operador</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Operador</th><th>Capital de Giro</th><th>Crédito Emergencial</th><th>Antecipação de Recebíveis</th><th>Nível de acesso</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><div class="td-op"><div class="td-op-avatar av-s-op1">CM</div>Carlos Melo</div></td>
+                <td><span class="status s-approved">✓ Criar + Ver</span></td>
+                <td><span style="color:var(--dim);font-size:12px">— Sem acesso</span></td>
+                <td><span class="status s-approved">✓ Criar + Ver</span></td>
+                <td><span class="status s-analysis">Restrito</span></td>
+              </tr>
+              <tr>
+                <td><div class="td-op"><div class="td-op-avatar av-s-op2">FR</div>Fernanda Rocha</div></td>
+                <td><span class="status s-approved">✓ Criar + Ver</span></td>
+                <td><span class="status s-approved">✓ Criar + Ver</span></td>
+                <td><span style="color:var(--dim);font-size:12px">— Sem acesso</span></td>
+                <td><span class="status s-analysis">Restrito</span></td>
+              </tr>
+              <tr>
+                <td><div class="td-op"><div class="td-op-avatar av-s-ge">AL</div>Ana Lima (Gerente)</div></td>
+                <td><span class="status s-signed">✓ Criar + Editar + Ver Todos</span></td>
+                <td><span class="status s-signed">✓ Criar + Editar + Ver Todos</span></td>
+                <td><span class="status s-signed">✓ Criar + Editar + Ver Todos</span></td>
+                <td><span class="status s-approved">Gerente</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /main-area -->
+  </div><!-- /app-layout -->
+</div><!-- /appShell -->
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title" id="modalTitle">—</div><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════
+let currentUser = null;
+let currentProduct = 'cap';
+let currentPage = 'dashboard';
+let selectedProfile = null;
+
+const USERS = {
+  gerente:{
+    name:'Ana Lima',initials:'AL',role:'Gerente Comercial',
+    products:['cap','eme','ant'],
+    canViewAll:true,canEdit:true,canManage:true,
+    avatarClass:'av-gerente',roleClass:'role-gerente',roleBadge:'👔 Gerente Comercial',
+    dashSub:'Visão consolidada da sua equipe de 2 operadores'
+  },
+  op1:{
+    name:'Carlos Melo',initials:'CM',role:'Operador Comercial 1',
+    products:['cap','ant'],
+    canViewAll:false,canEdit:false,canManage:false,
+    avatarClass:'av-op1',roleClass:'role-op',roleBadge:'💼 Operador · CapGiro + Antecipação',
+    dashSub:'Propostas criadas por você'
+  },
+  op2:{
+    name:'Fernanda Rocha',initials:'FR',role:'Operador Comercial 2',
+    products:['cap','eme'],
+    canViewAll:false,canEdit:false,canManage:false,
+    avatarClass:'av-op2',roleClass:'role-op',roleBadge:'💼 Operador · CapGiro + Emergencial',
+    dashSub:'Propostas criadas por você'
+  }
+};
+
+const PRODUCTS = {
+  cap:{id:'cap',name:'Capital de Giro',icon:'💼',color:'var(--cap-color)',badgeClass:'badge-cap',tagClass:'pt-cap',maxAmount:300000,label:'CG'},
+  eme:{id:'eme',name:'Crédito Emergencial',icon:'🚨',color:'var(--eme-color)',badgeClass:'badge-eme',tagClass:'pt-eme',maxAmount:50000,label:'CE'},
+  ant:{id:'ant',name:'Antecipação de Recebíveis',icon:'📈',color:'var(--ant-color)',badgeClass:'badge-ant',tagClass:'pt-ant',maxAmount:200000,label:'AR'}
+};
+
+// Mock proposals
+const ALL_PROPOSALS = [
+  {id:'#CG-08341',client:'Distribuidora Paulistana',cnpj:'12.345.678/0001-99',prod:'cap',amount:150000,term:18,parcela:9284,status:'Em análise',op:'op1',date:'18/06/2026'},
+  {id:'#CE-08342',client:'Farmácia Central',cnpj:'98.765.432/0001-11',prod:'eme',amount:35000,term:6,parcela:6100,status:'Aprovado',op:'op2',date:'17/06/2026'},
+  {id:'#AR-08343',client:'TechSupply Ltda',cnpj:'11.222.333/0001-44',prod:'ant',amount:80000,term:12,parcela:7200,status:'Aprovado',op:'op1',date:'17/06/2026'},
+  {id:'#CG-08344',client:'Mercearia São Paulo',cnpj:'55.666.777/0001-88',prod:'cap',amount:60000,term:24,parcela:2990,status:'Rascunho',op:'op2',date:'16/06/2026'},
+  {id:'#CE-08345',client:'Oficina Irmãos Silva',cnpj:'33.444.555/0001-22',prod:'eme',amount:25000,term:3,parcela:8600,status:'Rejeitado',op:'op2',date:'15/06/2026'},
+  {id:'#CG-08346',client:'Padaria do Bairro',cnpj:'77.888.999/0001-66',prod:'cap',amount:45000,term:18,parcela:2780,status:'Desembolsado',op:'op1',date:'14/06/2026'},
+  {id:'#AR-08347',client:'Auto Peças Norte',cnpj:'22.333.444/0001-55',prod:'ant',amount:120000,term:12,parcela:10800,status:'Assinado',op:'op1',date:'13/06/2026'},
+  {id:'#CG-08348',client:'Construções Alfa',cnpj:'44.555.666/0001-77',prod:'cap',amount:200000,term:36,parcela:7200,status:'Em análise',op:'gerente',date:'12/06/2026'},
+  {id:'#CE-08349',client:'Clínica Saúde Já',cnpj:'66.777.888/0001-99',prod:'eme',amount:40000,term:6,parcela:6950,status:'Aprovado',op:'op2',date:'11/06/2026'},
+  {id:'#CG-08350',client:'Restaurante Sabor',cnpj:'88.999.000/0001-11',prod:'cap',amount:75000,term:18,parcela:4630,status:'Aprovado',op:'op1',date:'10/06/2026'},
+  {id:'#AR-08351',client:'Têxtil Brasil',cnpj:'11.100.200/0001-33',prod:'ant',amount:160000,term:24,parcela:7900,status:'Em análise',op:'op1',date:'09/06/2026'},
+  {id:'#CG-08352',client:'Loja Variedades Plus',cnpj:'33.200.300/0001-55',prod:'cap',amount:90000,term:12,parcela:8100,status:'Aprovado',op:'op2',date:'08/06/2026'},
+];
+
+// ══════════════════════════════════════════════════
+// THEME
+// ══════════════════════════════════════════════════
+function setPartner(brand, dark, mark, name, btn) {
+  const r = document.documentElement;
+  const hex2rgba = (h,a) => { const rr=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16); return `rgba(${rr},${g},${b},${a})`; };
+  r.style.setProperty('--brand',brand);
+  r.style.setProperty('--brand-d',dark);
+  r.style.setProperty('--brand-l',hex2rgba(brand,.08));
+  r.style.setProperty('--brand-b',hex2rgba(brand,.2));
+  document.querySelectorAll('.tb-logo-mark,.tb-mark,[id="tb-mark"],[id="ll-mark"]').forEach(el => el && (el.style.background = brand));
+  document.querySelectorAll('[id="ll-mark"],[id="tb-mark"]').forEach(el => {if(el){ el.textContent=mark; el.style.background=brand; }});
+  document.getElementById('ll-name') && (document.getElementById('ll-name').textContent=name);
+  document.getElementById('tb-name') && (document.getElementById('tb-name').textContent=name);
+  document.querySelectorAll('.partner-bar .pb-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ══════════════════════════════════════════════════
+// LOGIN
+// ══════════════════════════════════════════════════
+
+// ── LOGIN MODE ─────────────────────────────────────────────────
+let loginMode = 'own';
+let mfaTimerInterval = null;
+let mfaSeconds = 179;
+let selectedSSOProfile = null;
+let pwVisible = false;
+
+function setLoginMode(mode) {
+  loginMode = mode;
+  document.getElementById('modeOwn').style.display  = mode==='own'  ? 'block' : 'none';
+  document.getElementById('modeSSO').style.display  = mode==='sso'  ? 'block' : 'none';
+  document.getElementById('tabOwn').classList.toggle('active', mode==='own');
+  document.getElementById('tabSSO').classList.toggle('active', mode==='sso');
+}
+
+function togglePwd() {
+  pwVisible = !pwVisible;
+  const inp = document.getElementById('loginPwd');
+  if (inp) inp.type = pwVisible ? 'text' : 'password';
+}
+
+function showForgotPwd() {
+  document.getElementById('ownStep1').innerHTML = `
+    <div class="login-title" style="font-size:19px">Recuperar senha</div>
+    <div class="login-sub">Informe seu e-mail para receber o link de redefinição</div>
+    <div class="lf-group">
+      <div class="lf-label">E-mail corporativo</div>
+      <input class="lf-input" id="fpEmail" type="email" value="ana.lima@parceiro.com.br">
+    </div>
+    <button class="login-btn" onclick="sendReset()">Enviar link de redefinição</button>
+    <div style="text-align:center;margin-top:12px">
+      <a href="#" onclick="location.reload();return false" style="font-size:12px;color:var(--muted);text-decoration:none">← Voltar ao login</a>
+    </div>`;
+}
+function sendReset() {
+  document.getElementById('ownStep1').innerHTML = `
+    <div style="text-align:center;padding:20px 0">
+      <div style="font-size:44px;margin-bottom:10px">✉️</div>
+      <div class="login-title" style="font-size:18px">Link enviado!</div>
+      <div class="login-sub">Verifique seu e-mail corporativo. O link expira em 15 minutos.</div>
+      <button class="login-btn" style="margin-top:18px" onclick="location.reload()">Voltar ao login</button>
+    </div>`;
+}
+
+function selectProfile(id, card) {
+  selectedProfile = id;
+  document.querySelectorAll('#ownStep1 .profile-card').forEach(c=>c.classList.remove('selected'));
+  card.classList.add('selected');
+  const u = USERS[id];
+  const emailEl = document.getElementById('loginEmail');
+  if (emailEl) emailEl.value = u.name.toLowerCase().replace(' ','.') + '@parceiro.com.br';
+  const btn = document.getElementById('loginBtn');
+  if (btn) btn.disabled = false;
+}
+
+function selectSSOProfile(id, card) {
+  selectedSSOProfile = id;
+  document.querySelectorAll('#ssoStep1 .profile-card').forEach(c=>c.classList.remove('selected'));
+  card.classList.add('selected');
+}
+
+// ── OWN LOGIN FLOW ─────────────────────────────────────────────
+function doLogin() {
+  if (!selectedProfile) { showToast('Selecione um perfil','warning'); return; }
+  const email = document.getElementById('loginEmail').value;
+  const pwd   = document.getElementById('loginPwd').value;
+  if (!email || !pwd) { showToast('Preencha e-mail e senha','warning'); return; }
+
+  // go to MFA step
+  document.getElementById('ownStep1').style.display = 'none';
+  document.getElementById('ownStep2').style.display = 'block';
+  const short = email.split('@')[0].slice(0,3) + '***@' + (email.split('@')[1]||'');
+  document.getElementById('mfaEmailDisplay').textContent = email;
+  startMFATimer();
+  setTimeout(() => { const d=document.getElementById('d0'); if(d)d.focus(); }, 100);
+}
+
+function backToStep1() {
+  clearInterval(mfaTimerInterval);
+  document.getElementById('ownStep1').style.display = 'block';
+  document.getElementById('ownStep2').style.display = 'none';
+  [0,1,2,3,4,5].forEach(i => { const d=document.getElementById('d'+i); if(d)d.value=''; });
+  const btn = document.getElementById('mfaBtn'); if(btn) btn.disabled=true;
+}
+
+function startMFATimer() {
+  mfaSeconds = 179;
+  clearInterval(mfaTimerInterval);
+  mfaTimerInterval = setInterval(() => {
+    mfaSeconds--;
+    const m = Math.floor(mfaSeconds/60);
+    const s = mfaSeconds % 60;
+    const el = document.getElementById('mfaCountdown');
+    if (el) el.textContent = m + ':' + String(s).padStart(2,'0');
+    if (mfaSeconds <= 0) { clearInterval(mfaTimerInterval); if(el) el.textContent='Expirado'; }
+  }, 1000);
+}
+
+function mfaNext(i) {
+  const val = document.getElementById('d'+i).value;
+  if (val && i < 5) document.getElementById('d'+(i+1)).focus();
+  const code = [0,1,2,3,4,5].map(n=>document.getElementById('d'+n).value).join('');
+  const btn = document.getElementById('mfaBtn'); if(btn) btn.disabled = code.length < 6;
+}
+
+function mfaBack(e, i) {
+  if (e.key==='Backspace' && !document.getElementById('d'+i).value && i>0)
+    document.getElementById('d'+(i-1)).focus();
+}
+
+function resendMFA() {
+  [0,1,2,3,4,5].forEach(i=>{const d=document.getElementById('d'+i);if(d)d.value='';});
+  const btn=document.getElementById('mfaBtn'); if(btn)btn.disabled=true;
+  startMFATimer();
+  showToast('Novo código enviado por SMS','info');
+  setTimeout(()=>{const d=document.getElementById('d0');if(d)d.focus();},100);
+}
+
+function doMFA() {
+  clearInterval(mfaTimerInterval);
+  document.getElementById('ownStep2').style.display = 'none';
+  document.getElementById('ownStep3').style.display = 'block';
+  const msgs = ['Validando credenciais e carregando perfil','Verificando permissões de produto','Inicializando portal...'];
+  let mi = 0;
+  const msgEl = document.getElementById('loadingMsg');
+  const mi_int = setInterval(() => { if(msgEl && mi<msgs.length) msgEl.textContent=msgs[mi++]; }, 500);
+  setTimeout(() => { clearInterval(mi_int); enterApp(); }, 1700);
+}
+
+// ── SSO FLOW ───────────────────────────────────────────────────
+function doSSO(provider, name) {
+  if (!selectedSSOProfile) { showToast('Selecione um perfil antes de continuar','warning'); return; }
+  selectedProfile = selectedSSOProfile;
+
+  document.getElementById('ssoStep1').style.display = 'none';
+  document.getElementById('ssoStep2').style.display = 'block';
+
+  const icons = {microsoft:'🏢',google:'📧',okta:'🔑',adfs:'🖥'};
+  const labels = {
+    microsoft:'Autenticando no Azure AD (Entra ID)...',
+    google:   'Autenticando no Google Workspace...',
+    okta:     'Autenticando via Okta OIDC...',
+    adfs:     'Autenticando via ADFS / SAML 2.0...',
+  };
+  document.getElementById('ssoProvIcon').textContent  = icons[provider]||'🏢';
+  document.getElementById('ssoProvTitle').textContent = 'Redirecionando para ' + name + '...';
+  const s2l = document.getElementById('sso-s2-lbl');
+  if (s2l) s2l.textContent = labels[provider]||'Autenticando...';
+
+  const advance = (stepId, iconId, cls, txt) => {
+    const si = document.getElementById(iconId);
+    if (si) { si.className='sso-step-icon '+cls; si.textContent=txt; }
+  };
+  setTimeout(()=>{ advance('sso-s2','sso-s2-icon','sso-done','✓'); advance('sso-s3','sso-s3-icon','sso-spin','↻'); }, 1200);
+  setTimeout(()=>{ advance('sso-s3','sso-s3-icon','sso-done','✓'); advance('sso-s4','sso-s4-icon','sso-spin','↻'); }, 2200);
+  setTimeout(()=>{ advance('sso-s4','sso-s4-icon','sso-done','✓'); }, 3100);
+  setTimeout(()=>enterApp(), 3700);
+}
+
+function cancelSSO() {
+  document.getElementById('ssoStep1').style.display = 'block';
+  document.getElementById('ssoStep2').style.display = 'none';
+  ['sso-s2-icon','sso-s3-icon','sso-s4-icon'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.className='sso-step-icon sso-wait';el.textContent='○';}
+  });
+}
+
+function enterApp() {
+  currentUser = USERS[selectedProfile];
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appShell').classList.add('show');
+  setupApp();
+  showToast('Bem-vindo(a), ' + currentUser.name.split(' ')[0] + '!', 'success');
+}
+
+function doLogout() {
+  currentUser = null;
+  selectedProfile = null;
+  selectedSSOProfile = null;
+  clearInterval(mfaTimerInterval);
+
+  // oculta app, mostra login
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('appShell').classList.remove('show');
+
+  // reseta seleção de perfil
+  document.querySelectorAll('.profile-card').forEach(c => c.classList.remove('selected'));
+  const btn = document.getElementById('loginBtn');
+  if (btn) btn.disabled = true;
+
+  // reseta fluxo de login para estado inicial
+  setLoginMode('own');
+  const s1 = document.getElementById('ownStep1'); if (s1) s1.style.display = 'block';
+  const s2 = document.getElementById('ownStep2'); if (s2) s2.style.display = 'none';
+  const s3 = document.getElementById('ownStep3'); if (s3) s3.style.display = 'none';
+  const ss1 = document.getElementById('ssoStep1'); if (ss1) ss1.style.display = 'block';
+  const ss2 = document.getElementById('ssoStep2'); if (ss2) ss2.style.display = 'none';
+
+  // limpa dígitos do MFA
+  [0,1,2,3,4,5].forEach(i => {
+    const d = document.getElementById('d'+i);
+    if (d) d.value = '';
+  });
+
+  // reseta ícones SSO
+  ['sso-s2-icon','sso-s3-icon','sso-s4-icon'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.className = 'sso-step-icon sso-wait'; el.textContent = '○'; }
+  });
+}
+
+// ══════════════════════════════════════════════════
+// APP SETUP
+// ══════════════════════════════════════════════════
+function setupApp() {
+  const u = currentUser;
+  // topbar
+  document.getElementById('tbAvatar').textContent = u.initials;
+  document.getElementById('tbAvatar').className = 'tb-avatar ' + u.avatarClass;
+  document.getElementById('tbUserName').textContent = u.name;
+  document.getElementById('tbUserSub').textContent = u.role;
+  document.getElementById('tbRoleBadge').textContent = u.roleBadge;
+  document.getElementById('tbRoleBadge').className = 'tb-role-badge ' + u.roleClass;
+
+  // gerente-only items
+  const isGerente = u.canManage;
+  document.querySelectorAll('.gerente-only').forEach(el => el.style.display = isGerente ? '' : 'none');
+  document.getElementById('opFilter').style.display = isGerente ? '' : 'none';
+
+  // locked sidebar products
+  setupSidebarProducts();
+
+  // render pages
+  renderDashboard();
+  renderProposalsTable(getVisibleProposals());
+  renderProductTabs('prodTabs', false);
+  renderProductTabs('newProdTabs', true);
+  resetWizard('cap');
+  showPage('dashboard', null);
+}
+
+function setupSidebarProducts() {
+  const u = currentUser;
+  ['cap','eme','ant'].forEach(p => {
+    const el = document.getElementById('sb-'+p);
+    if (!el) return;
+    if (!u.products.includes(p)) {
+      el.style.opacity = '.4';
+      el.style.cursor = 'not-allowed';
+      el.onclick = () => showToast('Você não tem acesso a este produto','warning');
+      const badge = document.getElementById('sb-'+p+'-badge');
+      if (badge) badge.textContent = '🔒';
+    }
+  });
+}
+
+function sbProduct(p) {
+  if (!currentUser.products.includes(p)) { showToast('Sem permissão para este produto','warning'); return; }
+  showPage('nova',null); setProduct(p);
+}
+
+// ══════════════════════════════════════════════════
+// DATA HELPERS
+// ══════════════════════════════════════════════════
+function getVisibleProposals(prod) {
+  const u = currentUser;
+  let props = ALL_PROPOSALS;
+  if (!u.canViewAll) props = props.filter(p => p.op === currentProfileKey());
+  if (prod && prod !== 'all') props = props.filter(p => p.prod === prod);
+  return props;
+}
+
+function currentProfileKey() {
+  return Object.keys(USERS).find(k => USERS[k] === currentUser);
+}
+
+// ══════════════════════════════════════════════════
+// RENDER DASHBOARD
+// ══════════════════════════════════════════════════
+function renderDashboard() {
+  const u = currentUser;
+  document.getElementById('dash-title').textContent = 'Bem-vindo(a), ' + u.name.split(' ')[0];
+  document.getElementById('dash-sub').textContent = u.dashSub;
+
+  const props = getVisibleProposals();
+  const total = props.length;
+  const volume = props.reduce((a,p)=>a+p.amount,0);
+  const aprovados = props.filter(p=>p.status==='Aprovado'||p.status==='Desembolsado').length;
+  const emAnalise = props.filter(p=>p.status==='Em análise').length;
+
+  document.getElementById('dashStats').innerHTML = `
+    <div class="stat-card"><div class="sc-label">Total de Propostas</div><div class="sc-val">${total}</div><div class="sc-sub">${u.canViewAll?'Toda a equipe':'Suas propostas'}</div></div>
+    <div class="stat-card"><div class="sc-label">Em Análise</div><div class="sc-val" style="color:var(--amber)">${emAnalise}</div><div class="sc-sub">Aguardando decisão</div></div>
+    <div class="stat-card"><div class="sc-label">Aprovadas</div><div class="sc-val" style="color:var(--green)">${aprovados}</div><div class="sc-trend trend-up">↑ ${Math.round(aprovados/total*100)}% de aprovação</div></div>
+    <div class="stat-card"><div class="sc-label">Volume Total</div><div class="sc-val" style="color:var(--brand)">R$ ${(volume/1000).toFixed(0)}k</div><div class="sc-sub">Capital solicitado</div></div>
+    ${u.canViewAll?'<div class="stat-card"><div class="sc-label">Operadores Ativos</div><div class="sc-val">2</div><div class="sc-sub">Carlos + Fernanda</div></div>':''}
+  `;
+
+  if (u.canManage) {
+    document.getElementById('dashTeamSection').style.display = 'block';
+    document.getElementById('dashTeamGrid').innerHTML = `
+      <div class="team-card" onclick="showPage('equipe',null)">
+        <div class="tc-head"><div class="tc-avatar" style="background:var(--green)">CM</div><div><div class="tc-name">Carlos Melo</div><div class="tc-role">Operador 1</div></div></div>
+        <div class="tc-stats">
+          <div class="tc-stat"><div class="tc-stat-val">7</div><div class="tc-stat-lbl">Propostas</div></div>
+          <div class="tc-stat"><div class="tc-stat-val" style="color:var(--green)">5</div><div class="tc-stat-lbl">Aprovadas</div></div>
+        </div>
+        <div class="tc-products" style="margin-top:8px"><span class="prod-pip pp-cap">CapGiro</span><span class="prod-pip pp-ant">Antecipação</span></div>
+      </div>
+      <div class="team-card" onclick="showPage('equipe',null)">
+        <div class="tc-head"><div class="tc-avatar" style="background:var(--teal)">FR</div><div><div class="tc-name">Fernanda Rocha</div><div class="tc-role">Operador 2</div></div></div>
+        <div class="tc-stats">
+          <div class="tc-stat"><div class="tc-stat-val">5</div><div class="tc-stat-lbl">Propostas</div></div>
+          <div class="tc-stat"><div class="tc-stat-val" style="color:var(--green)">3</div><div class="tc-stat-lbl">Aprovadas</div></div>
+        </div>
+        <div class="tc-products" style="margin-top:8px"><span class="prod-pip pp-cap">CapGiro</span><span class="prod-pip pp-eme">Emergencial</span></div>
+      </div>`;
+  }
+
+  renderTable('dashTable', props.slice(0,6), false);
+}
+
+// ══════════════════════════════════════════════════
+// RENDER TABLE
+// ══════════════════════════════════════════════════
+function statusClass(s){
+  const m={'Em análise':'s-analysis','Aprovado':'s-approved','Rejeitado':'s-rejected','Rascunho':'s-draft','Assinado':'s-signed','Desembolsado':'s-disbursed'};
+  return m[s]||'s-draft';
+}
+function opName(op){const m={op1:'Carlos Melo',op2:'Fernanda Rocha',gerente:'Ana Lima'};return m[op]||op}
+function opAv(op){const m={op1:'CM',op2:'FR',gerente:'AL'};return m[op]||'?'}
+function opAvClass(op){const m={op1:'av-s-op1',op2:'av-s-op2',gerente:'av-s-ge'};return m[op]||''}
+
+function renderTable(id, rows, showOp) {
+  const u = currentUser;
+  const showOpCol = showOp && u.canViewAll;
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (!rows.length) {
+    el.innerHTML = `<tbody><tr><td colspan="8"><div class="empty-state"><div class="es-icon">📋</div><div class="es-title">Nenhuma proposta encontrada</div><div class="es-sub">Crie uma nova proposta para começar</div></div></td></tr></tbody>`;
+    return;
+  }
+  el.innerHTML = `<thead><tr>
+    <th>ID</th><th>Cliente</th><th>Produto</th><th>Valor</th><th>Parcela</th>
+    ${showOpCol?'<th>Operador</th>':''}
+    <th>Status</th><th>Data</th><th>Ações</th>
+  </tr></thead><tbody>
+  ${rows.map(p=>`<tr>
+    <td><span class="td-id">${p.id}</span></td>
+    <td><div class="td-client">${p.client}</div><div class="td-cnpj">${p.cnpj}</div></td>
+    <td><span class="prod-tag ${PRODUCTS[p.prod].tagClass}">${PRODUCTS[p.prod].icon} ${PRODUCTS[p.prod].label}</span></td>
+    <td><span class="td-amount">R$ ${fmtN(p.amount)}</span></td>
+    <td><span class="td-amount" style="font-size:12px">R$ ${fmtN(p.parcela)}</span><div style="font-size:10px;color:var(--dim)">${p.term}x</div></td>
+    ${showOpCol?`<td><div class="td-op"><div class="td-op-avatar ${opAvClass(p.op)}">${opAv(p.op)}</div><span>${opName(p.op)}</span></div></td>`:''}
+    <td><span class="status ${statusClass(p.status)}">${p.status}</span></td>
+    <td><span style="font-size:11.5px;color:var(--muted)">${p.date}</span></td>
+    <td><div class="td-actions">
+      <button class="act-btn" onclick="viewProp('${p.id}')">Ver</button>
+      ${canEdit(p)?`<button class="act-btn edit" onclick="editProp('${p.id}')">Editar</button>`:''}
+      ${u.canManage?`<button class="act-btn danger" onclick="cancelProp('${p.id}')">Cancelar</button>`:''}
+    </div></td>
+  </tr>`).join('')}
+  </tbody>`;
+}
+
+function canEdit(p) {
+  const u = currentUser;
+  if (u.canEdit) return true;
+  return p.op === currentProfileKey() && p.status === 'Rascunho';
+}
+
+function renderProposalsTable(rows) {
+  renderTable('proposalsTable', rows, true);
+  document.getElementById('tableCount').textContent = rows.length + ' proposta' + (rows.length!==1?'s':'');
+}
+
+// ══════════════════════════════════════════════════
+// PRODUCT TABS
+// ══════════════════════════════════════════════════
+function renderProductTabs(containerId, forNew) {
+  const u = currentUser;
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = Object.values(PRODUCTS).map(p => {
+    const hasAccess = u.products.includes(p.id);
+    const isActive = p.id === currentProduct;
+    const locked = !hasAccess ? 'locked' : '';
+    const activeClass = isActive && hasAccess ? 'active' : '';
+    const lockIcon = !hasAccess ? '<span class="lock-icon">🔒</span>' : '';
+    const onclick = hasAccess ? (forNew ? `setProduct('${p.id}')` : `filterByProduct('${p.id}')`) : `showToast('Sem permissão para ${p.name}','warning')`;
+    return `<div class="prod-tab ${p.id} ${activeClass} ${locked}" onclick="${onclick}">
+      <span class="pt-icon">${p.icon}</span>
+      <span>${p.name}</span>
+      <span class="pt-badge ${p.badgeClass}">${p.label}</span>
+      ${lockIcon}
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════
+// NOVA PROPOSTA FORM
+// ══════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════
+// WIZARD STATE (per product config)
+// ══════════════════════════════════════════════════
+let wizStep = 1;
+let wizMaxStep = 1;
+let wizPrazo = 18;
+let wizCarencia = 30;
+let wizModalidade = 'pre';
+let wizConfirmChecked = false;
+let wizDocsCount = 3;
+let wizDocsTotal = 8;
+
+const WIZ_CFG = {
+  cap:{ taxa:1.24, minA:10000, maxA:300000, defaultA:150000, terms:[6,12,18,24,36], defaultTerm:18, graces:[0,30,60,90],
+        purposes:['Capital de giro operacional','Compra de estoque','Pagamento de fornecedores','Folha de pagamento','Expansão operacional'],
+        hint:'Capital de Giro para necessidades operacionais do negócio.' },
+  eme:{ taxa:1.45, minA:5000,  maxA:50000,  defaultA:30000,  terms:[3,6,12], defaultTerm:6, graces:[0,30],
+        purposes:['Emergência operacional','Pagamento urgente de fornecedor','Cobertura de fluxo de caixa'],
+        hint:'Crédito Emergencial para situações urgentes. Resposta em até 2 horas.' },
+  ant:{ taxa:1.09, minA:10000, maxA:200000, defaultA:80000,  terms:[1,3,6,12], defaultTerm:12, graces:[0],
+        purposes:['Antecipação de duplicatas','Antecipação de cartão','Antecipação de NF'],
+        hint:'Antecipação de Recebíveis: receba agora o que seus clientes pagarão no futuro.' },
+};
+
+function setProduct(p) {
+  if (!currentUser.products.includes(p)) { showToast('Sem permissão para este produto','warning'); return; }
+  currentProduct = p;
+  renderProductTabs('newProdTabs', true);
+  resetWizard(p);
+}
+
+function filterByProduct(p) {
+  currentProduct = p;
+  renderProductTabs('prodTabs', false);
+  renderProposalsTable(getVisibleProposals(p));
+}
+
+function resetWizard(p) {
+  wizStep = 1; wizMaxStep = 1;
+  const cfg = WIZ_CFG[p];
+  wizPrazo = cfg.defaultTerm;
+  wizCarencia = cfg.graces.includes(30) ? 30 : cfg.graces[0];
+  wizModalidade = 'pre';
+  wizConfirmChecked = false;
+  wizDocsCount = 3;
+  renderNovaForm(p);
+}
+
+// ══════════════════════════════════════════════════
+// RENDER WIZARD SHELL (sidebar + steps)
+// ══════════════════════════════════════════════════
+function renderNovaForm(p) {
+  const prod = PRODUCTS[p];
+  const cfg  = WIZ_CFG[p];
+  const el   = document.getElementById('novaFormArea');
+  if (!el) return;
+
+  const stepDefs = [
+    {n:1,name:'Dados do Cliente',sub:'CNPJ + consulta cadastral'},
+    {n:2,name:'Simulação',sub:'Valor, prazo e condições'},
+    {n:3,name:'Garantias',sub:'Avalistas e colaterais'},
+    {n:4,name:'Documentação',sub:'Docs obrigatórios'},
+    {n:5,name:'Revisão & Envio',sub:'Proposta para análise'},
+  ];
+
+  el.innerHTML = `
+  <div class="wiz-layout" style="--prod-color:${prod.color}">
+    <div class="wiz-sidebar">
+      <div class="wiz-sidebar-header">
+        <div class="wiz-sh-label">${prod.icon} ${prod.name}</div>
+        <div class="wiz-sh-title">Nova Proposta</div>
+      </div>
+      ${stepDefs.map((s,i) => `
+        <div class="wiz-step ${s.n===wizStep?'active':(s.n<wizStep||s.n<=wizMaxStep-1)?'done':''}" id="wstep-${s.n}" onclick="wizGoStep(${s.n},'${p}')">
+          <div class="wiz-step-num">${(s.n<wizStep||s.n<=wizMaxStep-1)&&s.n!==wizStep?'✓':s.n}</div>
+          <div class="wiz-step-info">
+            <div class="wiz-step-name">${s.name}</div>
+            <div class="wiz-step-sub">${s.sub}</div>
+          </div>
+        </div>
+        ${s.n===4?'<div class="wiz-divider"></div>':''}
+      `).join('')}
+      <div style="flex:1"></div>
+      <div style="padding:11px 14px;border-top:1px solid var(--border)">
+        <div style="font-size:9.5px;color:var(--dim);margin-bottom:5px">Proposta em rascunho</div>
+        <div style="font-family:var(--mono);font-size:10.5px;font-weight:600;color:var(--muted)">#${prod.label}-DRAFT</div>
+      </div>
+    </div>
+    <div class="wiz-main" id="wizMainArea"></div>
+  </div>`;
+
+  renderWizPanel(p);
+}
+
+function wizGoStep(n, p) {
+  wizStep = n;
+  if (n > wizMaxStep) wizMaxStep = n;
+  renderNovaForm(p);
+}
+
+function wizNext(p) {
+  if (wizStep === 5) {
+    if (!wizConfirmChecked) { showToast('Marque a confirmação para continuar','warning'); return; }
+    wizShowSubmitModal(p);
+    return;
+  }
+  if (wizStep < 5) {
+    wizStep++;
+    if (wizStep > wizMaxStep) wizMaxStep = wizStep;
+    renderNovaForm(p);
+  }
+}
+function wizPrev(p) {
+  if (wizStep > 1) { wizStep--; renderNovaForm(p); }
+}
+
+// ══════════════════════════════════════════════════
+// RENDER EACH PANEL CONTENT
+// ══════════════════════════════════════════════════
+function renderWizPanel(p) {
+  const prod = PRODUCTS[p];
+  const cfg  = WIZ_CFG[p];
+  const area = document.getElementById('wizMainArea');
+  if (!area) return;
+
+  const hdrs = {
+    1:{tag:'Etapa 1 de 5',title:'Dados do Cliente',desc:'Identifique o tomador do crédito e consulte o cadastro',badge:wizMaxStep>1?'<span class="wiz-badge" style="background:var(--gg);color:var(--green)">Etapa concluída ✓</span>':''},
+    2:{tag:'Etapa 2 de 5',title:'Simulação de Crédito',desc:`Configure as condições do ${prod.name}`,badge:`<span class="wiz-badge" style="background:${prod.color}15;color:${prod.color}">Em configuração</span>`},
+    3:{tag:'Etapa 3 de 5',title:'Garantias e Avalistas',desc:'Para o valor solicitado é necessário ao menos um avalista PF',badge:''},
+    4:{tag:'Etapa 4 de 5',title:'Documentação',desc:'Anexe os documentos obrigatórios (PDF, JPG, PNG · máx. 10MB)',badge:`<span class="wiz-badge" style="background:var(--ag);color:var(--amber)">${wizDocsCount} de ${wizDocsTotal} enviados</span>`},
+    5:{tag:'Etapa 5 de 5',title:'Revisão e Envio',desc:'Confirme os dados antes de enviar para análise de crédito',badge:'<span class="wiz-badge" style="background:var(--gg);color:var(--green)">✓ Pronta para envio</span>'},
+  };
+  const h = hdrs[wizStep];
+
+  let bodyHtml = '';
+  if (wizStep===1) bodyHtml = wizPanel1(p, prod, cfg);
+  if (wizStep===2) bodyHtml = wizPanel2(p, prod, cfg);
+  if (wizStep===3) bodyHtml = wizPanel3(p, prod, cfg);
+  if (wizStep===4) bodyHtml = wizPanel4(p, prod, cfg);
+  if (wizStep===5) bodyHtml = wizPanel5(p, prod, cfg);
+
+  const hints = {1:'Preencha os dados do cliente e consulte o CNPJ',2:'Configure o valor e prazo da operação',3:'Adicione ao menos um avalista',4:'Envie todos os documentos obrigatórios',5:'Confirme os dados e envie para análise'};
+  const nextLabels = {1:'Continuar → Simulação',2:'Continuar → Garantias',3:'Continuar → Documentação',4:'Continuar → Revisão',5:'Enviar para Análise →'};
+
+  area.innerHTML = `
+    <div class="wiz-hdr">
+      <div>
+        <div class="wiz-tag">${h.tag}</div>
+        <div class="wiz-title">${h.title}</div>
+        <div class="wiz-desc">${h.desc}</div>
+      </div>
+      ${h.badge}
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:14px">${bodyHtml}</div>
+    <div class="wiz-navbar">
+      <button class="wiz-back" onclick="wizPrev('${p}')" style="${wizStep===1?'opacity:0;pointer-events:none':''}">← Voltar</button>
+      <div class="wiz-spacer"></div>
+      <span class="wiz-hint">${hints[wizStep]}</span>
+      <button class="wiz-next" onclick="wizNext('${p}')" style="${wizStep===5?'background:var(--green)':''}">${nextLabels[wizStep]}</button>
+    </div>
+  `;
+
+  if (wizStep===2) wizUpdateSim(p);
+  if (wizStep===5) wizUpdateSim(p);
+}
+
+// ── PANEL 1: DADOS DO CLIENTE ──────────────────────
+function wizPanel1(p, prod, cfg) {
+  return `
+  <div class="card">
+    <div class="card-head"><div class="card-head-title">Consulta Cadastral</div><span class="status s-approved">✓ Cadastro Ativo</span></div>
+    <div class="card-body">
+      <div style="margin-bottom:13px">
+        <div class="field-label" style="margin-bottom:6px">CNPJ do Tomador<span class="field-req">*</span></div>
+        <div class="wcl-lookup">
+          <div class="wcl-row">
+            <span class="wcl-prefix">CNPJ</span>
+            <input class="wcl-input" id="wcnpj_${p}" value="12.345.678/0001-99" placeholder="00.000.000/0000-00" oninput="wizLookupCNPJ(this.value,'${p}')">
+            <button class="wcl-btn">🔍 Consultar</button>
+          </div>
+          <div class="wcl-result">
+            <div class="wcl-result-icon">🏢</div>
+            <div style="flex:1">
+              <div class="wcl-result-name" id="wclientname_${p}">Distribuidora Paulistana Ltda.</div>
+              <div class="wcl-result-meta">CNPJ 12.345.678/0001-99 · Ativa desde 2009 · SP</div>
+              <div style="font-size:10.5px;color:var(--muted);margin-top:2px">Atacado de alimentos · 38 funcionários · Faturamento R$ 4,2M/ano</div>
+            </div>
+            <div class="wcl-result-score">
+              <div class="wcl-result-score-val">A+</div>
+              <div class="wcl-result-score-lbl">Rating</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="field"><div class="field-label">Representante Legal<span class="field-req">*</span></div><input class="field-input" value="Carlos Henrique Souza"></div>
+        <div class="field"><div class="field-label">CPF do Representante<span class="field-req">*</span></div><input class="field-input" value="523.841.290-07" style="font-family:var(--mono)"></div>
+        <div class="field"><div class="field-label">E-mail para proposta<span class="field-req">*</span></div><input class="field-input" type="email" value="carlos@distpaulistana.com.br"></div>
+        <div class="field"><div class="field-label">Telefone<span class="field-req">*</span></div><input class="field-input" value="(11) 98847-2310"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-head-title">Finalidade do Crédito</div></div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="field form-full">
+          <div class="field-label">Destino dos Recursos<span class="field-req">*</span></div>
+          <select class="field-select">${cfg.purposes.map(f=>`<option>${f}</option>`).join('')}</select>
+        </div>
+        <div class="field">
+          <div class="field-label">Urgência</div>
+          <select class="field-select"><option>Normal (5–7 dias úteis)</option><option selected>Rápido (2–3 dias úteis)</option><option>Urgente (24h) — taxa adicional</option></select>
+        </div>
+        <div class="field">
+          <div class="field-label">Observações</div>
+          <input class="field-input" value="Cliente há 3 anos na carteira. Bom histórico.">
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function wizLookupCNPJ(val, p) {
+  if (val.replace(/\D/g,'').length >= 14) {
+    showToast('CNPJ consultado com sucesso','success');
+  }
+}
+
+// ── PANEL 2: SIMULAÇÃO ─────────────────────────────
+function wizPanel2(p, prod, cfg) {
+  return `
+  <div class="info-box">
+    <span>ℹ️</span><span>Limite pré-aprovado: <strong>R$ ${fmtN(cfg.maxA)}</strong>. Rating A+ · Score 82/100. ${cfg.hint}</span>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-head-title">Configuração da Operação</div><div class="card-head-sub" style="font-size:11px;color:var(--muted)">Resultado em tempo real</div></div>
+    <div class="wsim">
+      <div class="wsim-left">
+        <div class="wsim-field">
+          <div class="wsim-label">Valor do Crédito <span class="wsim-label-val" id="wvalorLabel_${p}">R$ ${fmtN(cfg.defaultA)}</span></div>
+          <input type="range" class="wsim-slider" id="wvalorSlider_${p}" min="${cfg.minA}" max="${cfg.maxA}" value="${cfg.defaultA}" step="${Math.max(1000,Math.round(cfg.maxA/100))}" oninput="wizUpdateSim('${p}')">
+          <div class="wsim-slider-range"><span>R$ ${fmtN(cfg.minA)}</span><span>R$ ${fmtN(cfg.maxA)}</span></div>
+        </div>
+        <div class="wsim-field">
+          <div class="wsim-label">Prazo de Pagamento <span class="wsim-label-val" id="wprazoLabel_${p}">${wizPrazo} meses</span></div>
+          <div class="wsim-toggle-group" id="wprazoGroup_${p}">
+            ${cfg.terms.map(t=>`<button class="wsim-toggle ${t===wizPrazo?'active':''}" onclick="wizSetPrazo(${t},'${p}')">${t}x</button>`).join('')}
+          </div>
+        </div>
+        <div class="wsim-field">
+          <div class="wsim-label">Carência <span class="wsim-label-val" id="wcarenciaLabel_${p}">${wizCarencia===0?'Sem carência':wizCarencia+' dias'}</span></div>
+          <div class="wsim-toggle-group">
+            ${cfg.graces.map(g=>`<button class="wsim-toggle ${g===wizCarencia?'active':''}" onclick="wizSetCarencia(${g},'${p}',this)">${g===0?'Sem':g+'d'}</button>`).join('')}
+          </div>
+        </div>
+        <div class="wsim-field">
+          <div class="wsim-label">Modalidade de Taxa</div>
+          <div class="wsim-toggle-group">
+            <button class="wsim-toggle ${wizModalidade==='pre'?'active':''}" onclick="wizSetModalidade('pre','${p}',this)">Pré-fixada</button>
+            <button class="wsim-toggle ${wizModalidade==='pos'?'active':''}" onclick="wizSetModalidade('pos','${p}',this)">CDI + spread</button>
+          </div>
+        </div>
+        <hr class="div" style="margin:10px 0">
+        <div class="wrisk">
+          <div class="wrisk-label">Régua de Risco da Operação <span id="wriskChip_${p}" class="wrisk-chip" style="background:var(--gg);color:var(--green)">Baixo Risco</span></div>
+          <div class="wrisk-track"><div class="wrisk-needle" id="wriskNeedle_${p}" style="left:20%"></div></div>
+          <div class="wrisk-labels"><span>Baixo</span><span>Moderado</span><span>Elevado</span><span>Crítico</span></div>
+        </div>
+      </div>
+      <div class="wsim-divider"></div>
+      <div class="wsim-right">
+        <div style="font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:9px">Resultado da Simulação</div>
+        <div class="wresult">
+          <div class="wresult-head"><span>${prod.name}</span><span id="wrcModal_${p}" style="font-size:10.5px;opacity:.85">Pré-fixado</span></div>
+          <div class="wresult-body">
+            <div class="wresult-row"><span class="wresult-key">Valor solicitado</span><span class="wresult-val hl" id="wrc_valor_${p}">—</span></div>
+            <div class="wresult-row"><span class="wresult-key">Taxa mensal</span><span class="wresult-val" id="wrc_taxa_${p}">—</span></div>
+            <div class="wresult-row"><span class="wresult-key">Taxa anual efetiva</span><span class="wresult-val" id="wrc_taxaAnual_${p}">—</span></div>
+            <div class="wresult-row"><span class="wresult-key">Prazo</span><span class="wresult-val" id="wrc_prazo_${p}">—</span></div>
+            <div class="wresult-row"><span class="wresult-key">Carência</span><span class="wresult-val" id="wrc_carencia_${p}">—</span></div>
+            <div class="wresult-row"><span class="wresult-key">Parcela mensal</span><span class="wresult-val hl" id="wrc_parcela_${p}">—</span></div>
+            <div class="wresult-row"><span class="wresult-key">Total de juros</span><span class="wresult-val" id="wrc_juros_${p}">—</span></div>
+            <div class="wresult-row"><span class="wresult-key">CET</span><span class="wresult-val" id="wrc_cet_${p}">—</span></div>
+            <div class="wresult-row"><span class="wresult-key">1ª Parcela em</span><span class="wresult-val gr" id="wrc_primeira_${p}">—</span></div>
+          </div>
+        </div>
+        <button class="wapprove-btn" onclick="wizNext('${p}')">Avançar com esta simulação →</button>
+        <button class="wsave-btn" onclick="showToast('Rascunho salvo com sucesso','success')">Salvar rascunho</button>
+        <div style="margin-top:9px;padding:7px;background:var(--surface);border-radius:var(--radius);font-size:10px;color:var(--muted);text-align:center;border:1px solid var(--border)">Simulação válida por 24h · Sujeita à aprovação</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function wizSetPrazo(t,p) { wizPrazo=t; renderWizPanel(p); }
+function wizSetCarencia(c,p,btn) { wizCarencia=c; renderWizPanel(p); }
+function wizSetModalidade(m,p,btn) { wizModalidade=m; renderWizPanel(p); }
+
+function wizUpdateSim(p) {
+  const cfg = WIZ_CFG[p];
+  const slider = document.getElementById('wvalorSlider_'+p);
+  const val = slider ? parseInt(slider.value) : cfg.defaultA;
+  if (slider) {
+    const pct = ((val-cfg.minA)/(cfg.maxA-cfg.minA))*100;
+    slider.style.setProperty('--pct', pct+'%');
+  }
+  const setLbl = id => { const e=document.getElementById(id+'_'+p); return v=>{if(e)e.textContent=v;}; };
+  setLbl('wvalorLabel')('R$ '+fmtN(val));
+
+  let taxa = cfg.taxa;
+  if (wizPrazo <= 6) taxa -= 0.08;
+  if (wizPrazo >= 24) taxa += 0.08;
+  if (wizModalidade==='pos') taxa = taxa*0.5;
+
+  const i = taxa/100, n = wizPrazo;
+  const pmt = val*(i*Math.pow(1+i,n))/(Math.pow(1+i,n)-1);
+  const juros = pmt*n - val;
+  const taxaAnual = ((Math.pow(1+i,12)-1)*100).toFixed(2);
+  const cet = (parseFloat(taxaAnual)+1.8).toFixed(1);
+
+  const fd = new Date(); fd.setDate(18); fd.setMonth(fd.getMonth()+(wizCarencia>0?2:1));
+  const dateStr = fd.toLocaleDateString('pt-BR');
+
+  setLbl('wrc_valor')('R$ '+fmtN(val));
+  setLbl('wrc_taxa')((wizModalidade==='pos'?'CDI + ':'')+taxa.toFixed(2)+'% a.m.');
+  setLbl('wrc_taxaAnual')((wizModalidade==='pos'?'CDI + '+(taxa*12).toFixed(1):taxaAnual)+'% a.a.');
+  setLbl('wrc_prazo')(wizPrazo+' meses');
+  setLbl('wrc_carencia')(wizCarencia===0?'Sem carência':wizCarencia+' dias');
+  setLbl('wrc_parcela')('R$ '+fmtN(Math.round(pmt)));
+  setLbl('wrc_juros')('R$ '+fmtN(Math.round(juros)));
+  setLbl('wrc_cet')(cet+'% a.a.');
+  setLbl('wrc_primeira')(dateStr);
+  const modalEl = document.getElementById('wrcModal_'+p); if(modalEl) modalEl.textContent = wizModalidade==='pre'?'Pré-fixado':'CDI + Spread';
+
+  // risk gauge
+  const riskPct = Math.min(85,(val/cfg.maxA)*50+(wizPrazo/36)*30+(wizModalidade==='pos'?5:0));
+  const needle = document.getElementById('wriskNeedle_'+p); if(needle) needle.style.left=riskPct+'%';
+  const chip = document.getElementById('wriskChip_'+p);
+  if (chip) {
+    let lbl,bg,col;
+    if(riskPct<25){lbl='Baixo Risco';bg='var(--gg)';col='var(--green)';}
+    else if(riskPct<50){lbl='Risco Moderado';bg='var(--ag)';col='var(--amber)';}
+    else if(riskPct<75){lbl='Risco Elevado';bg='var(--ag)';col='var(--amber)';}
+    else{lbl='Risco Crítico';bg='var(--rg)';col='var(--red2)';}
+    chip.textContent=lbl; chip.style.background=bg; chip.style.color=col;
+  }
+
+  // step 5 summary refs
+  const sv = id => document.getElementById(id+'_'+p);
+  if (sv('wsv_valor')) sv('wsv_valor').textContent = 'R$ '+fmtN(val);
+  if (sv('wsv_parcela')) sv('wsv_parcela').textContent = 'R$ '+fmtN(Math.round(pmt));
+  if (sv('wsv_prazo')) sv('wsv_prazo').textContent = wizPrazo+'x · Início '+dateStr;
+  if (sv('wsv_taxa')) sv('wsv_taxa').textContent = taxa.toFixed(2)+'% a.m. / '+cet+'% a.a.';
+}
+
+// ── PANEL 3: GARANTIAS ─────────────────────────────
+function wizPanel3(p, prod, cfg) {
+  return `
+  <div class="card">
+    <div class="card-head"><div class="card-head-title">Avalistas</div><div class="card-head-sub" style="font-size:11px;color:var(--muted)">Mínimo: 1 avalista · Cobertura: 100%</div></div>
+    <div class="card-body">
+      <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:13px">
+        <div class="wguarantor added">
+          <span style="font-size:19px">👤</span>
+          <div style="flex:1">
+            <div style="font-size:12.5px;font-weight:600;color:var(--text)">Carlos Henrique Souza</div>
+            <div style="font-size:10.5px;color:var(--muted);font-family:var(--mono)">CPF 523.841.290-07 · Sócio-administrador</div>
+            <div style="font-size:10.5px;color:var(--green);margin-top:2px">✓ CPF consultado · Score 740 · Sem restrições</div>
+          </div>
+          <span class="status s-approved">Aprovado</span>
+        </div>
+        <div class="wguarantor" onclick="wizAddGuarantor('${p}')">
+          <span style="font-size:19px;opacity:.4">➕</span>
+          <div><div style="font-size:12.5px;font-weight:500;color:var(--muted)">Adicionar avalista adicional</div><div style="font-size:10.5px;color:var(--dim)">Opcional · Pode reduzir a taxa final</div></div>
+        </div>
+      </div>
+      <hr class="div" style="margin-bottom:13px">
+      <div style="font-size:11.5px;font-weight:600;color:var(--text2);margin-bottom:9px">Garantia Real (opcional)</div>
+      <div class="form-grid">
+        <div class="field"><div class="field-label">Tipo</div><select class="field-select"><option>Nenhuma (avalista suficiente)</option><option>Imóvel</option><option>Veículo</option><option>Duplicatas/Recebíveis</option></select></div>
+        <div class="field"><div class="field-label">Valor Estimado</div><input class="field-input" placeholder="R$ 0,00" style="font-family:var(--mono)"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-head-title">Conta para Crédito</div></div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="field"><div class="field-label">Banco<span class="field-req">*</span></div><select class="field-select"><option selected>Banco via parceiro (padrão)</option><option>Bradesco (237)</option><option>Outro — TED</option></select></div>
+        <div class="field"><div class="field-label">Agência / Conta</div><input class="field-input" value="0042 / 58321-4" style="font-family:var(--mono)"></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function wizAddGuarantor(p) {
+  showModal('Adicionar Avalista', `
+    <div class="form-grid" style="gap:12px">
+      <div class="field"><div class="field-label">Nome completo<span class="field-req">*</span></div><input class="field-input" placeholder="Nome do avalista"></div>
+      <div class="field"><div class="field-label">CPF<span class="field-req">*</span></div><input class="field-input" placeholder="000.000.000-00" style="font-family:var(--mono)"></div>
+      <div class="field"><div class="field-label">Relação</div><select class="field-select"><option>Sócio</option><option>Cônjuge</option><option>Fiador externo</option></select></div>
+      <div class="field"><div class="field-label">Participação societária</div><input class="field-input" value="0%"></div>
+    </div>`,
+    [{label:'Cancelar',action:'closeModal()',secondary:true},{label:'Adicionar e Consultar CPF →',action:`wizGuarantorDone('${p}')`}]);
+}
+function wizGuarantorDone(p) {
+  closeModal();
+  showToast('Segundo avalista adicionado. CPF em consulta...','info');
+  setTimeout(()=>showToast('CPF consultado · Score 695 · Aprovado','success'),1800);
+}
+
+// ── PANEL 4: DOCUMENTAÇÃO ──────────────────────────
+function wizPanel4(p, prod, cfg) {
+  return `
+  <div class="card">
+    <div class="card-head"><div class="card-head-title">Documentos da Empresa</div></div>
+    <div class="card-body">
+      <div class="wdoc-list">
+        <div class="wdoc-item"><div class="wdoc-icon">📋</div><div class="wdoc-name">Contrato Social / Estatuto</div><span class="wdoc-status wds-ok">✓ Enviado</span><button class="wdoc-upload uploaded">Ver arquivo</button></div>
+        <div class="wdoc-item"><div class="wdoc-icon">📊</div><div class="wdoc-name">Balanço Patrimonial (2 anos)</div><span class="wdoc-status wds-ok">✓ Enviado</span><button class="wdoc-upload uploaded">Ver arquivo</button></div>
+        <div class="wdoc-item"><div class="wdoc-icon">💰</div><div class="wdoc-name">Extrato bancário (6 meses)</div><span class="wdoc-status wds-req" id="wds_fat_${p}">Obrigatório</span><button class="wdoc-upload" onclick="wizUpload(this,'wds_fat_${p}','${p}')">+ Anexar</button></div>
+        <div class="wdoc-item"><div class="wdoc-icon">📄</div><div class="wdoc-name">Declaração de IR PJ</div><span class="wdoc-status wds-ok">✓ Enviado</span><button class="wdoc-upload uploaded">Ver arquivo</button></div>
+        <div class="wdoc-item"><div class="wdoc-icon">🏛️</div><div class="wdoc-name">Certidão Negativa Federal</div><span class="wdoc-status wds-req" id="wds_cnd_${p}">Obrigatório</span><button class="wdoc-upload" onclick="wizUpload(this,'wds_cnd_${p}','${p}')">+ Anexar</button></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-head-title">Documentos do Avalista</div></div>
+    <div class="card-body">
+      <div class="wdoc-list">
+        <div class="wdoc-item"><div class="wdoc-icon">🪪</div><div class="wdoc-name">RG ou CNH (frente/verso)</div><span class="wdoc-status wds-ok">✓ Enviado</span><button class="wdoc-upload uploaded">Ver arquivo</button></div>
+        <div class="wdoc-item"><div class="wdoc-icon">📄</div><div class="wdoc-name">Comprovante de Renda</div><span class="wdoc-status wds-req" id="wds_ir_${p}">Obrigatório</span><button class="wdoc-upload" onclick="wizUpload(this,'wds_ir_${p}','${p}')">+ Anexar</button></div>
+        <div class="wdoc-item"><div class="wdoc-icon">🏠</div><div class="wdoc-name">Comprovante de Residência</div><span class="wdoc-status wds-opt">Opcional</span><button class="wdoc-upload" onclick="wizUpload(this,null,'${p}')">+ Anexar</button></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function wizUpload(btn, statusId, p) {
+  btn.textContent = '⟳ Enviando...';
+  setTimeout(() => {
+    btn.textContent = '✓ Enviado';
+    btn.classList.add('uploaded');
+    if (statusId) {
+      const s = document.getElementById(statusId);
+      if (s) { s.textContent='✓ Enviado'; s.className='wdoc-status wds-ok'; }
+    }
+    wizDocsCount++;
+    showToast('Documento enviado com sucesso','success');
+    const badge = document.querySelector('.wiz-badge');
+    if (badge) badge.textContent = wizDocsCount+' de '+wizDocsTotal+' enviados';
+  }, 1000);
+}
+
+// ── PANEL 5: REVISÃO ───────────────────────────────
+function wizPanel5(p, prod, cfg) {
+  return `
+  <div class="wsumm-grid">
+    <div class="wsumm-card"><div class="wsumm-label">Tomador</div><div class="wsumm-val" style="font-size:14px;font-family:var(--sans)">Distribuidora Paulistana</div><div class="wsumm-sub">CNPJ 12.345.678/0001-99 · Rating A+</div></div>
+    <div class="wsumm-card"><div class="wsumm-label">Produto / Valor</div><div class="wsumm-val" id="wsv_valor_${p}" style="color:${prod.color}">—</div><div class="wsumm-sub">${prod.name}</div></div>
+    <div class="wsumm-card"><div class="wsumm-label">Parcela Mensal</div><div class="wsumm-val" id="wsv_parcela_${p}">—</div><div class="wsumm-sub" id="wsv_prazo_${p}">—</div></div>
+    <div class="wsumm-card"><div class="wsumm-label">Taxa / CET</div><div class="wsumm-val" id="wsv_taxa_${p}" style="font-size:13px">—</div><div class="wsumm-sub">Condições finais</div></div>
+  </div>
+  <div class="wsumm-timeline">
+    <div class="wtl-title">Próximos passos após o envio</div>
+    <div class="wtl-item"><div class="wtl-dot brand">→</div><div><div class="wtl-name">Proposta enviada para análise</div><div class="wtl-sub">Agora · equipe de crédito notificada</div></div></div>
+    <div class="wtl-item"><div class="wtl-dot pending">○</div><div><div class="wtl-name">Análise de crédito</div><div class="wtl-sub">Prazo: até 2 dias úteis</div></div></div>
+    <div class="wtl-item"><div class="wtl-dot pending">○</div><div><div class="wtl-name">Aprovação e contrato digital</div><div class="wtl-sub">Cliente assina via e-mail/WhatsApp</div></div></div>
+    <div class="wtl-item"><div class="wtl-dot pending">○</div><div><div class="wtl-name">Liberação do crédito</div><div class="wtl-sub">Em até 24h após assinatura</div></div></div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <div style="display:flex;gap:11px;align-items:flex-start">
+        <input type="checkbox" id="wconfirmCheck_${p}" style="margin-top:2px;accent-color:${prod.color};width:14px;height:14px" onchange="wizCheckConfirm('${p}')">
+        <label for="wconfirmCheck_${p}" style="font-size:12.5px;color:var(--text2);cursor:pointer;line-height:1.6">
+          Confirmo que as informações prestadas são verdadeiras e que o cliente foi informado sobre as condições da operação, conforme Resolução CMN 4.676/2018 e normas do Banco Central.
+        </label>
+      </div>
+    </div>
+  </div>`;
+}
+
+function wizCheckConfirm(p) {
+  wizConfirmChecked = document.getElementById('wconfirmCheck_'+p).checked;
+  const nb = document.querySelector('.wiz-next');
+  if (nb) nb.style.opacity = wizConfirmChecked ? '1' : '0.5';
+}
+
+function wizShowSubmitModal(p) {
+  const prod = PRODUCTS[p];
+  showModal('Enviar Proposta para Análise', `
+    <div style="text-align:center;padding:8px 0">
+      <div style="font-size:46px;margin-bottom:11px">${prod.icon}</div>
+      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:7px">Distribuidora Paulistana Ltda.</div>
+      <div style="font-size:12.5px;color:var(--muted);margin-bottom:15px">${prod.name} · Pronta para envio</div>
+      <div style="background:var(--gg);border:1px solid var(--gb);border-radius:8px;padding:11px;text-align:left">
+        <div style="font-size:11.5px;color:var(--green);font-weight:600;margin-bottom:5px">✓ Proposta completa e pronta para análise</div>
+        <div style="font-size:11.5px;color:var(--muted)">• Dados cadastrais validados<br>• Simulação configurada<br>• Avalista aprovado<br>• ${wizDocsCount} de ${wizDocsTotal} documentos enviados</div>
+      </div>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:11px">A equipe de crédito receberá notificação imediata.</div>
+    </div>`,
+    [{label:'Revisar',action:'closeModal()',secondary:true},{label:'Confirmar Envio →',action:`wizSubmitFinal('${p}')`}]);
+}
+
+function wizSubmitFinal(p) {
+  closeModal();
+  setTimeout(() => showToast('🎉 Proposta enviada com sucesso — '+PRODUCTS[p].name,'success'), 250);
+}
+
+
+
+// ══════════════════════════════════════════════════
+// FILTERS
+// ══════════════════════════════════════════════════
+function filterTable(q) {
+  const rows = getVisibleProposals().filter(p =>
+    p.client.toLowerCase().includes(q.toLowerCase()) ||
+    p.cnpj.includes(q) || p.id.includes(q)
+  );
+  renderProposalsTable(rows);
+}
+function filterByStatus(s) {
+  const rows = s ? getVisibleProposals().filter(p=>p.status===s) : getVisibleProposals();
+  renderProposalsTable(rows);
+}
+function filterByOp(op) {
+  const rows = op ? ALL_PROPOSALS.filter(p=>p.op===op) : getVisibleProposals();
+  renderProposalsTable(rows);
+}
+
+// ══════════════════════════════════════════════════
+// PAGE ROUTING
+// ══════════════════════════════════════════════════
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+  const page = document.getElementById('page-'+id);
+  if (page) page.style.display='block';
+  currentPage = id;
+
+  // nav highlights
+  document.querySelectorAll('.tb-nav-item,.sb-link').forEach(b=>b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  // update perm banner on propostas
+  if (id==='propostas') {
+    const u = currentUser;
+    const banner = document.getElementById('permBanner');
+    const text = document.getElementById('permBannerText');
+    if (!u.canViewAll) {
+      banner.style.display='flex';
+      text.textContent = '🔐 Você está vendo apenas suas próprias propostas. Produtos disponíveis: ' + u.products.map(p=>PRODUCTS[p].name).join(', ') + '.';
+    } else {
+      banner.style.display='flex';
+      text.textContent = '👔 Visão de Gerente: todas as propostas de todos os operadores. Use os filtros para detalhar.';
+    }
+    renderProposalsTable(getVisibleProposals());
+    renderProductTabs('prodTabs', false);
+  }
+
+  if (id==='nova') { renderProductTabs('newProdTabs', true); renderNovaForm(currentProduct); }
+  if (id==='dashboard') renderDashboard();
+}
+
+// ══════════════════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════════════════
+function showModal(title, body, buttons) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = body;
+  const foot = document.getElementById('modalFoot');
+  foot.innerHTML = '';
+  (buttons||[]).forEach(b => {
+    const btn = document.createElement('button');
+    btn.textContent = b.label;
+    btn.onclick = new Function(b.action);
+    if (b.secondary) btn.className='btn-secondary';
+    else if (b.danger) { btn.className='btn-primary'; btn.style.background='var(--red2)'; }
+    else btn.className='btn-primary';
+    foot.appendChild(btn);
+  });
+  document.getElementById('modalOverlay').classList.add('show');
+}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
+
+// ══════════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════════
+let toastT;
+function showToast(msg, type='info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  clearTimeout(toastT);
+  toastT = setTimeout(()=>t.classList.remove('show'), 3500);
+}
+
+// ══════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════
+function fmtN(n) { return n.toLocaleString('pt-BR'); }
+</script>
+</body>
+</html>

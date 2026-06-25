@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>CG · Jornada Cliente Final · White Label BaaS</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ─── DESIGN TOKENS ─── */
+:root {
+  --brand:       #CC0000;
+  --brand-dark:  #990000;
+  --brand-light: rgba(204,0,0,.09);
+  --brand-border:rgba(204,0,0,.2);
+  --bg:          #F6F7F9;
+  --surface:     #FFFFFF;
+  --surface2:    #F9FAFB;
+  --border:      #E5E7EB;
+  --border2:     #D1D5DB;
+  --text:        #111827;
+  --text2:       #374151;
+  --muted:       #6B7280;
+  --dim:         #9CA3AF;
+  --green:       #059669;
+  --green-g:     rgba(5,150,105,.09);
+  --green-b:     rgba(5,150,105,.22);
+  --amber:       #D97706;
+  --amber-g:     rgba(217,119,6,.09);
+  --blue:        #2563EB;
+  --blue-g:      rgba(37,99,235,.07);
+  --radius-sm:   8px;
+  --radius:      14px;
+  --radius-lg:   20px;
+  --radius-xl:   28px;
+  --shadow:      0 2px 12px rgba(0,0,0,.07);
+  --shadow-lg:   0 8px 32px rgba(0,0,0,.1);
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Inter', sans-serif;
+}
+
+/* ─── RESET ─── */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--sans);background:var(--bg);color:var(--text);
+  font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+button,input,select{font-family:var(--sans)}
+button{cursor:pointer;border:none}
+
+/* ─── DEMO BAR ─── */
+.demo-bar{
+  background:var(--text);color:#fff;
+  padding:7px 16px;display:flex;align-items:center;gap:10px;
+  font-size:11px;flex-wrap:wrap;
+  position:sticky;top:0;z-index:200;
+}
+.db-label{color:rgba(255,255,255,.45);font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:700}
+.db-btn{
+  padding:4px 11px;border-radius:20px;border:1px solid rgba(255,255,255,.18);
+  background:transparent;color:rgba(255,255,255,.6);font-size:10.5px;cursor:pointer;transition:all .15s;
+}
+.db-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+.db-btn.active{background:#fff;color:var(--text);font-weight:700}
+.db-sep{width:1px;height:14px;background:rgba(255,255,255,.12);flex-shrink:0}
+.db-mode{
+  margin-left:auto;display:flex;align-items:center;gap:6px;
+  font-size:10px;color:rgba(255,255,255,.35);
+}
+.db-mode-dot{width:5px;height:5px;border-radius:50%;background:#4ade80;box-shadow:0 0 5px #4ade80}
+
+/* ─── MOBILE SHELL ─── */
+.shell-wrap{
+  min-height:calc(100vh - 36px);
+  display:flex;align-items:flex-start;justify-content:center;
+  padding:24px 16px 48px;
+}
+/* desktop: phone frame */
+@media(min-width:640px){
+  .shell-wrap{padding:32px 20px 60px}
+}
+
+.phone-shell{
+  width:100%;max-width:420px;
+  background:var(--surface);border-radius:var(--radius-xl);
+  box-shadow:var(--shadow-lg);overflow:hidden;
+  min-height:calc(100vh - 84px);
+  display:flex;flex-direction:column;
+  position:relative;
+}
+@media(min-width:640px){
+  .phone-shell{
+    border:1px solid var(--border);
+    min-height:780px;max-height:900px;
+  }
+}
+
+/* ─── APP HEADER ─── */
+.app-header{
+  padding:16px 20px 14px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);
+  background:var(--surface);
+  position:sticky;top:0;z-index:10;
+}
+.ah-logo{display:flex;align-items:center;gap:9px}
+.ah-logo-mark{
+  width:32px;height:32px;background:var(--brand);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:800;color:#fff;
+}
+.ah-logo-name{font-size:14px;font-weight:700;color:var(--text);letter-spacing:-.3px}
+.ah-logo-tag{font-size:10px;color:var(--muted)}
+.ah-back{
+  width:34px;height:34px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text2);
+  cursor:pointer;transition:background .15s;display:none;
+}
+.ah-back:hover{background:var(--border)}
+.ah-back.show{display:flex}
+.ah-help{
+  width:34px;height:34px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;
+  color:var(--muted);transition:all .15s;
+}
+.ah-help:hover{border-color:var(--brand);color:var(--brand)}
+
+/* ─── SCROLL AREA ─── */
+.scroll-area{flex:1;overflow-y:auto;scrollbar-width:none}
+.scroll-area::-webkit-scrollbar{display:none}
+
+/* ─── SCREENS ─── */
+.screen{display:none;flex-direction:column;min-height:100%}
+.screen.active{display:flex}
+
+/* ─── HERO SECTION ─── */
+.hero{
+  background:linear-gradient(160deg,var(--brand) 0%,var(--brand-dark) 100%);
+  padding:28px 20px 32px;color:#fff;position:relative;overflow:hidden;
+}
+.hero::after{
+  content:'';position:absolute;bottom:-40px;right:-40px;
+  width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.07);
+}
+.hero::before{
+  content:'';position:absolute;top:-30px;right:60px;
+  width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.05);
+}
+.hero-greeting{font-size:13px;color:rgba(255,255,255,.7);margin-bottom:6px;font-weight:500}
+.hero-name{font-size:22px;font-weight:800;letter-spacing:-.5px;margin-bottom:2px}
+.hero-company{font-size:13px;color:rgba(255,255,255,.65);margin-bottom:20px}
+.hero-limit-label{font-size:11px;color:rgba(255,255,255,.6);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px}
+.hero-limit{font-size:38px;font-weight:800;letter-spacing:-1.5px;margin-bottom:4px;font-family:var(--mono);position:relative;z-index:1}
+.hero-limit-sub{font-size:12px;color:rgba(255,255,255,.6);margin-bottom:18px;position:relative;z-index:1}
+.hero-badges{display:flex;gap:8px;flex-wrap:wrap;position:relative;z-index:1}
+.hero-badge{
+  display:flex;align-items:center;gap:5px;
+  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);
+  border-radius:20px;padding:5px 10px;font-size:11px;color:rgba(255,255,255,.9);font-weight:500;
+}
+
+/* ─── SECTION ─── */
+.section{padding:20px 20px 0}
+.section-title{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+
+/* ─── PRODUCT CARD (landing) ─── */
+.product-card{
+  background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);
+  padding:18px;margin-bottom:12px;cursor:pointer;
+  transition:border-color .2s,box-shadow .2s,transform .15s;
+  display:flex;align-items:flex-start;gap:14px;
+}
+.product-card:hover{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-light)}
+.product-card:active{transform:scale(.99)}
+.product-card.featured{border-color:var(--brand);background:linear-gradient(135deg,rgba(204,0,0,.03),transparent)}
+.pc-icon{
+  width:44px;height:44px;border-radius:10px;background:var(--brand-light);
+  display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;
+}
+.product-card.featured .pc-icon{background:var(--brand);font-size:22px}
+.pc-body{flex:1}
+.pc-name{font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px}
+.pc-desc{font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:8px}
+.pc-meta{display:flex;gap:8px;flex-wrap:wrap}
+.pc-tag{font-size:11px;font-weight:600;padding:3px 8px;border-radius:10px}
+.pc-tag-green{background:var(--green-g);color:var(--green)}
+.pc-tag-brand{background:var(--brand-light);color:var(--brand)}
+.pc-tag-amber{background:var(--amber-g);color:var(--amber)}
+.pc-arrow{color:var(--dim);font-size:18px;align-self:center;flex-shrink:0}
+.product-card.featured .pc-arrow{color:var(--brand)}
+
+/* ─── SIMULATOR SCREEN ─── */
+.sim-amount-hero{
+  background:linear-gradient(160deg,var(--brand) 0%,var(--brand-dark) 100%);
+  padding:24px 20px 28px;color:#fff;
+}
+.sah-label{font-size:12px;color:rgba(255,255,255,.7);margin-bottom:6px;font-weight:500}
+.sah-amount{
+  font-size:48px;font-weight:800;letter-spacing:-2px;
+  font-family:var(--mono);margin-bottom:0;line-height:1;
+}
+.sah-sub{font-size:12px;color:rgba(255,255,255,.55);margin-top:4px}
+
+/* Amount slider */
+.amount-slider-wrap{padding:20px 20px 0}
+.amount-slider{
+  width:100%;appearance:none;height:5px;
+  background:linear-gradient(to right,var(--brand) 0%,var(--brand) var(--pct,45%),var(--border2) var(--pct,45%));
+  border-radius:3px;outline:none;cursor:pointer;margin-bottom:6px;
+}
+.amount-slider::-webkit-slider-thumb{
+  appearance:none;width:26px;height:26px;border-radius:50%;
+  background:#fff;border:3px solid var(--brand);
+  box-shadow:0 2px 10px rgba(0,0,0,.15);cursor:pointer;
+}
+.slider-range{display:flex;justify-content:space-between;font-size:11px;color:var(--dim);font-family:var(--mono)}
+
+/* Prazo picker */
+.prazo-section{padding:18px 20px 0}
+.prazo-label{font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.prazo-label-sub{font-size:12px;color:var(--muted);font-weight:400}
+.prazo-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.prazo-btn{
+  padding:12px 4px;border-radius:var(--radius-sm);border:1.5px solid var(--border2);
+  background:var(--surface2);font-size:13px;font-weight:600;color:var(--text2);
+  cursor:pointer;transition:all .18s;text-align:center;
+}
+.prazo-btn:hover{border-color:var(--brand);color:var(--brand);background:var(--brand-light)}
+.prazo-btn.active{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 2px 8px rgba(204,0,0,.25)}
+
+/* Result box */
+.result-box{
+  margin:18px 20px 0;
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;
+}
+.rb-main{
+  padding:18px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);
+}
+.rb-parcela-label{font-size:12px;color:var(--muted);margin-bottom:4px}
+.rb-parcela{font-size:32px;font-weight:800;color:var(--brand);letter-spacing:-1px;font-family:var(--mono)}
+.rb-parcela-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+.rb-badge{
+  background:var(--green-g);border:1px solid var(--green-b);
+  border-radius:var(--radius-sm);padding:8px 12px;text-align:center;
+}
+.rb-badge-val{font-size:14px;font-weight:800;color:var(--green)}
+.rb-badge-lbl{font-size:10px;color:var(--green);font-weight:600;margin-top:2px}
+
+.rb-details{padding:12px 18px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rb-detail{display:flex;flex-direction:column;gap:2px}
+.rb-detail-lbl{font-size:10.5px;color:var(--muted)}
+.rb-detail-val{font-size:13px;font-weight:600;color:var(--text);font-family:var(--mono)}
+
+/* Comparison cards */
+.compare-section{padding:18px 20px 0}
+.compare-cards{display:flex;flex-direction:column;gap:8px}
+.compare-card{
+  background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);
+  padding:14px 16px;cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;gap:12px;
+}
+.compare-card:hover{border-color:var(--brand)}
+.compare-card.selected{border-color:var(--brand);background:var(--brand-light)}
+.cc-radio{
+  width:20px;height:20px;border-radius:50%;border:2px solid var(--border2);
+  flex-shrink:0;transition:all .2s;display:flex;align-items:center;justify-content:center;
+}
+.compare-card.selected .cc-radio{border-color:var(--brand);background:var(--brand)}
+.cc-radio-dot{width:8px;height:8px;border-radius:50%;background:#fff;opacity:0;transition:opacity .2s}
+.compare-card.selected .cc-radio-dot{opacity:1}
+.cc-body{flex:1}
+.cc-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px}
+.cc-desc{font-size:12px;color:var(--muted)}
+.cc-value{text-align:right;flex-shrink:0}
+.cc-parcela{font-size:16px;font-weight:800;color:var(--text);font-family:var(--mono)}
+.cc-label{font-size:10px;color:var(--muted);margin-top:1px}
+.compare-card.selected .cc-parcela{color:var(--brand)}
+.compare-card.featured-plan{border-color:var(--brand);background:var(--brand-light)}
+.plan-badge{
+  font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  background:var(--brand);color:#fff;border-radius:4px;padding:2px 6px;margin-left:6px;
+}
+
+/* ─── CONFIRM SCREEN ─── */
+.confirm-hero{
+  background:linear-gradient(160deg,#1a1a2e 0%,#16213e 100%);
+  padding:28px 20px;color:#fff;
+}
+.ch-step{font-size:11px;color:rgba(255,255,255,.45);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.ch-title{font-size:22px;font-weight:800;letter-spacing:-.5px;margin-bottom:6px}
+.ch-sub{font-size:13px;color:rgba(255,255,255,.55);line-height:1.6}
+
+.confirm-card{
+  margin:16px 20px 0;background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;
+}
+.confirm-card-title{
+  padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--border);
+  font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);
+}
+.confirm-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;border-bottom:1px solid var(--border);
+}
+.confirm-row:last-child{border-bottom:none}
+.cr-label{font-size:13px;color:var(--muted)}
+.cr-val{font-size:14px;font-weight:600;color:var(--text);text-align:right;font-family:var(--mono)}
+.cr-val.big{font-size:18px;font-weight:800;color:var(--brand)}
+.cr-val.green{color:var(--green)}
+
+/* Disclaimer */
+.disclaimer{
+  margin:14px 20px 0;
+  background:var(--blue-g);border:1px solid rgba(37,99,235,.15);border-radius:var(--radius-sm);
+  padding:12px 14px;font-size:12px;color:#1e3a8a;line-height:1.6;
+  display:flex;gap:8px;
+}
+
+/* Terms checkbox */
+.terms-check{
+  margin:14px 20px 0;display:flex;align-items:flex-start;gap:10px;
+  padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);
+}
+.terms-check input{
+  margin-top:2px;accent-color:var(--brand);width:16px;height:16px;flex-shrink:0;cursor:pointer;
+}
+.terms-check label{font-size:12.5px;color:var(--text2);cursor:pointer;line-height:1.6}
+.terms-check a{color:var(--brand);text-decoration:none}
+
+/* ─── SUCCESS SCREEN ─── */
+.success-screen{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:40px 24px;text-align:center;
+}
+.success-icon{
+  width:80px;height:80px;border-radius:50%;background:var(--green-g);
+  border:3px solid var(--green-b);
+  display:flex;align-items:center;justify-content:center;
+  font-size:36px;margin-bottom:20px;
+  animation:popIn .5s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+@keyframes popIn{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+.success-title{font-size:24px;font-weight:800;color:var(--text);letter-spacing:-.5px;margin-bottom:8px}
+.success-sub{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:28px;max-width:300px}
+.success-card{
+  width:100%;background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:16px;margin-bottom:20px;text-align:left;
+}
+.success-card-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.sc-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px}
+.sc-row:last-child{border-bottom:none}
+.sc-row-key{color:var(--muted)}
+.sc-row-val{font-weight:600;color:var(--text);font-family:var(--mono)}
+
+.next-steps{width:100%;display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.ns-item{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);
+  font-size:13px;color:var(--text2);
+}
+.ns-icon{font-size:16px;flex-shrink:0}
+
+/* ─── BOTTOM CTA ─── */
+.bottom-cta{
+  padding:16px 20px 24px;background:var(--surface);
+  border-top:1px solid var(--border);
+  position:sticky;bottom:0;
+}
+.cta-btn{
+  width:100%;padding:16px;border-radius:var(--radius);background:var(--brand);
+  color:#fff;font-size:16px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  transition:all .2s;letter-spacing:-.2px;
+}
+.cta-btn:hover{background:var(--brand-dark);transform:translateY(-1px);box-shadow:0 6px 20px rgba(204,0,0,.25)}
+.cta-btn:active{transform:translateY(0)}
+.cta-btn:disabled{opacity:.4;transform:none;box-shadow:none;cursor:not-allowed}
+.cta-btn.green-btn{background:var(--green)}
+.cta-btn.green-btn:hover{background:#047857;box-shadow:0 6px 20px rgba(5,150,105,.25)}
+.cta-hint{font-size:11.5px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.5}
+.cta-hint a{color:var(--brand);text-decoration:none}
+
+/* ─── TOAST ─── */
+.toast{
+  position:fixed;top:50px;left:50%;transform:translateX(-50%) translateY(-80px);
+  background:var(--text);color:#fff;padding:12px 20px;border-radius:var(--radius);
+  font-size:13px;font-weight:600;box-shadow:var(--shadow-lg);
+  transition:transform .35s cubic-bezier(.34,1.56,.64,1);
+  z-index:1000;white-space:nowrap;
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.green-toast{background:var(--green)}
+
+/* ─── PROGRESS DOTS ─── */
+.progress-dots{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px 20px 0;
+}
+.pd{width:6px;height:6px;border-radius:50%;background:var(--border2);transition:all .3s}
+.pd.done{background:var(--brand);width:20px;border-radius:3px}
+.pd.active{background:var(--brand)}
+
+/* ─── FEATURE PILLS ─── */
+.feature-pills{padding:16px 20px 0;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.feature-pills::-webkit-scrollbar{display:none}
+.fp{
+  display:flex;align-items:center;gap:5px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:20px;padding:7px 12px;white-space:nowrap;
+  font-size:12px;font-weight:500;color:var(--text2);
+}
+
+/* ─── IDENTITY PREVIEW ─── */
+.id-preview{
+  margin:14px 20px 0;padding:12px 14px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);
+  display:flex;align-items:center;gap:10px;
+}
+.idp-avatar{
+  width:36px;height:36px;border-radius:50%;background:var(--brand-light);
+  border:2px solid var(--brand-border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:800;color:var(--brand);flex-shrink:0;
+}
+.idp-name{font-size:13px;font-weight:600;color:var(--text)}
+.idp-cnpj{font-size:11px;color:var(--muted);font-family:var(--mono)}
+.idp-rating{margin-left:auto;text-align:right}
+.idp-rating-val{font-size:16px;font-weight:800;color:var(--green)}
+.idp-rating-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+</style>
+</head>
+<body>
+
+<!-- DEMO BAR -->
+<div class="demo-bar">
+  <span class="db-label">White Label ·</span>
+  <button class="db-btn active" onclick="setTheme('#CC0000','#990000','B','Bradesco BaaS',this)">Bradesco BaaS</button>
+  <div class="db-sep"></div>
+  <button class="db-btn" onclick="setTheme('#005BAA','#004080','X','Banco XPTO',this)">Banco XPTO</button>
+  <button class="db-btn" onclick="setTheme('#166534','#14532D','FV','Fintech Verde',this)">Fintech Verde</button>
+  <button class="db-btn" onclick="setTheme('#7C3AED','#6D28D9','CS','Cooperativa Sul',this)">Cooperativa Sul</button>
+  <div class="db-sep"></div>
+  <button class="db-btn" onclick="setTheme('#E65A00','#B34500','NL','Nubank Light',this)">Laranja</button>
+  <div class="db-mode"><div class="db-mode-dot"></div>B2C · Cliente Final</div>
+</div>
+
+<div class="shell-wrap">
+<div class="phone-shell">
+
+  <!-- APP HEADER -->
+  <div class="app-header">
+    <button class="ah-back" id="ahBack" onclick="goBack()">←</button>
+    <div class="ah-logo">
+      <div class="ah-logo-mark" id="logoMark">B</div>
+      <div>
+        <div class="ah-logo-name" id="logoName">Bradesco BaaS</div>
+        <div class="ah-logo-tag">Crédito empresarial</div>
+      </div>
+    </div>
+    <div class="ah-help" onclick="showHelp()">?</div>
+  </div>
+
+  <!-- PROGRESS DOTS -->
+  <div class="progress-dots" id="progressDots">
+    <div class="pd active" id="pd0"></div>
+    <div class="pd" id="pd1"></div>
+    <div class="pd" id="pd2"></div>
+    <div class="pd" id="pd3"></div>
+  </div>
+
+  <div class="scroll-area">
+
+    <!-- ══════════════════════════════
+         SCREEN 0 — LANDING
+    ══════════════════════════════ -->
+    <div class="screen active" id="screen0">
+
+      <div class="hero">
+        <div class="hero-greeting">Olá, Carlos 👋</div>
+        <div class="hero-name">Distribuidora Paulistana</div>
+        <div class="hero-company">CNPJ 12.345.678/0001-99 · São Paulo, SP</div>
+        <div class="hero-limit-label">Limite pré-aprovado para você</div>
+        <div class="hero-limit">R$ 280.000</div>
+        <div class="hero-limit-sub">Sem consultar terceiros · Decisão em minutos</div>
+        <div class="hero-badges">
+          <div class="hero-badge">⚡ Dinheiro em até 24h</div>
+          <div class="hero-badge">🔒 100% digital</div>
+          <div class="hero-badge">✅ Sem visita</div>
+        </div>
+      </div>
+
+      <div class="feature-pills">
+        <div class="fp">📊 Taxa a partir de 1,09% a.m.</div>
+        <div class="fp">📅 Até 36 parcelas</div>
+        <div class="fp">⏳ Carência de até 90 dias</div>
+      </div>
+
+      <div class="section" style="margin-top:20px">
+        <div class="section-title">Escolha seu crédito</div>
+
+        <div class="product-card featured" onclick="goScreen(1)">
+          <div class="pc-icon">💼</div>
+          <div class="pc-body">
+            <div class="pc-name">Capital de Giro</div>
+            <div class="pc-desc">Para compras, estoque, folha ou qualquer necessidade do dia a dia do seu negócio.</div>
+            <div class="pc-meta">
+              <span class="pc-tag pc-tag-green">✓ Pré-aprovado</span>
+              <span class="pc-tag pc-tag-brand">Mais solicitado</span>
+            </div>
+          </div>
+          <span class="pc-arrow">›</span>
+        </div>
+
+        <div class="product-card" onclick="showComingSoon('Crédito Emergencial')">
+          <div class="pc-icon" style="background:var(--amber-g)">🚨</div>
+          <div class="pc-body">
+            <div class="pc-name">Crédito Emergencial</div>
+            <div class="pc-desc">Resposta em 2h para situações urgentes. Até R$ 50.000 disponível.</div>
+            <div class="pc-meta">
+              <span class="pc-tag pc-tag-amber">Em breve para você</span>
+            </div>
+          </div>
+          <span class="pc-arrow">›</span>
+        </div>
+
+        <div class="product-card" onclick="showComingSoon('Antecipação de Recebíveis')">
+          <div class="pc-icon" style="background:var(--blue-g)">📈</div>
+          <div class="pc-body">
+            <div class="pc-name">Antecipação de Recebíveis</div>
+            <div class="pc-desc">Receba agora o que seus clientes pagarão no futuro.</div>
+            <div class="pc-meta">
+              <span class="pc-tag" style="background:var(--blue-g);color:var(--blue)">Em breve</span>
+            </div>
+          </div>
+          <span class="pc-arrow">›</span>
+        </div>
+      </div>
+
+      <div style="padding:20px 20px 32px;margin-top:8px">
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center">
+          <div style="font-size:12px;color:var(--muted);line-height:1.7">
+            Dúvidas? <a href="#" style="color:var(--brand);text-decoration:none;font-weight:600">Fale com um especialista</a><br>
+            Seg–Sex 8h–18h · (11) 4020-0000
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════
+         SCREEN 1 — SIMULADOR
+    ══════════════════════════════ -->
+    <div class="screen" id="screen1">
+
+      <div class="sim-amount-hero">
+        <div class="sah-label">Quanto você precisa?</div>
+        <div class="sah-amount" id="simAmountDisplay">R$ 120.000</div>
+        <div class="sah-sub" id="simAmountSub">Arraste para ajustar</div>
+      </div>
+
+      <div class="amount-slider-wrap">
+        <input type="range" class="amount-slider" id="amountSlider"
+          min="10000" max="280000" step="5000" value="120000"
+          oninput="updateSimulator()">
+        <div class="slider-range">
+          <span>R$ 10k</span>
+          <span>Limite: R$ 280k</span>
+        </div>
+      </div>
+
+      <div class="prazo-section">
+        <div class="prazo-label">
+          Em quantas parcelas?
+          <span class="prazo-label-sub" id="prazoSub">18 meses selecionado</span>
+        </div>
+        <div class="prazo-grid" id="prazoGrid">
+          <button class="prazo-btn" onclick="setPrazo(6,this)">6x</button>
+          <button class="prazo-btn" onclick="setPrazo(12,this)">12x</button>
+          <button class="prazo-btn active" onclick="setPrazo(18,this)">18x</button>
+          <button class="prazo-btn" onclick="setPrazo(24,this)">24x</button>
+          <button class="prazo-btn" onclick="setPrazo(36,this)">36x</button>
+        </div>
+      </div>
+
+      <div class="result-box">
+        <div class="rb-main">
+          <div>
+            <div class="rb-parcela-label">Sua parcela mensal</div>
+            <div class="rb-parcela" id="parcelaDisplay">R$ 7.420</div>
+            <div class="rb-parcela-sub" id="parcelaSub">18x · 1ª em 18/07/2026</div>
+          </div>
+          <div class="rb-badge">
+            <div class="rb-badge-val" id="taxaDisplay">1,24%</div>
+            <div class="rb-badge-lbl">ao mês</div>
+          </div>
+        </div>
+        <div class="rb-details">
+          <div class="rb-detail">
+            <span class="rb-detail-lbl">Valor total</span>
+            <span class="rb-detail-val" id="totalDisplay">R$ 133.560</span>
+          </div>
+          <div class="rb-detail">
+            <span class="rb-detail-lbl">Total de juros</span>
+            <span class="rb-detail-val" id="jurosDisplay">R$ 13.560</span>
+          </div>
+          <div class="rb-detail">
+            <span class="rb-detail-lbl">CET anual</span>
+            <span class="rb-detail-val" id="cetDisplay">18,8% a.a.</span>
+          </div>
+          <div class="rb-detail">
+            <span class="rb-detail-lbl">Carência</span>
+            <span class="rb-detail-val">30 dias</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:12px 20px 32px;margin-top:12px">
+        <div style="font-size:12px;color:var(--muted);text-align:center;line-height:1.6">
+          Simulação sem compromisso. Taxa pré-fixada.<br>
+          <a href="#" style="color:var(--brand);text-decoration:none">Ver detalhes da simulação completa</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ══════════════════════════════
+         SCREEN 2 — ESCOLHER PLANO
+    ══════════════════════════════ -->
+    <div class="screen" id="screen2">
+
+      <div style="padding:20px 20px 4px">
+        <div style="font-size:20px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px">Escolha a melhor condição</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.6">Para R$ <span id="planoValor">120.000</span> · Personalizamos 3 opções para seu perfil</div>
+      </div>
+
+      <div class="compare-section">
+        <div class="compare-cards" id="compareCards">
+
+          <div class="compare-card" onclick="selectPlan(0,this)" id="plan0">
+            <div class="cc-radio"><div class="cc-radio-dot"></div></div>
+            <div class="cc-body">
+              <div class="cc-name">Parcela menor <span class="plan-badge" style="display:none" id="badge0">MAIS POPULAR</span></div>
+              <div class="cc-desc">36x · Taxa 1,09% a.m. · Carência 30d</div>
+            </div>
+            <div class="cc-value">
+              <div class="cc-parcela" id="p0val">R$ 5.380</div>
+              <div class="cc-label">por mês</div>
+            </div>
+          </div>
+
+          <div class="compare-card featured-plan selected" onclick="selectPlan(1,this)" id="plan1">
+            <div class="cc-radio"><div class="cc-radio-dot"></div></div>
+            <div class="cc-body">
+              <div class="cc-name">Equilíbrio ideal <span class="plan-badge" id="badge1">RECOMENDADO</span></div>
+              <div class="cc-desc">18x · Taxa 1,24% a.m. · Carência 30d</div>
+            </div>
+            <div class="cc-value">
+              <div class="cc-parcela" id="p1val">R$ 7.420</div>
+              <div class="cc-label">por mês</div>
+            </div>
+          </div>
+
+          <div class="compare-card" onclick="selectPlan(2,this)" id="plan2">
+            <div class="cc-radio"><div class="cc-radio-dot"></div></div>
+            <div class="cc-body">
+              <div class="cc-name">Menos juros <span class="plan-badge" style="display:none" id="badge2">ECONÔMICO</span></div>
+              <div class="cc-desc">12x · Taxa 1,29% a.m. · Carência 30d</div>
+            </div>
+            <div class="cc-value">
+              <div class="cc-parcela" id="p2val">R$ 10.870</div>
+              <div class="cc-label">por mês</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div style="padding:14px 20px 0">
+        <div style="background:var(--green-g);border:1px solid var(--green-b);border-radius:var(--radius-sm);padding:12px 14px;display:flex;gap:8px;align-items:flex-start">
+          <span style="font-size:16px">💡</span>
+          <div style="font-size:12.5px;color:#065f46;line-height:1.6">
+            <strong>Para o seu perfil:</strong> o plano Equilíbrio Ideal representa 9,3% do seu faturamento mensal estimado — dentro do limite saudável recomendado de até 15%.
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:14px 20px 32px">
+        <div style="font-size:11.5px;color:var(--dim);line-height:1.7;text-align:center">
+          Taxas sujeitas à aprovação de crédito. Sem IOF oculto.<br>
+          <a href="#" style="color:var(--brand);text-decoration:none">Ver tabela completa de tarifas</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ══════════════════════════════
+         SCREEN 3 — CONFIRMAR
+    ══════════════════════════════ -->
+    <div class="screen" id="screen3">
+
+      <div class="confirm-hero">
+        <div class="ch-step">Última etapa</div>
+        <div class="ch-title">Revise sua proposta</div>
+        <div class="ch-sub">Confirme os dados e assine digitalmente para liberar seu crédito.</div>
+      </div>
+
+      <div class="id-preview">
+        <div class="idp-avatar">CS</div>
+        <div>
+          <div class="idp-name">Carlos Henrique Souza</div>
+          <div class="idp-cnpj">Distribuidora Paulistana · CNPJ 12.345.678/0001-99</div>
+        </div>
+        <div class="idp-rating">
+          <div class="idp-rating-val">A+</div>
+          <div class="idp-rating-lbl">Rating</div>
+        </div>
+      </div>
+
+      <div class="confirm-card">
+        <div class="confirm-card-title">Sua contratação</div>
+        <div class="confirm-row">
+          <span class="cr-label">Produto</span>
+          <span class="cr-val">Capital de Giro</span>
+        </div>
+        <div class="confirm-row">
+          <span class="cr-label">Valor solicitado</span>
+          <span class="cr-val big" id="cf_valor">R$ 120.000</span>
+        </div>
+        <div class="confirm-row">
+          <span class="cr-label">Plano selecionado</span>
+          <span class="cr-val" id="cf_plano">Equilíbrio Ideal</span>
+        </div>
+        <div class="confirm-row">
+          <span class="cr-label">Parcela mensal</span>
+          <span class="cr-val green" id="cf_parcela">R$ 7.420 / 18x</span>
+        </div>
+        <div class="confirm-row">
+          <span class="cr-label">Taxa mensal</span>
+          <span class="cr-val" id="cf_taxa">1,24% a.m. pré-fixada</span>
+        </div>
+        <div class="confirm-row">
+          <span class="cr-label">Carência</span>
+          <span class="cr-val">30 dias</span>
+        </div>
+        <div class="confirm-row">
+          <span class="cr-label">1ª parcela em</span>
+          <span class="cr-val green">18/07/2026</span>
+        </div>
+        <div class="confirm-row">
+          <span class="cr-label">Crédito na conta</span>
+          <span class="cr-val green">Até 24h após assinatura</span>
+        </div>
+      </div>
+
+      <div class="confirm-card" style="margin-top:10px">
+        <div class="confirm-card-title">Conta para recebimento</div>
+        <div class="confirm-row">
+          <span class="cr-label">Banco</span>
+          <span class="cr-val">Banco via parceiro</span>
+        </div>
+        <div class="confirm-row">
+          <span class="cr-label">Agência / Conta</span>
+          <span class="cr-val">0042 / 58321-4</span>
+        </div>
+        <div class="confirm-row">
+          <span class="cr-label">Favorecido</span>
+          <span class="cr-val">Distribuidora Paulistana</span>
+        </div>
+      </div>
+
+      <div class="disclaimer">
+        <span>ℹ️</span>
+        <span>Esta operação segue as normas do Banco Central do Brasil (Res. CMN 4.676/2018). O CET (Custo Efetivo Total) anual é de <strong id="cf_cet">18,8% a.a.</strong>. Você receberá o contrato completo por e-mail antes da assinatura.</span>
+      </div>
+
+      <div class="terms-check">
+        <input type="checkbox" id="termsCheck" onchange="checkTerms()">
+        <label for="termsCheck">
+          Li e concordo com os <a href="#">Termos de Contratação</a>, <a href="#">Política de Privacidade</a> e autorizo a consulta ao SCR (Banco Central) e às agências de crédito.
+        </label>
+      </div>
+
+      <div style="height:24px"></div>
+
+    </div>
+
+    <!-- ══════════════════════════════
+         SCREEN 4 — SUCESSO
+    ══════════════════════════════ -->
+    <div class="screen" id="screen4">
+      <div class="success-screen">
+        <div class="success-icon">✓</div>
+        <div class="success-title">Proposta enviada!</div>
+        <div class="success-sub">Sua solicitação está em análise. Em até <strong>2 horas úteis</strong> você recebe a resposta por e-mail e WhatsApp.</div>
+
+        <div class="success-card">
+          <div class="success-card-title">Protocolo da solicitação</div>
+          <div class="sc-row"><span class="sc-row-key">Protocolo</span><span class="sc-row-val">#CG-2026-08341</span></div>
+          <div class="sc-row"><span class="sc-row-key">Valor</span><span class="sc-row-val" id="sc_valor">R$ 120.000</span></div>
+          <div class="sc-row"><span class="sc-row-key">Plano</span><span class="sc-row-val" id="sc_plano">18x · R$ 7.420/mês</span></div>
+          <div class="sc-row"><span class="sc-row-key">Enviado em</span><span class="sc-row-val">18/06/2026 · 14:38</span></div>
+        </div>
+
+        <div class="next-steps">
+          <div class="ns-item"><span class="ns-icon">📧</span>Contrato enviado para seu e-mail</div>
+          <div class="ns-item"><span class="ns-icon">📱</span>Acompanhe pelo WhatsApp: (11) 98847-2310</div>
+          <div class="ns-item"><span class="ns-icon">💰</span>Aprovado → crédito em conta em até 24h</div>
+        </div>
+
+        <button class="cta-btn" onclick="restartJourney()" style="background:var(--surface2);color:var(--text2);border:1.5px solid var(--border2);margin-top:0;font-size:14px">
+          Voltar ao início
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /scroll-area -->
+
+  <!-- BOTTOM CTA -->
+  <div class="bottom-cta" id="bottomCta">
+    <button class="cta-btn" id="ctaBtn" onclick="handleCTA()">
+      <span id="ctaLabel">Ver Capital de Giro</span>
+      <span>→</span>
+    </button>
+    <div class="cta-hint" id="ctaHint">Sem compromisso · Consulta não afeta seu score</div>
+  </div>
+
+</div><!-- /phone-shell -->
+</div><!-- /shell-wrap -->
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ─────────────────────────────────
+let currentScreen = 0;
+let prazo = 18;
+let amount = 120000;
+let selectedPlan = 1;
+const planNames  = ['Parcela Menor', 'Equilíbrio Ideal', 'Menos Juros'];
+const planPrazos = [36, 18, 12];
+const planTaxas  = [1.09, 1.24, 1.29];
+
+// ── THEME ─────────────────────────────────
+function setTheme(brand, dark, mark, name, btn) {
+  const r = document.documentElement;
+  const toRgba = (hex, a) => {
+    const rv = parseInt(hex.slice(1,3),16),
+          gv = parseInt(hex.slice(3,5),16),
+          bv = parseInt(hex.slice(5,7),16);
+    return `rgba(${rv},${gv},${bv},${a})`;
+  };
+  r.style.setProperty('--brand',        brand);
+  r.style.setProperty('--brand-dark',   dark);
+  r.style.setProperty('--brand-light',  toRgba(brand,.09));
+  r.style.setProperty('--brand-border', toRgba(brand,.2));
+  document.getElementById('logoMark').textContent = mark;
+  document.getElementById('logoName').textContent = name;
+  document.querySelectorAll('.db-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  showToast(name + ' aplicado');
+}
+
+// ── NAVIGATION ────────────────────────────
+const ctaLabels = [
+  ['Ver Capital de Giro', 'Sem compromisso · Consulta não afeta seu score'],
+  ['Ver as melhores condições →', 'Simulação sem compromisso · Gratuita'],
+  ['Quero este plano →', 'Você pode mudar antes de confirmar'],
+  ['Assinar e solicitar crédito', 'Assinatura digital com validade jurídica'],
+];
+
+function goScreen(n) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen'+n).classList.add('active');
+  currentScreen = n;
+
+  // progress dots
+  for(let i=0;i<4;i++){
+    const d = document.getElementById('pd'+i);
+    d.classList.remove('done','active');
+    if(i < n) d.classList.add('done');
+    else if(i === n) d.classList.add('active');
+  }
+
+  // back button
+  document.getElementById('ahBack').classList.toggle('show', n > 0);
+
+  // hide progress on success
+  document.getElementById('progressDots').style.display = n === 4 ? 'none' : 'flex';
+
+  // CTA
+  const bottomCta = document.getElementById('bottomCta');
+  if (n === 4) {
+    bottomCta.style.display = 'none';
+  } else {
+    bottomCta.style.display = 'block';
+    document.getElementById('ctaLabel').textContent = ctaLabels[n][0];
+    document.getElementById('ctaHint').innerHTML   = ctaLabels[n][1];
+    document.getElementById('ctaBtn').disabled = false;
+  }
+
+  // confirm screen special
+  if (n === 3) {
+    document.getElementById('ctaBtn').disabled = true;
+    document.getElementById('ctaBtn').classList.add('green-btn');
+    document.getElementById('ctaLabel').textContent = 'Assinar e solicitar crédito';
+  } else {
+    document.getElementById('ctaBtn').classList.remove('green-btn');
+  }
+
+  // update confirm values
+  if (n === 3) updateConfirm();
+
+  // scroll to top
+  document.querySelector('.scroll-area').scrollTop = 0;
+}
+
+function goBack() {
+  if (currentScreen > 0) goScreen(currentScreen - 1);
+}
+
+function handleCTA() {
+  if (currentScreen < 3) {
+    goScreen(currentScreen + 1);
+    // after going to screen 2, populate plans
+    if (currentScreen === 2) updatePlans();
+  } else {
+    doSubmit();
+  }
+}
+
+// ── SIMULATOR ────────────────────────────
+function updateSimulator() {
+  amount = parseInt(document.getElementById('amountSlider').value);
+  const pct = ((amount - 10000)/(280000-10000)) * 100;
+  document.getElementById('amountSlider').style.setProperty('--pct', pct+'%');
+
+  document.getElementById('simAmountDisplay').textContent = 'R$ ' + fmtNum(amount);
+  document.getElementById('simAmountSub').textContent = amount >= 200000
+    ? 'Limite máximo próximo' : 'Arraste para ajustar';
+
+  computeAndShow();
+}
+
+function setPrazo(p, btn) {
+  prazo = p;
+  document.querySelectorAll('.prazo-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('prazoSub').textContent = p + ' meses selecionado';
+  computeAndShow();
+}
+
+function computeAndShow() {
+  const taxa = getTaxa(amount, prazo);
+  const i = taxa/100;
+  const pmt = amount * (i*Math.pow(1+i,prazo)) / (Math.pow(1+i,prazo)-1);
+  const total = pmt * prazo;
+  const juros = total - amount;
+  const cet   = ((Math.pow(1+taxa/100,12)-1)*100 + 1.8).toFixed(1);
+
+  document.getElementById('parcelaDisplay').textContent = 'R$ ' + fmtNum(Math.round(pmt));
+  document.getElementById('parcelaSub').textContent = prazo + 'x · 1ª em 18/07/2026';
+  document.getElementById('taxaDisplay').textContent  = taxa.toFixed(2)+'%';
+  document.getElementById('totalDisplay').textContent = 'R$ ' + fmtNum(Math.round(total));
+  document.getElementById('jurosDisplay').textContent = 'R$ ' + fmtNum(Math.round(juros));
+  document.getElementById('cetDisplay').textContent   = cet + '% a.a.';
+}
+
+function getTaxa(val, pr) {
+  let t = 1.24;
+  if (val > 200000) t = 1.09;
+  else if (val > 100000) t = 1.24;
+  else if (val < 50000) t = 1.39;
+  if (pr <= 6)  t -= 0.1;
+  if (pr >= 36) t += 0.05;
+  return Math.max(0.99, t);
+}
+
+// ── PLANS ────────────────────────────────
+function updatePlans() {
+  document.getElementById('planoValor').textContent = fmtNum(amount);
+
+  for(let idx=0;idx<3;idx++){
+    const t = planTaxas[idx];
+    const n = planPrazos[idx];
+    const i = t/100;
+    const pmt = amount * (i*Math.pow(1+i,n))/(Math.pow(1+i,n)-1);
+    document.getElementById('p'+idx+'val').textContent = 'R$ ' + fmtNum(Math.round(pmt));
+
+    const card = document.getElementById('plan'+idx);
+    const descMap = ['36x · Taxa '+t.toFixed(2)+'% a.m. · Carência 30d',
+                     '18x · Taxa '+t.toFixed(2)+'% a.m. · Carência 30d',
+                     '12x · Taxa '+t.toFixed(2)+'% a.m. · Carência 30d'];
+    card.querySelector('.cc-desc').textContent = descMap[idx];
+  }
+}
+
+function selectPlan(idx, card) {
+  selectedPlan = idx;
+  document.querySelectorAll('.compare-card').forEach((c,i) => {
+    c.classList.remove('selected');
+  });
+  card.classList.add('selected');
+}
+
+// ── CONFIRM ──────────────────────────────
+function updateConfirm() {
+  const taxa = planTaxas[selectedPlan];
+  const n    = planPrazos[selectedPlan];
+  const i    = taxa/100;
+  const pmt  = Math.round(amount * (i*Math.pow(1+i,n))/(Math.pow(1+i,n)-1));
+  const cet  = ((Math.pow(1+taxa/100,12)-1)*100 + 1.8).toFixed(1);
+
+  document.getElementById('cf_valor').textContent  = 'R$ ' + fmtNum(amount);
+  document.getElementById('cf_plano').textContent  = planNames[selectedPlan];
+  document.getElementById('cf_parcela').textContent= 'R$ ' + fmtNum(pmt) + ' / ' + n + 'x';
+  document.getElementById('cf_taxa').textContent   = taxa.toFixed(2) + '% a.m. pré-fixada';
+  document.getElementById('cf_cet').textContent    = cet + '% a.a.';
+  document.getElementById('sc_valor').textContent  = 'R$ ' + fmtNum(amount);
+  document.getElementById('sc_plano').textContent  = n + 'x · R$ ' + fmtNum(pmt) + '/mês';
+}
+
+function checkTerms() {
+  const checked = document.getElementById('termsCheck').checked;
+  document.getElementById('ctaBtn').disabled = !checked;
+}
+
+// ── SUBMIT ───────────────────────────────
+function doSubmit() {
+  const btn = document.getElementById('ctaBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="login-spinner" style="width:20px;height:20px;border-width:2.5px;border-color:rgba(255,255,255,.3);border-top-color:#fff"></span> Processando...';
+
+  setTimeout(() => {
+    goScreen(4);
+    showToast('🎉 Proposta enviada com sucesso!', true);
+  }, 1800);
+}
+
+function restartJourney() {
+  currentScreen = 0;
+  prazo = 18;
+  amount = 120000;
+  selectedPlan = 1;
+  document.getElementById('termsCheck').checked = false;
+  document.getElementById('amountSlider').value = 120000;
+  document.getElementById('amountSlider').style.setProperty('--pct','45%');
+  document.querySelectorAll('.prazo-btn').forEach((b,i) => b.classList.toggle('active', i===2));
+  computeAndShow();
+  goScreen(0);
+}
+
+// ── UTILS ────────────────────────────────
+function fmtNum(n) {
+  return n.toLocaleString('pt-BR');
+}
+
+function showComingSoon(name) {
+  showToast(name + ' em breve para o seu negócio!');
+}
+
+function showHelp() {
+  showToast('Suporte: (11) 4020-0000 · Seg–Sex 8h–18h');
+}
+
+let toastT;
+function showToast(msg, green) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (green?' green-toast':'');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// ── INIT ─────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // init slider gradient
+  const s = document.getElementById('amountSlider');
+  const pct = ((120000-10000)/(280000-10000))*100;
+  s.style.setProperty('--pct', pct+'%');
+  computeAndShow();
+  updatePlans();
+});
+</script>
+</body>
+</html>

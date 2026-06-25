@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BaaS White Label · Bradesco — Showcase de Arquitetura</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#06080d;--s1:#0c0f17;--s2:#11151e;--s3:#171c28;--s4:#1d2335;
+  --border:rgba(255,255,255,.06);--b2:rgba(255,255,255,.11);--b3:rgba(255,255,255,.18);
+  --text:#e3e9f7;--muted:#5b6884;--dim:#2a3349;
+
+  --red:#e8294a;--rg:rgba(232,41,74,.12);--rb:rgba(232,41,74,.3);
+  --blue:#3b9eff;--bg2:rgba(59,158,255,.1);--bb:rgba(59,158,255,.28);
+  --green:#00d49a;--gg:rgba(0,212,154,.1);--gb:rgba(0,212,154,.28);
+  --amber:#f0a420;--ag:rgba(240,164,32,.1);--ab:rgba(240,164,32,.28);
+  --purple:#a87cf8;--pg:rgba(168,124,248,.1);--pb:rgba(168,124,248,.28);
+  --teal:#22d4c0;--tg:rgba(34,212,192,.1);--tb:rgba(34,212,192,.28);
+
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Inter',sans-serif;
+  --disp:'Syne',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");opacity:.5}
+a{color:inherit;text-decoration:none}
+
+/* ═══ NAV ═══ */
+.nav{
+  position:sticky;top:0;z-index:500;
+  background:rgba(6,8,13,.85);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:14px 48px;display:flex;align-items:center;gap:28px;
+}
+.nav-logo{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.nav-logo-mark{width:26px;height:26px;background:var(--red);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff}
+.nav-logo-text{font-family:var(--disp);font-size:13px;font-weight:700;letter-spacing:-.2px}
+.nav-links{display:flex;gap:22px;flex:1}
+.nav-link{font-size:12.5px;font-weight:500;color:var(--muted);transition:color .15s;cursor:pointer}
+.nav-link:hover{color:var(--text)}
+.nav-cta{
+  font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;
+  padding:6px 14px;border-radius:20px;background:var(--rg);color:var(--red);
+  border:1px solid var(--rb);white-space:nowrap;
+}
+
+/* ═══ HERO ═══ */
+.hero{
+  padding:90px 48px 70px;position:relative;overflow:hidden;
+  max-width:1280px;margin:0 auto;
+}
+.hero::after{content:'';position:absolute;top:-120px;right:-80px;width:560px;height:560px;
+  background:radial-gradient(circle,rgba(232,41,74,.14),transparent 65%);pointer-events:none;z-index:0}
+.hero-content{position:relative;z-index:1;max-width:760px}
+.hero-tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.htag{font-family:var(--mono);font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;
+  padding:5px 12px;border-radius:5px;font-weight:600}
+.ht-r{background:var(--rg);color:var(--red);border:1px solid var(--rb)}
+.ht-g{background:var(--gg);color:var(--green);border:1px solid var(--gb)}
+.ht-b{background:var(--bg2);color:var(--blue);border:1px solid var(--bb)}
+
+h1{font-family:var(--disp);font-size:clamp(34px,5.5vw,64px);font-weight:800;
+  letter-spacing:-2.2px;line-height:1.02;margin-bottom:20px}
+h1 em{font-style:normal;color:var(--red)}
+.hero-desc{font-size:16px;color:var(--muted);line-height:1.75;max-width:600px;margin-bottom:36px}
+
+.hero-stats{display:flex;gap:40px;flex-wrap:wrap}
+.hstat-val{font-family:var(--disp);font-size:30px;font-weight:800;letter-spacing:-1px}
+.hstat-lbl{font-family:var(--mono);font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:3px}
+
+/* ═══ SECTION SHELL ═══ */
+.section{max-width:1280px;margin:0 auto;padding:64px 48px;border-top:1px solid var(--border)}
+.sec-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:36px;flex-wrap:wrap}
+.sec-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--red);margin-bottom:10px}
+.sec-title{font-family:var(--disp);font-size:30px;font-weight:800;letter-spacing:-.8px;max-width:560px;line-height:1.15}
+.sec-desc{font-size:13.5px;color:var(--muted);max-width:460px;line-height:1.75;margin-top:6px}
+
+/* ═══ JOURNEY TRACK (3 white label models) ═══ */
+.journey-track{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.journey-card{
+  background:var(--s1);border:1px solid var(--border);border-radius:16px;overflow:hidden;
+  transition:transform .25s,border-color .25s,box-shadow .25s;position:relative;cursor:pointer;
+}
+.journey-card:hover{transform:translateY(-4px);border-color:var(--b3);box-shadow:0 20px 50px rgba(0,0,0,.4)}
+.jc-banner{height:120px;display:flex;align-items:center;justify-content:center;font-size:46px;position:relative;overflow:hidden}
+.jc-banner::after{content:'';position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,255,255,.08),transparent 60%)}
+.jc-b1{background:linear-gradient(135deg,#cc0000,#5a0000)}
+.jc-b2{background:linear-gradient(135deg,#1d4ed8,#0a1d52)}
+.jc-b3{background:linear-gradient(135deg,#0a7c5a,#053824)}
+.jc-step{
+  position:absolute;top:14px;left:14px;font-family:var(--mono);font-size:9px;letter-spacing:1.5px;
+  text-transform:uppercase;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.2);
+  border-radius:20px;padding:4px 10px;color:rgba(255,255,255,.85);
+}
+.jc-body{padding:22px}
+.jc-tag{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;margin-bottom:8px}
+.jc-title{font-family:var(--disp);font-size:19px;font-weight:700;margin-bottom:8px;letter-spacing:-.3px}
+.jc-desc{font-size:12.5px;color:var(--muted);line-height:1.7;margin-bottom:16px}
+.jc-features{display:flex;flex-direction:column;gap:6px;margin-bottom:18px}
+.jc-feat{display:flex;align-items:flex-start;gap:7px;font-size:11.5px;color:var(--muted)}
+.jc-feat-dot{color:var(--green);flex-shrink:0;margin-top:1px}
+.jc-cta{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:11px 14px;border-radius:9px;border:1px solid var(--border);
+  font-size:12px;font-weight:600;color:var(--text);transition:all .2s;
+}
+.journey-card:hover .jc-cta{border-color:var(--red);background:var(--rg);color:var(--red)}
+
+/* ═══ ARTIFACT GRID (generic reusable) ═══ */
+.artifact-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.artifact-card{
+  background:var(--s1);border:1px solid var(--border);border-radius:13px;padding:20px;
+  transition:border-color .2s,transform .2s;cursor:pointer;display:flex;flex-direction:column;gap:12px;
+}
+.artifact-card:hover{border-color:var(--b3);transform:translateY(-2px)}
+.ac-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.ac-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.ac-badge{font-family:var(--mono);font-size:8.5px;letter-spacing:1px;text-transform:uppercase;
+  padding:3px 8px;border-radius:4px;font-weight:700;white-space:nowrap}
+.ac-title{font-family:var(--disp);font-size:15.5px;font-weight:700;letter-spacing:-.2px;line-height:1.3}
+.ac-desc{font-size:11.5px;color:var(--muted);line-height:1.65;flex:1}
+.ac-footer{display:flex;align-items:center;justify-content:space-between;
+  padding-top:12px;border-top:1px solid var(--border);font-family:var(--mono);font-size:10px;color:var(--dim)}
+.ac-arrow{color:var(--muted);transition:transform .2s,color .2s}
+.artifact-card:hover .ac-arrow{transform:translateX(3px);color:var(--red)}
+
+/* icon backgrounds */
+.bg-red{background:var(--rg)} .bg-blue{background:var(--bg2)} .bg-green{background:var(--gg)}
+.bg-amber{background:var(--ag)} .bg-purple{background:var(--pg)} .bg-teal{background:var(--tg)}
+.tag-red{background:var(--rg);color:var(--red);border:1px solid var(--rb)}
+.tag-blue{background:var(--bg2);color:var(--blue);border:1px solid var(--bb)}
+.tag-green{background:var(--gg);color:var(--green);border:1px solid var(--gb)}
+.tag-amber{background:var(--ag);color:var(--amber);border:1px solid var(--ab)}
+.tag-purple{background:var(--pg);color:var(--purple);border:1px solid var(--pb)}
+.tag-teal{background:var(--tg);color:var(--teal);border:1px solid var(--tb)}
+
+/* ═══ RUNTIME DEMO BANNER ═══ */
+.runtime-banner{
+  background:linear-gradient(135deg,var(--s1),var(--s2));border:1px solid var(--border);
+  border-radius:18px;padding:36px 40px;display:flex;align-items:center;gap:36px;
+  position:relative;overflow:hidden;
+}
+.runtime-banner::before{content:'';position:absolute;top:-60px;right:80px;width:240px;height:240px;
+  background:radial-gradient(circle,rgba(168,124,248,.15),transparent 65%);pointer-events:none}
+.rb-visual{
+  display:flex;gap:10px;flex-shrink:0;position:relative;z-index:1;
+}
+.rb-swatch{width:54px;height:54px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-size:22px;border:2px solid rgba(255,255,255,.12);transition:transform .3s}
+.rb-swatch:hover{transform:translateY(-6px) rotate(-4deg)}
+.rb-content{flex:1;position:relative;z-index:1}
+.rb-eyebrow{font-family:var(--mono);font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--purple);margin-bottom:8px}
+.rb-title{font-family:var(--disp);font-size:21px;font-weight:700;margin-bottom:8px;letter-spacing:-.4px}
+.rb-desc{font-size:12.5px;color:var(--muted);line-height:1.7;max-width:480px}
+.rb-cta{
+  flex-shrink:0;display:flex;align-items:center;gap:8px;
+  padding:12px 22px;border-radius:10px;background:var(--purple);color:#fff;
+  font-size:13px;font-weight:700;white-space:nowrap;transition:all .2s;position:relative;z-index:1;
+}
+.rb-cta:hover{background:#9362f0;transform:translateY(-1px)}
+
+/* ═══ TIMELINE (architecture docs) ═══ */
+.doc-list{display:flex;flex-direction:column;gap:10px}
+.doc-row{
+  display:flex;align-items:center;gap:18px;padding:16px 20px;
+  background:var(--s1);border:1px solid var(--border);border-radius:12px;
+  transition:border-color .2s,background .2s;cursor:pointer;
+}
+.doc-row:hover{border-color:var(--b3);background:var(--s2)}
+.doc-num{font-family:var(--mono);font-size:11px;color:var(--dim);font-weight:700;min-width:24px}
+.doc-icon{font-size:20px;flex-shrink:0}
+.doc-info{flex:1;min-width:0}
+.doc-title{font-size:13.5px;font-weight:700;color:var(--text)}
+.doc-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.doc-meta{font-family:var(--mono);font-size:9.5px;color:var(--dim);white-space:nowrap;flex-shrink:0}
+.doc-arrow{color:var(--muted);transition:all .2s;flex-shrink:0}
+.doc-row:hover .doc-arrow{color:var(--red);transform:translateX(3px)}
+
+/* ═══ FOOTER ═══ */
+.footer{max-width:1280px;margin:0 auto;padding:48px 48px 64px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.footer-left{display:flex;align-items:center;gap:10px}
+.footer-mark{width:22px;height:22px;background:var(--red);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff}
+.footer-text{font-size:11.5px;color:var(--muted)}
+.footer-right{font-family:var(--mono);font-size:10px;color:var(--dim)}
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:900px){
+  .nav-links{display:none}
+  .hero{padding:60px 24px 50px}
+  .section{padding:48px 24px}
+  .journey-track{grid-template-columns:1fr}
+  .runtime-banner{flex-direction:column;text-align:center;padding:28px 24px}
+  .rb-visual{flex-wrap:wrap;justify-content:center}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<nav class="nav">
+  <div class="nav-logo">
+    <div class="nav-logo-mark">B</div>
+    <div class="nav-logo-text">BaaS White Label</div>
+  </div>
+  <div class="nav-links">
+    <a class="nav-link" href="#jornadas">Jornadas</a>
+    <a class="nav-link" href="#multiproduto">Multi-Produto</a>
+    <a class="nav-link" href="#runtime">Design Tokens</a>
+    <a class="nav-link" href="#arquitetura">Arquitetura</a>
+    <a class="nav-link" href="#estrategia">Estratégia</a>
+  </div>
+  <span class="nav-cta">● Showcase de Protótipos</span>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<div class="hero">
+  <div class="hero-content">
+    <div class="hero-tags">
+      <span class="htag ht-r">Bradesco BaaS</span>
+      <span class="htag ht-g">Open Platform</span>
+      <span class="htag ht-b">Capital de Giro · Emergencial · Antecipação</span>
+    </div>
+    <h1>A plataforma de<br>crédito <em>white label</em><br>do Bradesco.</h1>
+    <p class="hero-desc">Um único Shell App, múltiplos parceiros, três produtos de crédito e uma identidade visual que se transforma em runtime. Esta página reúne toda a jornada de protótipos, especificações e decisões arquiteturais construídas para o BaaS.</p>
+
+    <div class="hero-stats">
+      <div><div class="hstat-val" style="color:var(--red)">3</div><div class="hstat-lbl">Modelos de Jornada</div></div>
+      <div><div class="hstat-val" style="color:var(--purple)">3</div><div class="hstat-lbl">Produtos de Crédito</div></div>
+      <div><div class="hstat-val" style="color:var(--teal)">4</div><div class="hstat-lbl">Parceiros White Label</div></div>
+      <div><div class="hstat-val" style="color:var(--green)">0</div><div class="hstat-lbl">Deploys por Produto Novo</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SEÇÃO: AS 3 JORNADAS ═══ -->
+<div class="section" id="jornadas">
+  <div class="sec-head">
+    <div>
+      <div class="sec-eyebrow">Os Três Modelos</div>
+      <div class="sec-title">Mesmo MFE, três experiências completamente diferentes</div>
+    </div>
+    <div class="sec-desc">Operador, cliente final e parceiro embarcado consomem exatamente o mesmo bundle de Capital de Giro — a diferença está em como o Shell monta e estiliza cada contexto.</div>
+  </div>
+
+  <div class="journey-track">
+    <a class="journey-card" href="cg-portal-completo-v4.html">
+      <div class="jc-banner jc-b1"><span class="jc-step">Modelo B2B</span>💼</div>
+      <div class="jc-body">
+        <div class="jc-tag" style="color:var(--red)">Portal do Operador</div>
+        <div class="jc-title">Gerente & Operador Comercial</div>
+        <div class="jc-desc">Wizard de 5 etapas com régua de risco, RBAC completo e multi-produto. A versão mais completa da jornada operacional.</div>
+        <div class="jc-features">
+          <div class="jc-feat"><span class="jc-feat-dot">✓</span>Login com MFA + SSO (Azure AD, Okta, ADFS)</div>
+          <div class="jc-feat"><span class="jc-feat-dot">✓</span>RBAC: Gerente vs Operador, permissão por produto</div>
+          <div class="jc-feat"><span class="jc-feat-dot">✓</span>3 produtos: CapGiro, Emergencial, Antecipação</div>
+        </div>
+        <div class="jc-cta"><span>Abrir protótipo completo</span><span>→</span></div>
+      </div>
+    </a>
+
+    <a class="journey-card" href="cg-cliente-final-b2c.html">
+      <div class="jc-banner jc-b2"><span class="jc-step">Modelo B2C</span>📱</div>
+      <div class="jc-body">
+        <div class="jc-tag" style="color:var(--blue)">Cliente Final</div>
+        <div class="jc-title">Self-Service Mobile</div>
+        <div class="jc-desc">O próprio tomador do crédito simula e contrata sozinho. Jornada de 4 telas, linguagem de produto de consumo, mobile-first.</div>
+        <div class="jc-features">
+          <div class="jc-feat"><span class="jc-feat-dot">✓</span>Limite pré-aprovado já no hero, sem login</div>
+          <div class="jc-feat"><span class="jc-feat-dot">✓</span>3 planos comparáveis lado a lado</div>
+          <div class="jc-feat"><span class="jc-feat-dot">✓</span>Zero jargão bancário</div>
+        </div>
+        <div class="jc-cta"><span>Abrir protótipo completo</span><span>→</span></div>
+      </div>
+    </a>
+
+    <a class="journey-card" href="cg-embedded-b2b2b-cacaushow.html">
+      <div class="jc-banner jc-b3"><span class="jc-step">Modelo B2B2B</span>🍫</div>
+      <div class="jc-body">
+        <div class="jc-tag" style="color:var(--green)">Embedded</div>
+        <div class="jc-title">MFE Embarcado — Cacau Show</div>
+        <div class="jc-desc">O crédito vive dentro do portal do franqueado, sem header próprio e sem login adicional — como se fosse nativo da Cacau Show.</div>
+        <div class="jc-features">
+          <div class="jc-feat"><span class="jc-feat-dot">✓</span>Inspector de Design Tokens em tempo real</div>
+          <div class="jc-feat"><span class="jc-feat-dot">✓</span>Zero chrome — sem header, sem login</div>
+          <div class="jc-feat"><span class="jc-feat-dot">✓</span>Simulador funcional dentro do portal do parceiro</div>
+        </div>
+        <div class="jc-cta"><span>Abrir protótipo completo</span><span>→</span></div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- ═══ SEÇÃO: MULTI-PRODUTO & RBAC ═══ -->
+<div class="section" id="multiproduto">
+  <div class="sec-head">
+    <div>
+      <div class="sec-eyebrow">Portfólio & Permissões</div>
+      <div class="sec-title">Multi-produto, RBAC e gestão de portfólio sem deploy</div>
+    </div>
+    <div class="sec-desc">Como o portal evolui de um produto único para um catálogo gerenciável — com permissões granulares e adição de produtos via configuração, não código.</div>
+  </div>
+
+  <div class="artifact-grid">
+    <a class="artifact-card" href="cg-portal-completo-v4.html">
+      <div class="ac-top">
+        <div class="ac-icon bg-red">👥</div>
+        <span class="ac-badge tag-red">RBAC</span>
+      </div>
+      <div class="ac-title">Portal Multi-Produto com RBAC</div>
+      <div class="ac-desc">Ana (Gerente), Carlos e Fernanda (Operadores) com permissões distintas por produto — CapGiro, Emergencial e Antecipação.</div>
+      <div class="ac-footer"><span>Protótipo · HTML</span><span class="ac-arrow">→</span></div>
+    </a>
+
+    <a class="artifact-card" href="baas-admin-mfe-registry-v2.html">
+      <div class="ac-top">
+        <div class="ac-icon bg-purple">🛠️</div>
+        <span class="ac-badge tag-purple">Admin Interno</span>
+      </div>
+      <div class="ac-title">BaaS Admin · MFE Registry</div>
+      <div class="ac-desc">Portal interno (funcionários Bradesco) para adicionar ou remover produtos do catálogo — zero deploy do Shell App.</div>
+      <div class="ac-footer"><span>Protótipo · HTML</span><span class="ac-arrow">→</span></div>
+    </a>
+
+    <a class="artifact-card" href="mfe-registry-dinamico-arquitetura.html">
+      <div class="ac-top">
+        <div class="ac-icon bg-amber">📦</div>
+        <span class="ac-badge tag-amber">Arquitetura</span>
+      </div>
+      <div class="ac-title">MFE Registry Dinâmico</div>
+      <div class="ac-desc">O mecanismo técnico por trás: Module Federation em runtime, de semanas para minutos na adição de um produto.</div>
+      <div class="ac-footer"><span>Documento técnico</span><span class="ac-arrow">→</span></div>
+    </a>
+  </div>
+</div>
+
+<!-- ═══ SEÇÃO: RUNTIME / DESIGN TOKENS ═══ -->
+<div class="section" id="runtime">
+  <div class="sec-head">
+    <div>
+      <div class="sec-eyebrow">White Label em Runtime</div>
+      <div class="sec-title">Um bundle, qualquer identidade visual</div>
+    </div>
+    <div class="sec-desc">Design Tokens injetados como CSS Custom Properties — zero rebuild, zero redeploy.</div>
+  </div>
+
+  <div class="runtime-banner" style="margin-bottom:24px">
+    <div class="rb-visual">
+      <div class="rb-swatch" style="background:#7B2D00">🍫</div>
+      <div class="rb-swatch" style="background:#2C5F2E">🌿</div>
+      <div class="rb-swatch" style="background:#CC0000">B</div>
+      <div class="rb-swatch" style="background:#005BAA">X</div>
+    </div>
+    <div class="rb-content">
+      <div class="rb-eyebrow">Demo ao vivo</div>
+      <div class="rb-title">Token Import Stream — Cacau Show vs O Boticário</div>
+      <div class="rb-desc">Veja cada token sendo injetado individualmente no MFE em tempo real — cor, forma, tipografia e sombra mudando token a token, com inspector visual completo.</div>
+    </div>
+    <a class="rb-cta" href="design-token-import-demo.html"><span>Ver demo</span><span>→</span></a>
+  </div>
+
+  <div class="artifact-grid">
+    <a class="artifact-card" href="shell-multitenant-demo.html">
+      <div class="ac-top"><div class="ac-icon bg-purple">🏢</div><span class="ac-badge tag-purple">Multi-tenant</span></div>
+      <div class="ac-title">Shell Multi-tenant Demo</div>
+      <div class="ac-desc">Vivo e Claro rodando simultaneamente com o mesmo Shell bundle — tokens injetados em runtime, lado a lado.</div>
+      <div class="ac-footer"><span>Demo interativo</span><span class="ac-arrow">→</span></div>
+    </a>
+
+    <a class="artifact-card" href="shell-flow-visual.html">
+      <div class="ac-top"><div class="ac-icon bg-blue">⚡</div><span class="ac-badge tag-blue">Boot Sequence</span></div>
+      <div class="ac-title">Shell Flow Visual</div>
+      <div class="ac-desc">Animação dos 9 passos do boot do Shell — config, tema, autenticação B2B2X, Token Exchange, MFE Registry.</div>
+      <div class="ac-footer"><span>Demo animado</span><span class="ac-arrow">→</span></div>
+    </a>
+
+    <a class="artifact-card" href="shell-runtime-4panel.html">
+      <div class="ac-top"><div class="ac-icon bg-teal">🪟</div><span class="ac-badge tag-teal">4 Painéis</span></div>
+      <div class="ac-title">Shell Runtime · 4 Painéis</div>
+      <div class="ac-desc">Vivo Federado, Vivo Standalone, Claro Federado, Claro Standalone — quatro contextos simultâneos, incluindo tela de login com MFA.</div>
+      <div class="ac-footer"><span>Demo interativo</span><span class="ac-arrow">→</span></div>
+    </a>
+
+    <a class="artifact-card" href="shell-federated-vs-standalone.html">
+      <div class="ac-top"><div class="ac-icon bg-amber">🔐</div><span class="ac-badge tag-amber">Auth Modes</span></div>
+      <div class="ac-title">Federado vs Standalone</div>
+      <div class="ac-desc">Comparativo lado a lado dos dois modos de autenticação do white label, com seletor de modo e 4 dispositivos em paralelo.</div>
+      <div class="ac-footer"><span>Demo interativo</span><span class="ac-arrow">→</span></div>
+    </a>
+
+    <a class="artifact-card" href="bff-token-flow.html">
+      <div class="ac-top"><div class="ac-icon bg-green">🔁</div><span class="ac-badge tag-green">BFF</span></div>
+      <div class="ac-title">BFF · Fluxo de Tokens</div>
+      <div class="ac-desc">Detalhamento do papel do BFF no fluxo de tokens — arquitetura, 6 passos com código, com/sem BFF comparado.</div>
+      <div class="ac-footer"><span>Documento técnico</span><span class="ac-arrow">→</span></div>
+    </a>
+
+    <a class="artifact-card" href="api-flow-tokens-registry-mfe.html">
+      <div class="ac-top"><div class="ac-icon bg-red">🔌</div><span class="ac-badge tag-red">API Spec</span></div>
+      <div class="ac-title">Especificação de APIs</div>
+      <div class="ac-desc">14 endpoints documentados — tokens de parceiro, Customer Registry, simulação, originação e status.</div>
+      <div class="ac-footer"><span>Documento técnico</span><span class="ac-arrow">→</span></div>
+    </a>
+  </div>
+</div>
+
+<!-- ═══ SEÇÃO: ARQUITETURA ═══ -->
+<div class="section" id="arquitetura">
+  <div class="sec-head">
+    <div>
+      <div class="sec-eyebrow">Documentação Técnica</div>
+      <div class="sec-title">Arquitetura completa, ponta a ponta</div>
+    </div>
+    <div class="sec-desc">Os documentos de referência que sustentam cada decisão de implementação.</div>
+  </div>
+
+  <div class="doc-list">
+    <a class="doc-row" href="baas-whitelabel-frontend-arch.html">
+      <span class="doc-num">01</span>
+      <span class="doc-icon">🏗️</span>
+      <div class="doc-info">
+        <div class="doc-title">Arquitetura White Label Frontend</div>
+        <div class="doc-sub">Stack, MFE, tokens, auth, deploy, cloud, decisão Aarin — documento executivo completo</div>
+      </div>
+      <span class="doc-meta">10 seções</span>
+      <span class="doc-arrow">→</span>
+    </a>
+    <a class="doc-row" href="api-flow-tokens-registry-mfe.html">
+      <span class="doc-num">02</span>
+      <span class="doc-icon">🔌</span>
+      <div class="doc-info">
+        <div class="doc-title">Fluxo de APIs — Tokens, Registry, MFE</div>
+        <div class="doc-sub">Especificação técnica dos 3 fluxos: bootstrap de parceiro, Customer Registry, APIs de produto</div>
+      </div>
+      <span class="doc-meta">14 endpoints</span>
+      <span class="doc-arrow">→</span>
+    </a>
+    <a class="doc-row" href="mfe-registry-dinamico-arquitetura.html">
+      <span class="doc-num">03</span>
+      <span class="doc-icon">📦</span>
+      <div class="doc-info">
+        <div class="doc-title">MFE Registry Dinâmico</div>
+        <div class="doc-sub">Como adicionar/remover produtos sem deploy do Shell — Module Federation em runtime</div>
+      </div>
+      <span class="doc-meta">5 seções</span>
+      <span class="doc-arrow">→</span>
+    </a>
+    <a class="doc-row" href="baas-execution-roadmap.html">
+      <span class="doc-num">04</span>
+      <span class="doc-icon">🗺️</span>
+      <div class="doc-info">
+        <div class="doc-title">Roadmap de Execução</div>
+        <div class="doc-sub">12 meses, 4 squads, dependências, métricas e OKRs — DX Score 45 → 82+</div>
+      </div>
+      <span class="doc-meta">9 seções</span>
+      <span class="doc-arrow">→</span>
+    </a>
+  </div>
+</div>
+
+<!-- ═══ SEÇÃO: ESTRATÉGIA ═══ -->
+<div class="section" id="estrategia">
+  <div class="sec-head">
+    <div>
+      <div class="sec-eyebrow">Decisão Estratégica</div>
+      <div class="sec-title">Bradesco interno, Aarin, ou modelo híbrido?</div>
+    </div>
+    <div class="sec-desc">A decisão de onde desenvolver — e o que isso significa para latência, governança e propriedade intelectual.</div>
+  </div>
+
+  <div class="artifact-grid">
+    <a class="artifact-card" href="decisao-estrategica-bradesco-aarin.html">
+      <div class="ac-top"><div class="ac-icon bg-red">⚖️</div><span class="ac-badge tag-red">Decisão</span></div>
+      <div class="ac-title">Bradesco vs Aarin — Documento Navegável</div>
+      <div class="ac-desc">9 seções: contexto, 6 dimensões, latência multi-cloud, scorecard dos 3 modelos, recomendação, guardrails.</div>
+      <div class="ac-footer"><span>Documento executivo</span><span class="ac-arrow">→</span></div>
+    </a>
+
+    <a class="artifact-card" href="decisao-estrategica-print.html">
+      <div class="ac-top"><div class="ac-icon bg-amber">🖨️</div><span class="ac-badge tag-amber">Print-Ready</span></div>
+      <div class="ac-title">Versão para Impressão / PDF</div>
+      <div class="ac-desc">Mesmo conteúdo da decisão estratégica, em página única, otimizado para exportação em PDF.</div>
+      <div class="ac-footer"><span>Documento para PDF</span><span class="ac-arrow">→</span></div>
+    </a>
+
+    <a class="artifact-card" href="baas-admin-mfe-registry-v2.html">
+      <div class="ac-top"><div class="ac-icon bg-purple">🛠️</div><span class="ac-badge tag-purple">Operação</span></div>
+      <div class="ac-title">Portal Administrativo Interno</div>
+      <div class="ac-desc">A ferramenta operacional que materializa a governança decidida — gestão de portfólio sem deploy.</div>
+      <div class="ac-footer"><span>Protótipo · HTML</span><span class="ac-arrow">→</span></div>
+    </a>
+  </div>
+</div>
+
+<!-- ═══ FOOTER ═══ -->
+<div class="footer">
+  <div class="footer-left">
+    <div class="footer-mark">B</div>
+    <div class="footer-text">Bradesco BaaS · Open Platform · Showcase de Arquitetura White Label</div>
+  </div>
+  <div class="footer-right">Raul Sousa · Head de Tecnologia · Jun 2026</div>
+</div>
+
+</body>
+</html>

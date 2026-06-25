@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design Token Import — Cacau Show & O Boticário</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ─── RESET & ROOT ─────────────────────────────────── */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#05070b;--s1:#0b0e16;--s2:#10141d;--s3:#151b28;--s4:#1b2235;
+  --border:rgba(255,255,255,.055);--b2:rgba(255,255,255,.1);
+  --text:#d8e0f0;--muted:#455068;--dim:#1a2133;--dim2:#232d42;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'DM Sans',sans-serif;
+  --disp:'Syne',sans-serif;
+
+  /* cacau */
+  --cacau-primary:#7B2D00;
+  --cacau-secondary:#C4501A;
+  --cacau-accent:#F5A623;
+  --cacau-surface:#FFF8F0;
+  --cacau-text:#2C1A00;
+  --cacau-radius:4px;
+  --cacau-font:'Georgia, serif';
+  --cacau-shadow:0 4px 20px rgba(123,45,0,.2);
+
+  /* boticario */
+  --boti-primary:#2C5F2E;
+  --boti-secondary:#4A8C4D;
+  --boti-accent:#8DC63F;
+  --boti-surface:#F4F9F4;
+  --boti-text:#1A3A1B;
+  --boti-radius:24px;
+  --boti-font:'Trebuchet MS, sans-serif';
+  --boti-shadow:0 8px 32px rgba(44,95,46,.18);
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);overflow-x:hidden}
+
+/* grain */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");opacity:.45}
+
+/* ─── PAGE ──────────────────────────────────────────── */
+.page{max-width:1360px;margin:0 auto;padding:48px 44px 80px}
+
+/* ─── HEADER ────────────────────────────────────────── */
+.hdr{margin-bottom:44px}
+.hdr-tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.htag{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  padding:4px 12px;border-radius:20px;font-weight:600}
+.ht-shell{background:rgba(255,255,255,.05);color:var(--muted);border:1px solid var(--border)}
+.ht-live{background:rgba(30,200,120,.1);color:#1ec878;border:1px solid rgba(30,200,120,.3);
+  display:flex;align-items:center;gap:6px}
+.ldot{width:6px;height:6px;border-radius:50%;background:#1ec878;
+  box-shadow:0 0 7px #1ec878;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+h1{font-family:var(--disp);font-size:clamp(26px,3.5vw,48px);font-weight:800;
+  letter-spacing:-2px;line-height:1.03;margin-bottom:12px}
+h1 em{font-style:normal;color:#1ec878}
+.hdesc{font-size:13.5px;color:var(--muted);max-width:600px;line-height:1.8}
+
+/* ─── KEY INSIGHT ───────────────────────────────────── */
+.insight{
+  display:flex;gap:16px;align-items:flex-start;
+  background:var(--s2);border:1px solid var(--b2);border-radius:14px;
+  padding:20px 24px;margin-bottom:40px;
+}
+.insight-icon{font-size:22px;flex-shrink:0;margin-top:2px}
+.insight-body{font-size:13px;color:var(--muted);line-height:1.75}
+.insight-body strong{color:var(--text)}
+.insight-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.ibadge{font-family:var(--mono);font-size:9px;letter-spacing:.5px;
+  padding:3px 10px;border-radius:5px;font-weight:600}
+
+/* ─── GRID ──────────────────────────────────────────── */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px}
+
+/* ─── PARTNER PANEL ─────────────────────────────────── */
+.pnl{border-radius:18px;overflow:hidden;border:1px solid var(--border);
+  display:flex;flex-direction:column;transition:border-color .3s}
+.pnl:hover{border-color:var(--b2)}
+
+/* panel header */
+.pnl-hdr{padding:18px 22px;border-bottom:1px solid var(--border);
+  background:var(--s1);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.pnl-partner{display:flex;align-items:center;gap:10px}
+.pnl-logo-circle{width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0}
+.pnl-name{font-family:var(--disp);font-size:15px;font-weight:800}
+.pnl-sub{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:1px}
+.pnl-status{font-family:var(--mono);font-size:9px;letter-spacing:1px;
+  padding:4px 10px;border-radius:6px;transition:all .3s;white-space:nowrap}
+
+/* cacau scheme */
+.pnl.cacau .pnl-logo-circle{background:rgba(123,45,0,.2)}
+.pnl.cacau .pnl-name{color:#D4824A}
+.pnl.cacau .pnl-status{background:rgba(123,45,0,.15);color:#D4824A;border:1px solid rgba(123,45,0,.3)}
+
+/* boticario scheme */
+.pnl.boti .pnl-logo-circle{background:rgba(44,95,46,.2)}
+.pnl.boti .pnl-name{color:#6AB56D}
+.pnl.boti .pnl-status{background:rgba(44,95,46,.15);color:#6AB56D;border:1px solid rgba(44,95,46,.3)}
+
+/* ─── TOKEN IMPORT VISUALIZER ───────────────────────── */
+.token-import{padding:16px 22px;background:var(--s2);border-bottom:1px solid var(--border)}
+.ti-label{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:10px}
+.ti-tokens{display:flex;flex-direction:column;gap:4px;max-height:140px;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:var(--dim2) transparent}
+.ti-row{display:flex;align-items:center;gap:8px;
+  font-family:var(--mono);font-size:10px;line-height:1.5;
+  opacity:0;transform:translateX(-6px);transition:opacity .3s,transform .3s}
+.ti-row.show{opacity:1;transform:none}
+.ti-swatch{width:14px;height:14px;border-radius:3px;flex-shrink:0;border:1px solid rgba(255,255,255,.1)}
+.ti-key{color:var(--muted);min-width:160px;flex-shrink:0}
+.ti-val{color:#7ab8ff;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ti-check{font-size:10px;color:#1ec878;flex-shrink:0;opacity:0;transition:opacity .2s}
+.ti-row.show .ti-check{opacity:1}
+
+/* progress bar for import */
+.import-progress{margin-top:10px;height:2px;background:var(--dim2);border-radius:1px;overflow:hidden}
+.ip-fill{height:100%;width:0%;border-radius:1px;transition:width .1s linear}
+
+/* ─── MFE PREVIEW ───────────────────────────────────── */
+.mfe-preview{flex:1;padding:0}
+
+/* the MFE itself — pure CSS variables, no JS color hardcoding */
+.mfe{
+  --mfe-primary: #888;
+  --mfe-secondary: #aaa;
+  --mfe-accent: #ccc;
+  --mfe-surface: #f5f5f5;
+  --mfe-text: #333;
+  --mfe-radius: 8px;
+  --mfe-shadow: 0 4px 16px rgba(0,0,0,.1);
+  --mfe-font: 'DM Sans', sans-serif;
+
+  background: var(--mfe-surface);
+  font-family: var(--mfe-font);
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+  transition: background .5s ease;
+}
+
+.mfe-nav{
+  padding:14px 18px;
+  background:var(--mfe-primary);
+  display:flex;align-items:center;justify-content:space-between;
+  transition:background .5s;
+}
+.mfe-nav-logo{
+  font-family:var(--disp);font-size:16px;font-weight:800;color:#fff;letter-spacing:-0.5px;
+}
+.mfe-nav-tag{font-size:9px;color:rgba(255,255,255,.6);letter-spacing:.5px;text-align:right}
+
+.mfe-hero{
+  padding:18px;
+  background:linear-gradient(135deg,var(--mfe-primary),var(--mfe-secondary));
+  transition:background .5s;
+}
+.mfe-hero-lbl{font-size:9px;color:rgba(255,255,255,.65);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.mfe-hero-val{font-family:var(--disp);font-size:26px;font-weight:800;color:#fff;letter-spacing:-1px}
+.mfe-hero-note{font-size:10px;color:rgba(255,255,255,.5);margin-top:3px}
+
+.mfe-body{padding:16px 18px;flex:1;display:flex;flex-direction:column;gap:10px}
+
+.mfe-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mfe-metric{
+  background:#fff;
+  border-radius:var(--mfe-radius);
+  padding:12px 8px;text-align:center;
+  box-shadow:var(--mfe-shadow);
+  border:1px solid rgba(0,0,0,.06);
+  transition:border-radius .5s,box-shadow .5s;
+}
+.mm-val{font-size:15px;font-weight:700;display:block;margin-bottom:2px;
+  color:var(--mfe-primary);transition:color .5s}
+.mm-lbl{font-size:9px;color:#aaa}
+
+.mfe-sim{
+  background:#fff;border-radius:var(--mfe-radius);
+  padding:14px;box-shadow:var(--mfe-shadow);
+  border:1px solid rgba(0,0,0,.06);
+  transition:border-radius .5s,box-shadow .5s;
+}
+.sim-label{font-size:10px;color:#999;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px}
+.sim-slider-wrap{position:relative;margin-bottom:10px}
+.sim-slider{
+  width:100%;height:4px;background:#eee;
+  border-radius:2px;appearance:none;cursor:pointer;outline:none;
+}
+.sim-slider::-webkit-slider-thumb{
+  appearance:none;width:18px;height:18px;border-radius:50%;
+  background:var(--mfe-primary);cursor:pointer;
+  box-shadow:0 2px 8px rgba(0,0,0,.2);
+  transition:background .5s;
+}
+.sim-values{display:flex;justify-content:space-between;font-size:9px;color:#bbb}
+.sim-result{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--mfe-surface);border-radius:calc(var(--mfe-radius) - 2px);
+  padding:8px 12px;margin-top:8px;
+  transition:background .5s;
+}
+.sr-label{font-size:10px;color:#888}
+.sr-val{font-family:var(--mono);font-size:13px;font-weight:700;
+  color:var(--mfe-primary);transition:color .5s}
+
+.mfe-cta{
+  width:100%;padding:13px;border:none;border-radius:var(--mfe-radius);
+  background:var(--mfe-primary);color:#fff;
+  font-family:var(--disp);font-size:13px;font-weight:700;
+  cursor:pointer;letter-spacing:-.3px;
+  box-shadow:var(--mfe-shadow);
+  transition:background .5s,border-radius .5s,box-shadow .5s;
+  position:relative;overflow:hidden;
+}
+.mfe-cta::after{
+  content:'';position:absolute;inset:0;
+  background:rgba(255,255,255,.12);
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .3s;
+}
+.mfe-cta:hover::after{transform:scaleX(1)}
+
+.mfe-secure{display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 0 2px}
+.ms-txt{font-size:9px;color:#ccc}
+.ms-badge{font-family:var(--mono);font-size:8px;background:#f0f0f4;color:#aaa;
+  padding:2px 7px;border-radius:3px}
+
+/* ─── PROGRESS STRIP ────────────────────────────────── */
+.prog-strip{
+  padding:12px 22px;background:var(--s1);border-top:1px solid var(--border);
+}
+.ps-label{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:7px;display:flex;justify-content:space-between}
+.ps-timer{color:var(--muted)}
+.ps-pips{display:flex;gap:3px}
+.pip{flex:1;height:3px;border-radius:2px;background:var(--dim2);
+  transition:background .3s;position:relative;overflow:hidden}
+.pip.done{background:var(--pc)}
+.pip.active{background:var(--dim2)}
+.pip.active::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,var(--pc),transparent);
+  animation:gl 1s infinite}
+@keyframes gl{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+
+/* ─── CONTROLS ──────────────────────────────────────── */
+.ctrl-bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:32px}
+.ctrl-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--muted)}
+.spd{background:var(--s2);color:var(--text);border:1px solid var(--b2);
+  border-radius:8px;padding:9px 12px;font-family:var(--mono);font-size:11px;cursor:pointer}
+.btn{display:flex;align-items:center;gap:8px;padding:10px 22px;border-radius:9px;
+  border:none;cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:700;transition:all .2s}
+.btn-run{background:linear-gradient(135deg,#7B2D00,#2C5F2E);color:#fff}
+.btn-run:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.btn-run:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.btn-rst{background:var(--s2);color:var(--muted);border:1px solid var(--b2)}
+.btn-rst:hover{color:var(--text)}
+
+/* ─── TOKEN INSPECTOR (bottom) ──────────────────────── */
+.inspector-wrap{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:40px}
+.inspector{background:var(--s1);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.inspector-hdr{padding:14px 18px;border-bottom:1px solid var(--border);background:var(--s2);
+  display:flex;align-items:center;gap:10px}
+.insp-dot{width:8px;height:8px;border-radius:50%}
+.insp-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);flex:1}
+.insp-badge{font-family:var(--mono);font-size:8px;padding:2px 8px;border-radius:4px;font-weight:600}
+.inspector-body{padding:16px 18px}
+
+.token-group{margin-bottom:14px}
+.tg-label{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:6px}
+.tg-swatches{display:flex;gap:8px;flex-wrap:wrap}
+.tsw{display:flex;flex-direction:column;align-items:center;gap:4px}
+.tsw-color{width:36px;height:36px;border-radius:6px;border:1px solid rgba(255,255,255,.1);
+  transition:all .5s}
+.tsw-label{font-family:var(--mono);font-size:8px;color:var(--muted);text-align:center;max-width:50px;line-height:1.2}
+.tsw-hex{font-family:var(--mono);font-size:8px;color:var(--dim2);transition:color .5s}
+
+.token-shape{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.shape-demo{
+  width:48px;height:32px;background:var(--pc,#888);
+  transition:border-radius .5s,background .5s;
+  display:flex;align-items:center;justify-content:center;
+  font-size:8px;color:rgba(255,255,255,.7);font-family:var(--mono);
+}
+.shape-val{font-family:var(--mono);font-size:11px;color:var(--text)}
+.shape-lbl{font-family:var(--mono);font-size:9px;color:var(--muted)}
+
+/* ─── CODE PANEL ────────────────────────────────────── */
+.code-section{margin-bottom:40px}
+.cs-header{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+.cs-title{font-family:var(--disp);font-size:20px;font-weight:700;letter-spacing:-.5px}
+.cs-bar{flex:1;height:1px;background:var(--border)}
+.code-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.cw{background:var(--s2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.cw-head{display:flex;align-items:center;justify-content:space-between;
+  padding:9px 14px;border-bottom:1px solid var(--border);background:var(--s3)}
+.cw-dots{display:flex;gap:5px}
+.cd{width:9px;height:9px;border-radius:50%}
+.cd.r{background:#ff5f57}.cd.y{background:#ffbd2e}.cd.g{background:#28c840}
+.cw-tag{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase}
+pre{padding:16px;font-family:var(--mono);font-size:11px;line-height:1.85;color:#7a8faa;overflow-x:auto}
+.kw{color:#f07178}.str{color:#c3e88d}.cm{color:#394f66;font-style:italic}
+.fn{color:#82aaff}.key{color:#89ddff}.ok{color:#1ec878}.warn{color:#f5a623}
+.cacau-c{color:#D4824A}.boti-c{color:#6AB56D}
+
+/* ─── DIFF SECTION ──────────────────────────────────── */
+.diff-box{
+  background:var(--s1);border:1px solid var(--b2);border-radius:14px;
+  padding:24px 28px;margin-bottom:40px;
+}
+.diff-title{font-family:var(--disp);font-size:17px;font-weight:700;margin-bottom:16px}
+.diff-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.diff-side{display:flex;flex-direction:column;gap:8px}
+.diff-side-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  font-weight:600;margin-bottom:4px}
+.diff-side.cacau-side .diff-side-title{color:#D4824A}
+.diff-side.boti-side .diff-side-title{color:#6AB56D}
+.diff-item{display:flex;align-items:flex-start;gap:8px;font-size:12.5px;color:var(--muted);line-height:1.5}
+.diff-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:5px}
+
+/* ─── RESPONSIVE ─────────────────────────────────────── */
+@media(max-width:800px){
+  .grid,.inspector-wrap,.code-grid,.diff-grid{grid-template-columns:1fr}
+  .page{padding:28px 20px 60px}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ─── HEADER ─────────────────────────────────────── -->
+<div class="hdr">
+  <div class="hdr-tags">
+    <span class="htag ht-shell">Shell · MFE · Design Token Import</span>
+    <span class="htag ht-live"><div class="ldot"></div>Demo ao vivo</span>
+  </div>
+  <h1>Design System do Parceiro<br><em>importado</em> no MFE</h1>
+  <p class="hdesc">O mesmo MFE de Capital de Giro recebe os Design Tokens do Cacau Show e d'O Boticário. Observe em tempo real a injeção dos tokens CSS, a transformação visual e a inspeção dos valores aplicados.</p>
+</div>
+
+<!-- ─── INSIGHT ───────────────────────────────────── -->
+<div class="insight">
+  <div class="insight-icon">⚡</div>
+  <div class="insight-body">
+    <strong>O MFE não tem uma linha de cor hardcoded.</strong> Todos os valores visuais — cor primária, tipografia, border-radius, sombras — são CSS Custom Properties injetadas pelo Shell ao carregar o pacote de tokens do parceiro. O mesmo bundle JavaScript renderiza identidades completamente diferentes.
+    <div class="insight-badges">
+      <span class="ibadge" style="background:rgba(123,45,0,.15);color:#D4824A;border:1px solid rgba(123,45,0,.3)">@cacaushow/design-tokens</span>
+      <span class="ibadge" style="background:rgba(44,95,46,.15);color:#6AB56D;border:1px solid rgba(44,95,46,.3)">@boticario/design-tokens</span>
+      <span class="ibadge" style="background:rgba(255,255,255,.06);color:var(--muted);border:1px solid var(--border)">mesmo MFE bundle</span>
+      <span class="ibadge" style="background:rgba(30,200,120,.1);color:#1ec878;border:1px solid rgba(30,200,120,.3)">zero rebuild</span>
+    </div>
+  </div>
+</div>
+
+<!-- ─── CONTROLS ──────────────────────────────────── -->
+<div class="ctrl-bar">
+  <span class="ctrl-label">Velocidade de injeção</span>
+  <select class="spd" id="spd">
+    <option value="160">Normal</option>
+    <option value="80">Rápido</option>
+    <option value="320">Lento</option>
+  </select>
+  <button class="btn btn-run" id="playBtn">▶ Importar Design Tokens</button>
+  <button class="btn btn-rst" id="resetBtn">↺ Resetar</button>
+</div>
+
+<!-- ─── MAIN GRID ─────────────────────────────────── -->
+<div class="grid">
+
+  <!-- ══ CACAU SHOW ══ -->
+  <div class="pnl cacau">
+    <div class="pnl-hdr">
+      <div class="pnl-partner">
+        <div class="pnl-logo-circle">🍫</div>
+        <div>
+          <div class="pnl-name">Cacau Show</div>
+          <div class="pnl-sub">@cacaushow/design-tokens · v3.2.1</div>
+        </div>
+      </div>
+      <div class="pnl-status" id="cacau-status">aguardando</div>
+    </div>
+
+    <!-- token import stream -->
+    <div class="token-import">
+      <div class="ti-label">Token import stream · <span id="cacau-count">0</span> tokens aplicados</div>
+      <div class="ti-tokens" id="cacau-tokens">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);opacity:.4">aguardando importação...</div>
+      </div>
+      <div class="import-progress">
+        <div class="ip-fill" id="cacau-prog" style="background:#D4824A"></div>
+      </div>
+    </div>
+
+    <!-- MFE -->
+    <div class="mfe-preview">
+      <div class="mfe" id="cacau-mfe">
+        <div class="mfe-nav">
+          <div class="mfe-nav-logo" id="cacau-mfe-logo">Capital de Giro</div>
+          <div class="mfe-nav-tag">Powered by Bradesco BaaS</div>
+        </div>
+        <div class="mfe-hero">
+          <div class="mfe-hero-lbl">Limite disponível</div>
+          <div class="mfe-hero-val">R$ 120.000</div>
+          <div class="mfe-hero-note">✦ pré-aprovado para sua franquia</div>
+        </div>
+        <div class="mfe-body">
+          <div class="mfe-metrics">
+            <div class="mfe-metric"><span class="mm-val" id="cacau-mm1">24x</span><span class="mm-lbl">parcelas</span></div>
+            <div class="mfe-metric"><span class="mm-val" id="cacau-mm2">1,1%</span><span class="mm-lbl">a.m.</span></div>
+            <div class="mfe-metric"><span class="mm-val" id="cacau-mm3">30d</span><span class="mm-lbl">carência</span></div>
+          </div>
+          <div class="mfe-sim">
+            <div class="sim-label">Simulador de parcelas</div>
+            <div class="sim-slider-wrap">
+              <input type="range" class="sim-slider" min="10000" max="120000" value="60000" id="cacau-slider">
+            </div>
+            <div class="sim-values"><span>R$ 10k</span><span>R$ 120k</span></div>
+            <div class="sim-result">
+              <span class="sr-label">Parcela estimada (24x)</span>
+              <span class="sr-val" id="cacau-installment">R$ 2.800</span>
+            </div>
+          </div>
+          <button class="mfe-cta" id="cacau-cta">Solicitar crédito</button>
+          <div class="mfe-secure">
+            <span class="ms-txt">🔒 processado por</span>
+            <span class="ms-badge">Bradesco BaaS</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- progress -->
+    <div class="prog-strip" style="--pc:#7B2D00">
+      <div class="ps-label">
+        <span>Tokens importados</span>
+        <span class="ps-timer" id="cacau-timer">0ms</span>
+      </div>
+      <div class="ps-pips" id="cacau-pips">
+        <div class="pip" id="cacau-pip-0"></div>
+        <div class="pip" id="cacau-pip-1"></div>
+        <div class="pip" id="cacau-pip-2"></div>
+        <div class="pip" id="cacau-pip-3"></div>
+        <div class="pip" id="cacau-pip-4"></div>
+        <div class="pip" id="cacau-pip-5"></div>
+        <div class="pip" id="cacau-pip-6"></div>
+        <div class="pip" id="cacau-pip-7"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ O BOTICÁRIO ══ -->
+  <div class="pnl boti">
+    <div class="pnl-hdr">
+      <div class="pnl-partner">
+        <div class="pnl-logo-circle">🌿</div>
+        <div>
+          <div class="pnl-name">O Boticário</div>
+          <div class="pnl-sub">@boticario/design-tokens · v5.1.0</div>
+        </div>
+      </div>
+      <div class="pnl-status" id="boti-status">aguardando</div>
+    </div>
+
+    <div class="token-import">
+      <div class="ti-label">Token import stream · <span id="boti-count">0</span> tokens aplicados</div>
+      <div class="ti-tokens" id="boti-tokens">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);opacity:.4">aguardando importação...</div>
+      </div>
+      <div class="import-progress">
+        <div class="ip-fill" id="boti-prog" style="background:#2C5F2E"></div>
+      </div>
+    </div>
+
+    <div class="mfe-preview">
+      <div class="mfe" id="boti-mfe">
+        <div class="mfe-nav">
+          <div class="mfe-nav-logo" id="boti-mfe-logo">Capital de Giro</div>
+          <div class="mfe-nav-tag">Powered by Bradesco BaaS</div>
+        </div>
+        <div class="mfe-hero">
+          <div class="mfe-hero-lbl">Limite disponível</div>
+          <div class="mfe-hero-val">R$ 80.000</div>
+          <div class="mfe-hero-note">✦ para franqueados O Boticário</div>
+        </div>
+        <div class="mfe-body">
+          <div class="mfe-metrics">
+            <div class="mfe-metric"><span class="mm-val" id="boti-mm1">18x</span><span class="mm-lbl">parcelas</span></div>
+            <div class="mfe-metric"><span class="mm-val" id="boti-mm2">1,2%</span><span class="mm-lbl">a.m.</span></div>
+            <div class="mfe-metric"><span class="mm-val" id="boti-mm3">45d</span><span class="mm-lbl">carência</span></div>
+          </div>
+          <div class="mfe-sim">
+            <div class="sim-label">Simulador de parcelas</div>
+            <div class="sim-slider-wrap">
+              <input type="range" class="sim-slider" min="10000" max="80000" value="40000" id="boti-slider">
+            </div>
+            <div class="sim-values"><span>R$ 10k</span><span>R$ 80k</span></div>
+            <div class="sim-result">
+              <span class="sr-label">Parcela estimada (18x)</span>
+              <span class="sr-val" id="boti-installment">R$ 2.400</span>
+            </div>
+          </div>
+          <button class="mfe-cta" id="boti-cta">Solicitar crédito</button>
+          <div class="mfe-secure">
+            <span class="ms-txt">🔒 processado por</span>
+            <span class="ms-badge">Bradesco BaaS</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="prog-strip" style="--pc:#2C5F2E">
+      <div class="ps-label">
+        <span>Tokens importados</span>
+        <span class="ps-timer" id="boti-timer">0ms</span>
+      </div>
+      <div class="ps-pips" id="boti-pips">
+        <div class="pip" id="boti-pip-0"></div>
+        <div class="pip" id="boti-pip-1"></div>
+        <div class="pip" id="boti-pip-2"></div>
+        <div class="pip" id="boti-pip-3"></div>
+        <div class="pip" id="boti-pip-4"></div>
+        <div class="pip" id="boti-pip-5"></div>
+        <div class="pip" id="boti-pip-6"></div>
+        <div class="pip" id="boti-pip-7"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /grid -->
+
+<!-- ─── TOKEN INSPECTOR ───────────────────────────── -->
+<div class="inspector-wrap">
+
+  <div class="inspector">
+    <div class="inspector-hdr">
+      <div class="insp-dot" style="background:#D4824A;box-shadow:0 0 6px #D4824A"></div>
+      <div class="insp-title">Inspector · @cacaushow/design-tokens</div>
+      <div class="insp-badge" style="background:rgba(123,45,0,.15);color:#D4824A;border:1px solid rgba(123,45,0,.3)">v3.2.1</div>
+    </div>
+    <div class="inspector-body">
+      <div class="token-group">
+        <div class="tg-label">Paleta de cores</div>
+        <div class="tg-swatches">
+          <div class="tsw">
+            <div class="tsw-color" id="ci-cacau-primary" style="background:#888"></div>
+            <div class="tsw-label">primary</div>
+            <div class="tsw-hex" id="ci-cacau-primary-hex">—</div>
+          </div>
+          <div class="tsw">
+            <div class="tsw-color" id="ci-cacau-secondary" style="background:#888"></div>
+            <div class="tsw-label">secondary</div>
+            <div class="tsw-hex" id="ci-cacau-secondary-hex">—</div>
+          </div>
+          <div class="tsw">
+            <div class="tsw-color" id="ci-cacau-accent" style="background:#888"></div>
+            <div class="tsw-label">accent</div>
+            <div class="tsw-hex" id="ci-cacau-accent-hex">—</div>
+          </div>
+          <div class="tsw">
+            <div class="tsw-color" id="ci-cacau-surface" style="background:#888"></div>
+            <div class="tsw-label">surface</div>
+            <div class="tsw-hex" id="ci-cacau-surface-hex">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="token-group">
+        <div class="tg-label">Border Radius</div>
+        <div class="token-shape">
+          <div class="shape-demo" id="ci-cacau-shape" style="background:#888;border-radius:8px">Btn</div>
+          <div>
+            <div class="shape-val" id="ci-cacau-radius-val">—</div>
+            <div class="shape-lbl">--mfe-radius</div>
+          </div>
+        </div>
+      </div>
+      <div class="token-group">
+        <div class="tg-label">Aplicação dos Tokens</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);line-height:2">
+          <span id="ci-cacau-applied" style="color:var(--muted)">nenhum token aplicado ainda</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="inspector">
+    <div class="inspector-hdr">
+      <div class="insp-dot" style="background:#6AB56D;box-shadow:0 0 6px #6AB56D"></div>
+      <div class="insp-title">Inspector · @boticario/design-tokens</div>
+      <div class="insp-badge" style="background:rgba(44,95,46,.15);color:#6AB56D;border:1px solid rgba(44,95,46,.3)">v5.1.0</div>
+    </div>
+    <div class="inspector-body">
+      <div class="token-group">
+        <div class="tg-label">Paleta de cores</div>
+        <div class="tg-swatches">
+          <div class="tsw">
+            <div class="tsw-color" id="ci-boti-primary" style="background:#888"></div>
+            <div class="tsw-label">primary</div>
+            <div class="tsw-hex" id="ci-boti-primary-hex">—</div>
+          </div>
+          <div class="tsw">
+            <div class="tsw-color" id="ci-boti-secondary" style="background:#888"></div>
+            <div class="tsw-label">secondary</div>
+            <div class="tsw-hex" id="ci-boti-secondary-hex">—</div>
+          </div>
+          <div class="tsw">
+            <div class="tsw-color" id="ci-boti-accent" style="background:#888"></div>
+            <div class="tsw-label">accent</div>
+            <div class="tsw-hex" id="ci-boti-accent-hex">—</div>
+          </div>
+          <div class="tsw">
+            <div class="tsw-color" id="ci-boti-surface" style="background:#888"></div>
+            <div class="tsw-label">surface</div>
+            <div class="tsw-hex" id="ci-boti-surface-hex">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="token-group">
+        <div class="tg-label">Border Radius</div>
+        <div class="token-shape">
+          <div class="shape-demo" id="ci-boti-shape" style="background:#888;border-radius:8px">Btn</div>
+          <div>
+            <div class="shape-val" id="ci-boti-radius-val">—</div>
+            <div class="shape-lbl">--mfe-radius</div>
+          </div>
+        </div>
+      </div>
+      <div class="token-group">
+        <div class="tg-label">Aplicação dos Tokens</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);line-height:2">
+          <span id="ci-boti-applied" style="color:var(--muted)">nenhum token aplicado ainda</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ─── TOKEN DIFF ─────────────────────────────────── -->
+<div class="diff-box">
+  <div class="diff-title">O que muda entre os dois Design Systems</div>
+  <div class="diff-grid">
+    <div class="diff-side cacau-side">
+      <div class="diff-side-title">🍫 Cacau Show DS</div>
+      <div class="diff-item"><div class="diff-dot" style="background:#7B2D00"></div>Tom terroso e quente — chocolate, caramelo, âmbar</div>
+      <div class="diff-item"><div class="diff-dot" style="background:#7B2D00"></div>Border-radius 4px — cantos retos, feel artesanal</div>
+      <div class="diff-item"><div class="diff-dot" style="background:#7B2D00"></div>Tipografia serifada (Georgia) — sofisticação clássica</div>
+      <div class="diff-item"><div class="diff-dot" style="background:#7B2D00"></div>Sombra quente com tint marrom</div>
+      <div class="diff-item"><div class="diff-dot" style="background:#7B2D00"></div>Surface creme (#FFF8F0) — aconchegante</div>
+      <div class="diff-item"><div class="diff-dot" style="background:#7B2D00"></div>Limite maior (R$ 120k) — rede de franquias maior</div>
+    </div>
+    <div class="diff-side boti-side">
+      <div class="diff-side-title">🌿 O Boticário DS</div>
+      <div class="diff-item"><div class="diff-dot" style="background:#2C5F2E"></div>Verde natural e fresco — floresta, sustentabilidade</div>
+      <div class="diff-item"><div class="diff-dot" style="background:#2C5F2E"></div>Border-radius 24px — cantos arredondados, moderno</div>
+      <div class="diff-item"><div class="diff-dot" style="background:#2C5F2E"></div>Tipografia sans-serif moderna (Trebuchet)</div>
+      <div class="diff-item"><div class="diff-dot" style="background:#2C5F2E"></div>Sombra esverdeada suave e difusa</div>
+      <div class="diff-item"><div class="diff-dot" style="background:#2C5F2E"></div>Surface verde-água (#F4F9F4) — natural e limpo</div>
+      <div class="diff-item"><div class="diff-dot" style="background:#2C5F2E"></div>Carência maior (45d) — condição comercial própria</div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── CODE COMPARISON ───────────────────────────── -->
+<div class="code-section">
+  <div class="cs-header">
+    <div class="cs-title">Token packages — como o parceiro exporta</div>
+    <div class="cs-bar"></div>
+  </div>
+  <div class="code-grid">
+    <div class="cw">
+      <div class="cw-head">
+        <div class="cw-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div>
+        <span class="cw-tag cacau-c">@cacaushow/design-tokens · tokens.json</span>
+      </div>
+      <pre>{
+  <span class="key">"meta"</span>: {
+    <span class="key">"package"</span>: <span class="str">"@cacaushow/design-tokens"</span>,
+    <span class="key">"version"</span>: <span class="str">"3.2.1"</span>
+  },
+  <span class="key">"color"</span>: {
+    <span class="key">"primary"</span>:   <span class="str">"#7B2D00"</span>,  <span class="cm">← marrom chocolate</span>
+    <span class="key">"secondary"</span>: <span class="str">"#C4501A"</span>,  <span class="cm">← caramelo</span>
+    <span class="key">"accent"</span>:    <span class="str">"#F5A623"</span>,  <span class="cm">← âmbar dourado</span>
+    <span class="key">"surface"</span>:   <span class="str">"#FFF8F0"</span>,  <span class="cm">← creme</span>
+    <span class="key">"text"</span>:      <span class="str">"#2C1A00"</span>
+  },
+  <span class="key">"shape"</span>: {
+    <span class="key">"radius"</span>: <span class="str">"4px"</span>   <span class="cm">← artesanal, reto</span>
+  },
+  <span class="key">"typography"</span>: {
+    <span class="key">"family"</span>: <span class="str">"Georgia, serif"</span>
+  },
+  <span class="key">"elevation"</span>: {
+    <span class="key">"card"</span>: <span class="str">"0 4px 20px rgba(123,45,0,.2)"</span>
+  }
+}</pre>
+    </div>
+    <div class="cw">
+      <div class="cw-head">
+        <div class="cw-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div>
+        <span class="cw-tag boti-c">@boticario/design-tokens · tokens.json</span>
+      </div>
+      <pre>{
+  <span class="key">"meta"</span>: {
+    <span class="key">"package"</span>: <span class="str">"@boticario/design-tokens"</span>,
+    <span class="key">"version"</span>: <span class="str">"5.1.0"</span>
+  },
+  <span class="key">"color"</span>: {
+    <span class="key">"primary"</span>:   <span class="str">"#2C5F2E"</span>,  <span class="cm">← verde floresta</span>
+    <span class="key">"secondary"</span>: <span class="str">"#4A8C4D"</span>,  <span class="cm">← verde médio</span>
+    <span class="key">"accent"</span>:    <span class="str">"#8DC63F"</span>,  <span class="cm">← verde lima</span>
+    <span class="key">"surface"</span>:   <span class="str">"#F4F9F4"</span>,  <span class="cm">← verde-água</span>
+    <span class="key">"text"</span>:      <span class="str">"#1A3A1B"</span>
+  },
+  <span class="key">"shape"</span>: {
+    <span class="key">"radius"</span>: <span class="str">"24px"</span>  <span class="cm">← moderno, fluido</span>
+  },
+  <span class="key">"typography"</span>: {
+    <span class="key">"family"</span>: <span class="str">"Trebuchet MS, sans-serif"</span>
+  },
+  <span class="key">"elevation"</span>: {
+    <span class="key">"card"</span>: <span class="str">"0 8px 32px rgba(44,95,46,.18)"</span>
+  }
+}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ─── HOW SHELL APPLIES ──────────────────────────── -->
+<div class="code-section">
+  <div class="cs-header">
+    <div class="cs-title">Como o Shell aplica os tokens no MFE</div>
+    <div class="cs-bar"></div>
+  </div>
+  <div class="cw" style="max-width:700px">
+    <div class="cw-head">
+      <div class="cw-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div>
+      <span class="cw-tag" style="color:#1ec878">Shell · applyDesignTokens.ts</span>
+    </div>
+    <pre><span class="kw">async function</span> <span class="fn">applyDesignTokens</span>(partnerId: <span class="str">string</span>, mfeEl: HTMLElement) {
+
+  <span class="cm">// 1. Busca o pacote de tokens do parceiro via Partner Config API</span>
+  <span class="kw">const</span> config = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`/v1/partners/${partnerId}/design-tokens`</span>);
+  <span class="kw">const</span> tokens: DesignTokenPackage = <span class="kw">await</span> config.<span class="fn">json</span>();
+
+  <span class="cm">// 2. Sanitiza o pacote — evita injeção de CSS malicioso</span>
+  <span class="kw">const</span> safe = <span class="fn">sanitizeTokens</span>(tokens); <span class="cm">// allowlist de propriedades permitidas</span>
+
+  <span class="cm">// 3. Aplica como CSS Custom Properties no elemento raiz do MFE</span>
+  <span class="cm">// Scoped ao MFE — não vaza para outros parceiros no mesmo Shell</span>
+  mfeEl.style.<span class="fn">setProperty</span>(<span class="str">'--mfe-primary'</span>,   safe.color.primary);
+  mfeEl.style.<span class="fn">setProperty</span>(<span class="str">'--mfe-secondary'</span>, safe.color.secondary);
+  mfeEl.style.<span class="fn">setProperty</span>(<span class="str">'--mfe-accent'</span>,    safe.color.accent);
+  mfeEl.style.<span class="fn">setProperty</span>(<span class="str">'--mfe-surface'</span>,   safe.color.surface);
+  mfeEl.style.<span class="fn">setProperty</span>(<span class="str">'--mfe-radius'</span>,    safe.shape.radius);
+  mfeEl.style.<span class="fn">setProperty</span>(<span class="str">'--mfe-shadow'</span>,    safe.elevation.card);
+  mfeEl.style.<span class="fn">setProperty</span>(<span class="str">'--mfe-font'</span>,      safe.typography.family);
+
+  <span class="cm">// 4. Atualiza o logo do MFE com o nome do parceiro</span>
+  mfeEl.<span class="fn">querySelector</span>(<span class="str">'.mfe-nav-logo'</span>).textContent = tokens.meta.appName;
+}
+
+<span class="cm">// Os tokens vivem como variáveis CSS — o MFE usa var(--mfe-primary)</span>
+<span class="cm">// em todos os lugares. Zero hardcode. Zero rebuild.</span></pre>
+  </div>
+</div>
+
+</div><!-- /page -->
+
+<script>
+// ─── TOKEN DEFINITIONS ───────────────────────────────────────────
+const CACAU_TOKENS = [
+  { key:'--mfe-primary',   val:'#7B2D00', label:'color.primary',   swatch:true },
+  { key:'--mfe-secondary', val:'#C4501A', label:'color.secondary',  swatch:true },
+  { key:'--mfe-accent',    val:'#F5A623', label:'color.accent',     swatch:true },
+  { key:'--mfe-surface',   val:'#FFF8F0', label:'color.surface',    swatch:true },
+  { key:'--mfe-text',      val:'#2C1A00', label:'color.text',       swatch:false },
+  { key:'--mfe-radius',    val:'4px',     label:'shape.radius',     swatch:false },
+  { key:'--mfe-shadow',    val:'0 4px 20px rgba(123,45,0,.2)', label:'elevation.card', swatch:false },
+  { key:'--mfe-font',      val:'Georgia, serif', label:'typography.family', swatch:false },
+];
+
+const BOTI_TOKENS = [
+  { key:'--mfe-primary',   val:'#2C5F2E', label:'color.primary',   swatch:true },
+  { key:'--mfe-secondary', val:'#4A8C4D', label:'color.secondary',  swatch:true },
+  { key:'--mfe-accent',    val:'#8DC63F', label:'color.accent',     swatch:true },
+  { key:'--mfe-surface',   val:'#F4F9F4', label:'color.surface',    swatch:true },
+  { key:'--mfe-text',      val:'#1A3A1B', label:'color.text',       swatch:false },
+  { key:'--mfe-radius',    val:'24px',    label:'shape.radius',     swatch:false },
+  { key:'--mfe-shadow',    val:'0 8px 32px rgba(44,95,46,.18)', label:'elevation.card', swatch:false },
+  { key:'--mfe-font',      val:'Trebuchet MS, sans-serif', label:'typography.family', swatch:false },
+];
+
+// ─── STATE ───────────────────────────────────────────────────────
+let timers = [];
+let running = false;
+const startTimes = {};
+
+// ─── HELPERS ─────────────────────────────────────────────────────
+function applyToken(partner, token, idx, total) {
+  const mfe = document.getElementById(partner + '-mfe');
+  mfe.style.setProperty(token.key, token.val);
+
+  // stream entry
+  const container = document.getElementById(partner + '-tokens');
+  if (idx === 0) container.innerHTML = '';
+
+  const row = document.createElement('div');
+  row.className = 'ti-row';
+  const isColor = token.val.startsWith('#');
+  row.innerHTML = `
+    ${isColor
+      ? `<div class="ti-swatch" style="background:${token.val}"></div>`
+      : `<div style="width:14px;flex-shrink:0;font-size:9px;text-align:center;color:var(--muted)">Aa</div>`}
+    <span class="ti-key">${token.label}</span>
+    <span class="ti-val">${token.key}: ${token.val}</span>
+    <span class="ti-check">✓</span>`;
+  container.appendChild(row);
+  requestAnimationFrame(() => requestAnimationFrame(() => row.classList.add('show')));
+  container.scrollTop = container.scrollHeight;
+
+  // count
+  document.getElementById(partner + '-count').textContent = idx + 1;
+
+  // progress bar
+  const pct = ((idx + 1) / total) * 100;
+  document.getElementById(partner + '-prog').style.width = pct + '%';
+
+  // pips
+  for (let i = 0; i <= idx; i++) {
+    const pip = document.getElementById(`${partner}-pip-${i}`);
+    if (pip) { pip.classList.remove('active'); pip.classList.add('done'); }
+  }
+  const nextPip = document.getElementById(`${partner}-pip-${idx + 1}`);
+  if (nextPip) nextPip.classList.add('active');
+
+  // timer
+  if (startTimes[partner]) {
+    document.getElementById(partner + '-timer').textContent =
+      (Date.now() - startTimes[partner]) + 'ms';
+  }
+
+  // apply special visual effects per token
+  if (token.key === '--mfe-primary') {
+    updateInspectorColors(partner, token.val, null, null, null);
+    updateLogoColor(partner);
+  }
+  if (token.key === '--mfe-secondary') updateInspectorColors(partner, null, token.val, null, null);
+  if (token.key === '--mfe-accent')    updateInspectorColors(partner, null, null, token.val, null);
+  if (token.key === '--mfe-surface')   updateInspectorColors(partner, null, null, null, token.val);
+  if (token.key === '--mfe-radius')    updateInspectorRadius(partner, token.val);
+  if (token.key === '--mfe-font')      mfe.style.fontFamily = token.val;
+}
+
+function updateLogoColor(partner) {
+  const logos = { cacau: 'Cacau Show · Capital de Giro', boti: 'O Boticário · Capital de Giro' };
+  const el = document.getElementById(partner + '-mfe-logo');
+  if (el) el.textContent = logos[partner] || 'Capital de Giro';
+}
+
+const inspState = {};
+function updateInspectorColors(partner, p, s, a, surf) {
+  if (!inspState[partner]) inspState[partner] = {};
+  if (p) inspState[partner].p = p;
+  if (s) inspState[partner].s = s;
+  if (a) inspState[partner].a = a;
+  if (surf) inspState[partner].surf = surf;
+
+  const st = inspState[partner];
+  if (st.p) {
+    const el = document.getElementById(`ci-${partner}-primary`);
+    const hex = document.getElementById(`ci-${partner}-primary-hex`);
+    if (el) el.style.background = st.p;
+    if (hex) { hex.textContent = st.p; hex.style.color = st.p; }
+  }
+  if (st.s) {
+    const el = document.getElementById(`ci-${partner}-secondary`);
+    const hex = document.getElementById(`ci-${partner}-secondary-hex`);
+    if (el) el.style.background = st.s;
+    if (hex) { hex.textContent = st.s; hex.style.color = st.s; }
+  }
+  if (st.a) {
+    const el = document.getElementById(`ci-${partner}-accent`);
+    const hex = document.getElementById(`ci-${partner}-accent-hex`);
+    if (el) el.style.background = st.a;
+    if (hex) { hex.textContent = st.a; hex.style.color = st.a; }
+  }
+  if (st.surf) {
+    const el = document.getElementById(`ci-${partner}-surface`);
+    const hex = document.getElementById(`ci-${partner}-surface-hex`);
+    if (el) el.style.background = st.surf;
+    if (hex) { hex.textContent = st.surf; hex.style.color = '#888'; }
+  }
+
+  // applied text
+  const applied = document.getElementById(`ci-${partner}-applied`);
+  if (applied && st.p) {
+    const pkg = partner === 'cacau' ? '@cacaushow/design-tokens' : '@boticario/design-tokens';
+    applied.innerHTML = `<span style="color:#1ec878">✓</span> ${pkg}<br>`
+      + `<span style="color:#1ec878">✓</span> ${Object.keys(st).length} tokens injetados via setProperty()`;
+    applied.style.color = '#7a8faa';
+  }
+}
+
+function updateInspectorRadius(partner, val) {
+  const shape = document.getElementById(`ci-${partner}-shape`);
+  const radiusVal = document.getElementById(`ci-${partner}-radius-val`);
+  const pc = partner === 'cacau' ? '#7B2D00' : '#2C5F2E';
+  if (shape) { shape.style.borderRadius = val; shape.style.background = pc; }
+  if (radiusVal) { radiusVal.textContent = val; radiusVal.style.color = pc; }
+}
+
+function setStatus(partner, txt, done) {
+  const el = document.getElementById(partner + '-status');
+  if (!el) return;
+  el.textContent = txt;
+  if (done) {
+    const pc = partner === 'cacau' ? '#7B2D00' : '#2C5F2E';
+    const pl = partner === 'cacau' ? '#D4824A' : '#6AB56D';
+    el.style.background = pc + '25';
+    el.style.color = pl;
+    el.style.borderColor = pc + '80';
+  }
+}
+
+// slider interactivity
+document.getElementById('cacau-slider').addEventListener('input', function() {
+  const val = parseInt(this.value);
+  const installment = Math.round(val / 24 * 1.012);
+  document.getElementById('cacau-installment').textContent =
+    'R$ ' + installment.toLocaleString('pt-BR');
+});
+document.getElementById('boti-slider').addEventListener('input', function() {
+  const val = parseInt(this.value);
+  const installment = Math.round(val / 18 * 1.012);
+  document.getElementById('boti-installment').textContent =
+    'R$ ' + installment.toLocaleString('pt-BR');
+});
+
+// ─── RUN ─────────────────────────────────────────────────────────
+function runPartner(partner, tokens, baseDelay) {
+  const speed = parseInt(document.getElementById('spd').value);
+  startTimes[partner] = Date.now() + baseDelay;
+
+  timers.push(setTimeout(() => {
+    startTimes[partner] = Date.now();
+    setStatus(partner, 'importando...', false);
+
+    tokens.forEach((token, i) => {
+      const t = setTimeout(() => {
+        applyToken(partner, token, i, tokens.length);
+        setStatus(partner, `token ${i+1}/${tokens.length}`, false);
+        if (i === tokens.length - 1) {
+          setStatus(partner, '✓ aplicado', true);
+          const lastPip = document.getElementById(`${partner}-pip-${i}`);
+          if (lastPip) { lastPip.classList.remove('active'); lastPip.classList.add('done'); }
+        }
+      }, i * speed);
+      timers.push(t);
+    });
+  }, baseDelay));
+}
+
+function startAll() {
+  if (running) return;
+  running = true;
+  const btn = document.getElementById('playBtn');
+  btn.textContent = '⏸ Importando...'; btn.disabled = true;
+
+  runPartner('cacau', CACAU_TOKENS, 100);
+  runPartner('boti',  BOTI_TOKENS,  300);
+
+  const speed = parseInt(document.getElementById('spd').value);
+  const totalTime = 300 + 8 * speed + 400;
+  timers.push(setTimeout(() => {
+    running = false;
+    btn.textContent = '✓ Tokens aplicados'; btn.disabled = false;
+  }, totalTime));
+}
+
+function resetAll() {
+  timers.forEach(t => clearTimeout(t)); timers = []; running = false;
+  const btn = document.getElementById('playBtn');
+  btn.textContent = '▶ Importar Design Tokens'; btn.disabled = false;
+
+  ['cacau','boti'].forEach(p => {
+    const mfe = document.getElementById(p + '-mfe');
+    if (mfe) {
+      ['--mfe-primary','--mfe-secondary','--mfe-accent','--mfe-surface',
+       '--mfe-text','--mfe-radius','--mfe-shadow','--mfe-font']
+        .forEach(prop => mfe.style.removeProperty(prop));
+      mfe.style.fontFamily = '';
+    }
+
+    setStatus(p, 'aguardando', false);
+    const statusEl = document.getElementById(p + '-status');
+    if (statusEl) { statusEl.style.background=''; statusEl.style.color=''; statusEl.style.borderColor=''; }
+
+    document.getElementById(p + '-tokens').innerHTML =
+      '<div style="font-family:var(--mono);font-size:9px;color:var(--muted);opacity:.4">aguardando importação...</div>';
+    document.getElementById(p + '-count').textContent = '0';
+    document.getElementById(p + '-prog').style.width = '0%';
+    document.getElementById(p + '-timer').textContent = '0ms';
+
+    for (let i = 0; i < 8; i++) {
+      const pip = document.getElementById(`${p}-pip-${i}`);
+      if (pip) pip.classList.remove('active','done');
+    }
+
+    const logo = document.getElementById(p + '-mfe-logo');
+    if (logo) logo.textContent = 'Capital de Giro';
+
+    // reset inspector
+    ['primary','secondary','accent','surface'].forEach(c => {
+      const sw = document.getElementById(`ci-${p}-${c}`);
+      const hex = document.getElementById(`ci-${p}-${c}-hex`);
+      if (sw) sw.style.background = '#888';
+      if (hex) { hex.textContent = '—'; hex.style.color = ''; }
+    });
+    const shape = document.getElementById(`ci-${p}-shape`);
+    if (shape) { shape.style.borderRadius = '8px'; shape.style.background = '#888'; }
+    const rv = document.getElementById(`ci-${p}-radius-val`);
+    if (rv) { rv.textContent = '—'; rv.style.color = ''; }
+    const ap = document.getElementById(`ci-${p}-applied`);
+    if (ap) { ap.textContent = 'nenhum token aplicado ainda'; ap.style.color = 'var(--muted)'; }
+    delete inspState[p];
+  });
+}
+
+document.getElementById('playBtn').addEventListener('click', startAll);
+document.getElementById('resetBtn').addEventListener('click', resetAll);
+</script>
+</body>
+</html>

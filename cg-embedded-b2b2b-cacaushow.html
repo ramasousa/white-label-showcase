@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CG · Embedded B2B2B · Cacau Show · Design System Runtime</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════
+   DEMO SHELL — nunca visto pelo franqueado
+══════════════════════════════════════════ */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --shell-bg:#0a0c11;
+  --shell-s1:#0f1219;
+  --shell-s2:#141820;
+  --shell-border:rgba(255,255,255,.06);
+  --shell-b2:rgba(255,255,255,.1);
+  --shell-text:#d8e0f2;
+  --shell-muted:#48556e;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Inter',sans-serif;
+}
+body{
+  background:var(--shell-bg);color:var(--shell-text);
+  font-family:var(--sans);font-size:14px;min-height:100vh;
+  overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+  opacity:.5;
+}
+
+/* ── DEMO TOP BAR ── */
+.demo-topbar{
+  background:var(--shell-s1);border-bottom:1px solid var(--shell-border);
+  padding:10px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  position:sticky;top:0;z-index:300;
+}
+.dtb-badge{
+  font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  padding:4px 10px;border-radius:4px;font-weight:600;
+  background:rgba(245,166,35,.12);color:#f5a623;border:1px solid rgba(245,166,35,.3);
+}
+.dtb-title{font-size:13px;font-weight:600;color:var(--shell-text)}
+.dtb-sep{width:1px;height:16px;background:var(--shell-border)}
+.dtb-label{font-size:10px;color:var(--shell-muted);letter-spacing:1px;text-transform:uppercase}
+.dtb-spacer{flex:1}
+.dtb-status{
+  display:flex;align-items:center;gap:7px;
+  font-family:var(--mono);font-size:10px;color:var(--shell-muted);
+}
+.dtb-status-dot{width:6px;height:6px;border-radius:50%}
+.dot-idle{background:#4b5563}
+.dot-loading{background:#f59e0b;box-shadow:0 0 6px #f59e0b;animation:blink 1s infinite}
+.dot-done{background:#10b981;box-shadow:0 0 6px #10b981}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* ── MAIN LAYOUT ── */
+.demo-layout{display:grid;grid-template-columns:1fr 340px;gap:0;min-height:calc(100vh - 49px)}
+
+/* ── TOKEN INSPECTOR PANEL ── */
+.inspector-panel{
+  background:var(--shell-s1);border-left:1px solid var(--shell-border);
+  display:flex;flex-direction:column;overflow:hidden;
+  position:sticky;top:49px;height:calc(100vh - 49px);
+}
+.ip-head{
+  padding:16px 18px;border-bottom:1px solid var(--shell-border);background:var(--shell-s2);
+  flex-shrink:0;
+}
+.ip-head-title{
+  font-family:var(--mono);font-size:9px;letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--shell-muted);margin-bottom:10px;
+}
+.ip-pkg{
+  display:flex;align-items:center;gap:8px;margin-bottom:10px;
+  background:rgba(245,166,35,.08);border:1px solid rgba(245,166,35,.2);
+  border-radius:6px;padding:8px 12px;
+}
+.ip-pkg-icon{font-size:18px}
+.ip-pkg-name{font-family:var(--mono);font-size:11px;font-weight:600;color:#f5a623}
+.ip-pkg-ver{font-size:10px;color:var(--shell-muted);margin-top:1px}
+.ip-controls{display:flex;gap:8px}
+.ip-ctrl-btn{
+  flex:1;padding:7px 10px;border-radius:6px;border:1px solid var(--shell-border);
+  background:transparent;color:var(--shell-muted);font-size:11px;font-weight:600;
+  cursor:pointer;transition:all .2s;font-family:var(--mono);
+}
+.ip-ctrl-btn.primary{background:#7B2D00;border-color:#7B2D00;color:#fff}
+.ip-ctrl-btn.primary:hover{background:#9a3800}
+.ip-ctrl-btn:hover{color:var(--shell-text);border-color:var(--shell-b2)}
+.ip-ctrl-btn:disabled{opacity:.3;cursor:not-allowed}
+
+.ip-body{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--shell-border) transparent}
+
+/* token group */
+.tg{border-bottom:1px solid var(--shell-border)}
+.tg-header{
+  padding:10px 18px;display:flex;align-items:center;gap:8px;cursor:pointer;
+  transition:background .15s;user-select:none;
+}
+.tg-header:hover{background:rgba(255,255,255,.02)}
+.tg-icon{font-size:13px;flex-shrink:0}
+.tg-name{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--shell-muted);flex:1}
+.tg-count{font-family:var(--mono);font-size:9px;color:var(--shell-muted);background:var(--shell-s2);padding:2px 6px;border-radius:3px}
+.tg-chevron{font-size:10px;color:var(--shell-muted);transition:transform .2s}
+.tg.open .tg-chevron{transform:rotate(90deg)}
+.tg-items{display:none}
+.tg.open .tg-items{display:flex;flex-direction:column}
+
+.token-row{
+  display:flex;align-items:center;gap:10px;
+  padding:7px 18px;border-bottom:1px solid rgba(255,255,255,.025);
+  opacity:0;transform:translateX(-8px);
+  transition:opacity .3s ease,transform .3s ease,background .2s;
+  cursor:default;
+}
+.token-row:hover{background:rgba(255,255,255,.02)}
+.token-row.applied{opacity:1;transform:translateX(0)}
+.token-row.applying{
+  opacity:1;transform:translateX(0);
+  background:rgba(245,166,35,.06);
+}
+.tr-swatch{
+  width:18px;height:18px;border-radius:3px;flex-shrink:0;
+  border:1px solid rgba(255,255,255,.08);transition:background .4s;
+}
+.tr-key{font-family:var(--mono);font-size:10px;color:var(--shell-muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tr-val{font-family:var(--mono);font-size:10px;color:#a78bfa;text-align:right;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tr-check{font-size:10px;color:#10b981;opacity:0;transition:opacity .2s;flex-shrink:0}
+.token-row.applied .tr-check{opacity:1}
+
+/* shape preview */
+.shape-demo{
+  display:flex;align-items:center;gap:8px;padding:8px 18px 10px;
+}
+.sd-rect{
+  width:36px;height:24px;background:#7B2D00;
+  transition:border-radius .5s cubic-bezier(.34,1.56,.64,1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:8px;font-weight:700;color:rgba(255,255,255,.7);
+}
+.sd-label{font-family:var(--mono);font-size:9px;color:var(--shell-muted)}
+.sd-val{font-family:var(--mono);font-size:11px;color:var(--shell-text);font-weight:600}
+
+/* font preview */
+.font-preview{padding:8px 18px 10px}
+.fp-text{font-size:15px;color:var(--shell-text);transition:font-family .3s;line-height:1.3}
+.fp-label{font-family:var(--mono);font-size:9px;color:var(--shell-muted);margin-top:3px}
+
+/* progress track */
+.ip-progress{padding:12px 18px;border-top:1px solid var(--shell-border);flex-shrink:0;background:var(--shell-s2)}
+.ipp-label{font-family:var(--mono);font-size:9px;color:var(--shell-muted);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+.ipp-track{height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
+.ipp-fill{height:100%;background:linear-gradient(90deg,#7B2D00,#f5a623);border-radius:2px;width:0%;transition:width .3s}
+.ipp-tokens{font-family:var(--mono);font-size:9px;color:var(--shell-muted);margin-top:5px;text-align:right}
+
+/* ══════════════════════════════════════════
+   CACAU SHOW PORTAL (parceiro)
+══════════════════════════════════════════ */
+.portal-wrap{background:#f5f0ea;overflow-y:auto}
+
+/* ── CS TOPBAR ── */
+.cs-topbar{
+  background:#7B2D00;height:56px;
+  display:flex;align-items:center;padding:0 28px;gap:16px;
+  position:sticky;top:0;z-index:100;
+}
+.cs-logo{display:flex;align-items:center;gap:10px}
+.cs-logo-mark{
+  width:36px;height:36px;background:rgba(255,255,255,.15);
+  border:1.5px solid rgba(255,255,255,.25);border-radius:4px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;
+}
+.cs-logo-text{font-family:'Playfair Display',serif;font-size:17px;font-weight:800;color:#fff;letter-spacing:-.3px}
+.cs-logo-divider{width:1px;height:18px;background:rgba(255,255,255,.2)}
+.cs-logo-sub{font-size:11px;color:rgba(255,255,255,.6);letter-spacing:.5px;text-transform:uppercase}
+.cs-nav{display:flex;gap:0;margin-left:24px;height:100%}
+.cs-nav-item{
+  padding:0 16px;display:flex;align-items:center;
+  font-size:13px;color:rgba(255,255,255,.65);font-weight:500;
+  cursor:pointer;transition:all .15s;border-bottom:2px solid transparent;
+}
+.cs-nav-item:hover{color:rgba(255,255,255,.9)}
+.cs-nav-item.active{color:#fff;border-bottom-color:#F5A623}
+.cs-spacer{flex:1}
+.cs-user{display:flex;align-items:center;gap:10px}
+.cs-avatar{
+  width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.15);
+  border:1.5px solid rgba(255,255,255,.25);
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;
+}
+.cs-user-name{font-size:12px;color:rgba(255,255,255,.8);font-weight:500}
+.cs-user-role{font-size:10px;color:rgba(255,255,255,.45)}
+
+/* ── CS SUBNAV ── */
+.cs-subnav{
+  background:#fff;border-bottom:1px solid #e5e0d8;
+  padding:0 28px;display:flex;gap:0;height:40px;
+}
+.cs-subnav-item{
+  padding:0 16px;display:flex;align-items:center;
+  font-size:12.5px;color:#6b5a4e;font-weight:500;cursor:pointer;
+  border-bottom:2px solid transparent;transition:all .15s;
+  position:relative;
+}
+.cs-subnav-item:hover{color:#7B2D00}
+.cs-subnav-item.active{color:#7B2D00;border-bottom-color:#7B2D00}
+
+/* ── CS CONTENT ── */
+.cs-content{padding:28px;display:flex;flex-direction:column;gap:20px}
+
+/* page header */
+.cs-page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.cs-page-title{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:#2C1A00;letter-spacing:-.3px}
+.cs-page-sub{font-size:13px;color:#9b8a7c;margin-top:3px;line-height:1.6}
+.cs-store-badge{
+  display:flex;align-items:center;gap:8px;
+  background:#fff;border:1px solid #e5e0d8;border-radius:4px;padding:10px 14px;flex-shrink:0;
+}
+.csb-icon{font-size:20px}
+.csb-name{font-size:12px;font-weight:700;color:#2C1A00}
+.csb-meta{font-size:10.5px;color:#9b8a7c;margin-top:1px}
+
+/* stats row */
+.cs-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.cs-stat{
+  background:#fff;border:1px solid #e5e0d8;border-radius:4px;padding:14px;
+  transition:border-color .2s;
+}
+.cs-stat:hover{border-color:#C4501A}
+.cs-stat-label{font-size:10.5px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:#9b8a7c;margin-bottom:4px}
+.cs-stat-val{font-size:22px;font-weight:700;color:#2C1A00;letter-spacing:-.5px;font-family:var(--mono)}
+.cs-stat-sub{font-size:11px;color:#9b8a7c;margin-top:2px}
+.cs-stat-change{font-size:11px;font-weight:600;margin-top:3px}
+.csc-up{color:#059669}.csc-down{color:#dc2626}
+
+/* ── MFE MOUNT AREA ── */
+.mfe-mount-area{
+  background:#fff;border:1px solid #e5e0d8;border-radius:4px;overflow:hidden;
+  min-height:480px;position:relative;
+}
+
+/* MFE loading state */
+.mfe-loading{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:480px;gap:14px;
+  background:#fff;
+}
+.mfe-loading-spinner{
+  width:36px;height:36px;border-radius:50%;
+  border:3px solid #f0ebe4;border-top-color:#7B2D00;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.mfe-loading-title{font-size:14px;font-weight:600;color:#2C1A00}
+.mfe-loading-sub{font-size:12px;color:#9b8a7c}
+.mfe-loading-tag{
+  font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;
+  color:#9b8a7c;background:#f5f0ea;border:1px solid #e5e0d8;border-radius:3px;padding:3px 8px;
+}
+
+/* MFE placeholder (before load) */
+.mfe-placeholder{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:480px;gap:16px;background:#fafaf8;
+  border:2px dashed #e5e0d8;
+}
+.mfe-ph-icon{font-size:40px;opacity:.3}
+.mfe-ph-title{font-size:14px;font-weight:600;color:#9b8a7c}
+.mfe-ph-sub{font-size:12px;color:#b5a99e;text-align:center;max-width:240px;line-height:1.6}
+.mfe-ph-btn{
+  padding:9px 20px;border-radius:3px;background:#7B2D00;color:#fff;
+  font-size:13px;font-weight:700;border:none;cursor:pointer;
+  font-family:var(--sans);transition:background .15s;
+}
+.mfe-ph-btn:hover{background:#9a3800}
+
+/* ══════════════════════════════════════════
+   MFE DE CAPITAL DE GIRO (com DS Cacau Show)
+   Tokens injetados como CSS Custom Properties
+══════════════════════════════════════════ */
+#mfeRoot{
+  /* Defaults — sobrescritos pelos tokens do parceiro */
+  --mfe-primary:   #888;
+  --mfe-secondary: #aaa;
+  --mfe-accent:    #ccc;
+  --mfe-surface:   #f9f9f9;
+  --mfe-surface2:  #f0f0f0;
+  --mfe-text:      #222;
+  --mfe-muted:     #888;
+  --mfe-border:    #ddd;
+  --mfe-radius:    8px;
+  --mfe-radius-sm: 4px;
+  --mfe-shadow:    0 2px 8px rgba(0,0,0,.08);
+  --mfe-font-head: var(--sans);
+  --mfe-font-body: var(--sans);
+
+  display:none; /* hidden until tokens applied */
+  font-family:var(--mfe-font-body);
+  transition:opacity .4s;
+}
+
+/* MFE Header */
+.mfe-header{
+  background:var(--mfe-primary);
+  padding:16px 22px;display:flex;align-items:center;justify-content:space-between;
+}
+.mfe-header-left{display:flex;align-items:center;gap:10px}
+.mfe-header-badge{
+  background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.25);
+  border-radius:var(--mfe-radius-sm);padding:4px 10px;
+  font-size:11px;font-weight:700;color:#fff;letter-spacing:.3px;
+}
+.mfe-header-title{font-size:16px;font-weight:700;color:#fff;font-family:var(--mfe-font-head)}
+.mfe-header-right{font-size:11px;color:rgba(255,255,255,.6)}
+
+/* MFE Body */
+.mfe-body{padding:20px 22px;display:flex;flex-direction:column;gap:16px;background:var(--mfe-surface)}
+
+/* Preapproved banner */
+.mfe-preapproved{
+  background:var(--mfe-secondary);
+  border-radius:var(--mfe-radius);padding:14px 16px;
+  display:flex;align-items:center;gap:12px;
+}
+.mfe-pa-icon{font-size:22px;flex-shrink:0}
+.mfe-pa-title{font-size:14px;font-weight:700;color:#fff;font-family:var(--mfe-font-head)}
+.mfe-pa-sub{font-size:12px;color:rgba(255,255,255,.7);margin-top:2px}
+.mfe-pa-limit{text-align:right;flex-shrink:0}
+.mfe-pa-amount{font-size:22px;font-weight:800;color:#fff;font-family:var(--mono);letter-spacing:-1px}
+.mfe-pa-label{font-size:10px;color:rgba(255,255,255,.6);margin-top:1px}
+
+/* Simulator in MFE */
+.mfe-sim-wrap{background:#fff;border:1px solid var(--mfe-border);border-radius:var(--mfe-radius);overflow:hidden}
+.mfe-sim-head{
+  padding:12px 16px;border-bottom:1px solid var(--mfe-border);
+  font-size:13px;font-weight:700;color:var(--mfe-text);
+  background:var(--mfe-surface2);font-family:var(--mfe-font-head);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.mfe-sim-body{padding:16px}
+
+.mfe-sim-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.mfe-sim-label{font-size:12px;font-weight:600;color:var(--mfe-muted)}
+.mfe-sim-val{font-size:15px;font-weight:700;color:var(--mfe-primary);font-family:var(--mono)}
+
+.mfe-slider{
+  width:100%;appearance:none;height:4px;border-radius:2px;outline:none;cursor:pointer;
+  background:linear-gradient(to right,var(--mfe-primary) 0%,var(--mfe-primary) 42%,var(--mfe-border) 42%);
+  margin-bottom:4px;
+}
+.mfe-slider::-webkit-slider-thumb{
+  appearance:none;width:22px;height:22px;border-radius:50%;
+  background:#fff;border:3px solid var(--mfe-primary);
+  box-shadow:0 2px 8px rgba(0,0,0,.15);cursor:pointer;
+}
+.mfe-range-labels{display:flex;justify-content:space-between;font-size:10.5px;color:var(--mfe-muted);margin-bottom:14px;font-family:var(--mono)}
+
+.mfe-prazo-grid{display:flex;gap:6px;margin-bottom:14px}
+.mfe-prazo-btn{
+  flex:1;padding:8px 4px;border:1.5px solid var(--mfe-border);
+  border-radius:var(--mfe-radius-sm);font-size:12px;font-weight:600;color:var(--mfe-muted);
+  background:#fff;cursor:pointer;transition:all .15s;text-align:center;
+}
+.mfe-prazo-btn:hover{border-color:var(--mfe-primary);color:var(--mfe-primary)}
+.mfe-prazo-btn.active{background:var(--mfe-primary);border-color:var(--mfe-primary);color:#fff}
+
+/* Result */
+.mfe-result{
+  background:var(--mfe-surface2);border-radius:var(--mfe-radius-sm);
+  padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;
+}
+.mfe-result-main{grid-column:1/-1;padding-bottom:10px;border-bottom:1px solid var(--mfe-border);margin-bottom:4px}
+.mfe-result-label{font-size:11px;color:var(--mfe-muted);margin-bottom:3px}
+.mfe-result-parcela{font-size:28px;font-weight:800;color:var(--mfe-primary);font-family:var(--mono);letter-spacing:-1px}
+.mfe-result-sub{font-size:11px;color:var(--mfe-muted);margin-top:2px}
+.mfe-result-item{display:flex;flex-direction:column;gap:2px}
+.mfe-ri-label{font-size:10.5px;color:var(--mfe-muted)}
+.mfe-ri-val{font-size:13px;font-weight:600;color:var(--mfe-text);font-family:var(--mono)}
+
+.mfe-cta-row{display:flex;gap:8px}
+.mfe-btn-primary{
+  flex:1;padding:12px;border-radius:var(--mfe-radius-sm);border:none;
+  background:var(--mfe-primary);color:#fff;font-size:14px;font-weight:700;
+  cursor:pointer;transition:opacity .2s;font-family:var(--mfe-font-body);
+}
+.mfe-btn-primary:hover{opacity:.88}
+.mfe-btn-secondary{
+  padding:12px 16px;border-radius:var(--mfe-radius-sm);
+  border:1.5px solid var(--mfe-primary);background:transparent;
+  color:var(--mfe-primary);font-size:13px;font-weight:700;cursor:pointer;
+  transition:all .15s;font-family:var(--mfe-font-body);white-space:nowrap;
+}
+.mfe-btn-secondary:hover{background:var(--mfe-primary);color:#fff}
+
+.mfe-disclaimer{
+  font-size:11px;color:var(--mfe-muted);text-align:center;
+  padding-top:10px;border-top:1px solid var(--mfe-border);line-height:1.6;
+}
+
+/* Accent bar at bottom of MFE */
+.mfe-powered{
+  padding:8px 22px;background:var(--mfe-surface2);border-top:1px solid var(--mfe-border);
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:10.5px;color:var(--mfe-muted);
+}
+.mfe-powered-badge{
+  display:flex;align-items:center;gap:5px;
+  background:#fff;border:1px solid var(--mfe-border);border-radius:3px;padding:3px 8px;
+}
+.mpb-dot{width:5px;height:5px;border-radius:50%;background:#10b981}
+
+/* ── CS OTHER CONTENT ── */
+.cs-section-title{
+  font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#2C1A00;
+  margin-bottom:12px;
+}
+.cs-quick-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.cs-qa{
+  background:#fff;border:1px solid #e5e0d8;border-radius:4px;padding:14px;
+  display:flex;align-items:center;gap:10px;cursor:pointer;
+  transition:border-color .15s,box-shadow .15s;
+}
+.cs-qa:hover{border-color:#C4501A;box-shadow:0 2px 8px rgba(123,45,0,.08)}
+.cs-qa-icon{font-size:20px;flex-shrink:0}
+.cs-qa-name{font-size:13px;font-weight:600;color:#2C1A00}
+.cs-qa-sub{font-size:11px;color:#9b8a7c}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════
+     DEMO TOP BAR (time de produto)
+════════════════════════════════════════ -->
+<div class="demo-topbar">
+  <div class="dtb-badge">B2B2B · Embedded</div>
+  <div class="dtb-sep"></div>
+  <div class="dtb-title">Cacau Show · Portal de Franqueados → MFE Capital de Giro</div>
+  <div class="dtb-sep"></div>
+  <div class="dtb-label">Design System</div>
+  <div class="dtb-sep"></div>
+  <div style="font-family:var(--mono);font-size:10px;color:#f5a623">@cacaushow/design-tokens v3.2.1</div>
+  <div class="dtb-spacer"></div>
+  <div class="dtb-status">
+    <div class="dtb-status-dot dot-idle" id="statusDot"></div>
+    <span id="statusLabel">Aguardando injeção de tokens</span>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     MAIN LAYOUT
+════════════════════════════════════════ -->
+<div class="demo-layout">
+
+  <!-- ════ LEFT: CACAU SHOW PORTAL ════ -->
+  <div class="portal-wrap">
+
+    <!-- CS TOPBAR -->
+    <div class="cs-topbar">
+      <div class="cs-logo">
+        <div class="cs-logo-mark">🍫</div>
+        <div class="cs-logo-text">Cacau Show</div>
+        <div class="cs-logo-divider"></div>
+        <div class="cs-logo-sub">Portal do Franqueado</div>
+      </div>
+      <div class="cs-nav">
+        <div class="cs-nav-item">Dashboard</div>
+        <div class="cs-nav-item active">Financeiro</div>
+        <div class="cs-nav-item">Pedidos</div>
+        <div class="cs-nav-item">Relatórios</div>
+        <div class="cs-nav-item">Treinamentos</div>
+      </div>
+      <div class="cs-spacer"></div>
+      <div class="cs-user">
+        <div class="cs-avatar">RB</div>
+        <div>
+          <div class="cs-user-name">Roberto Bianchi</div>
+          <div class="cs-user-role">Franqueado · Loja 0847 · Campinas</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CS SUBNAV -->
+    <div class="cs-subnav">
+      <div class="cs-subnav-item">Extrato</div>
+      <div class="cs-subnav-item">Royalties</div>
+      <div class="cs-subnav-item active">Crédito</div>
+      <div class="cs-subnav-item">Notas Fiscais</div>
+      <div class="cs-subnav-item">Cobrança</div>
+    </div>
+
+    <!-- CS CONTENT -->
+    <div class="cs-content">
+
+      <!-- Page header -->
+      <div class="cs-page-header">
+        <div>
+          <div class="cs-page-title">Crédito para sua franquia</div>
+          <div class="cs-page-sub">Capital de giro e crédito especial para franqueados Cacau Show.<br>Condições exclusivas da rede — aprovação em até 2 horas.</div>
+        </div>
+        <div class="cs-store-badge">
+          <div class="csb-icon">🏪</div>
+          <div>
+            <div class="csb-name">Loja 0847 — Shopping Iguatemi</div>
+            <div class="csb-meta">Campinas, SP · CNPJ 47.291.830/0001-55</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="cs-stats">
+        <div class="cs-stat">
+          <div class="cs-stat-label">Faturamento (mês)</div>
+          <div class="cs-stat-val">128k</div>
+          <div class="cs-stat-sub">R$ 128.400 em Jun/26</div>
+          <div class="cs-stat-change csc-up">↑ 14% vs mai</div>
+        </div>
+        <div class="cs-stat">
+          <div class="cs-stat-label">Royalties em aberto</div>
+          <div class="cs-stat-val">12,8k</div>
+          <div class="cs-stat-sub">Vencimento: 30/06</div>
+          <div class="cs-stat-change" style="color:#9b8a7c">→ Em dia</div>
+        </div>
+        <div class="cs-stat">
+          <div class="cs-stat-label">Limite pré-aprovado</div>
+          <div class="cs-stat-val" style="color:#7B2D00">180k</div>
+          <div class="cs-stat-sub">Capital de Giro</div>
+          <div class="cs-stat-change csc-up">↑ Disponível</div>
+        </div>
+        <div class="cs-stat">
+          <div class="cs-stat-label">Créditos ativos</div>
+          <div class="cs-stat-val">0</div>
+          <div class="cs-stat-sub">Nenhuma operação</div>
+          <div class="cs-stat-change" style="color:#9b8a7c">→ Sem pendências</div>
+        </div>
+      </div>
+
+      <!-- MFE MOUNT POINT -->
+      <div class="mfe-mount-area">
+
+        <!-- Placeholder (antes da injeção) -->
+        <div class="mfe-placeholder" id="mfePlaceholder">
+          <div class="mfe-ph-icon">📦</div>
+          <div class="mfe-ph-title">MFE não carregado</div>
+          <div class="mfe-ph-sub">Clique em "Aplicar Design Tokens" no painel lateral para importar o Design System e montar o MFE.</div>
+          <button class="mfe-ph-btn" onclick="startTokenInjection()">
+            Injetar @cacaushow/design-tokens →
+          </button>
+        </div>
+
+        <!-- Loading state -->
+        <div class="mfe-loading" id="mfeLoading" style="display:none">
+          <div class="mfe-loading-spinner"></div>
+          <div class="mfe-loading-title">Importando Design System...</div>
+          <div class="mfe-loading-sub" id="mfeLoadingSub">Conectando ao registry de tokens</div>
+          <div class="mfe-loading-tag" id="mfeLoadingTag">@cacaushow/design-tokens</div>
+        </div>
+
+        <!-- MFE REAL (oculto até tokens aplicados) -->
+        <div id="mfeRoot">
+          <!-- Header do MFE -->
+          <div class="mfe-header">
+            <div class="mfe-header-left">
+              <div class="mfe-header-badge">Capital de Giro</div>
+              <div class="mfe-header-title">Solicite seu crédito</div>
+            </div>
+            <div class="mfe-header-right">Powered by Bradesco BaaS</div>
+          </div>
+
+          <!-- Body do MFE -->
+          <div class="mfe-body">
+
+            <!-- Pre-approved banner -->
+            <div class="mfe-preapproved">
+              <div class="mfe-pa-icon">✅</div>
+              <div style="flex:1">
+                <div class="mfe-pa-title">Limite pré-aprovado para você</div>
+                <div class="mfe-pa-sub">Roberto Bianchi · Loja 0847 · Rating A · Sem restrições</div>
+              </div>
+              <div class="mfe-pa-limit">
+                <div class="mfe-pa-amount">R$ 180k</div>
+                <div class="mfe-pa-label">disponível agora</div>
+              </div>
+            </div>
+
+            <!-- Simulator -->
+            <div class="mfe-sim-wrap">
+              <div class="mfe-sim-head">
+                Simule sua operação
+                <span style="font-size:11px;font-weight:400;color:inherit;opacity:.6">Sem compromisso</span>
+              </div>
+              <div class="mfe-sim-body">
+
+                <div class="mfe-sim-row">
+                  <div class="mfe-sim-label">Valor desejado</div>
+                  <div class="mfe-sim-val" id="mfe_valorLbl">R$ 80.000</div>
+                </div>
+                <input type="range" class="mfe-slider" id="mfeSlider"
+                  min="10000" max="180000" step="5000" value="80000"
+                  oninput="mfeUpdateSim()">
+                <div class="mfe-range-labels"><span>R$ 10k</span><span>R$ 180k</span></div>
+
+                <div style="font-size:12px;font-weight:600;color:var(--mfe-muted);margin-bottom:8px">Prazo</div>
+                <div class="mfe-prazo-grid" id="mfePrazoGrid">
+                  <button class="mfe-prazo-btn" onclick="mfeSetPrazo(6,this)">6x</button>
+                  <button class="mfe-prazo-btn" onclick="mfeSetPrazo(12,this)">12x</button>
+                  <button class="mfe-prazo-btn active" onclick="mfeSetPrazo(18,this)">18x</button>
+                  <button class="mfe-prazo-btn" onclick="mfeSetPrazo(24,this)">24x</button>
+                  <button class="mfe-prazo-btn" onclick="mfeSetPrazo(36,this)">36x</button>
+                </div>
+
+                <div class="mfe-result">
+                  <div class="mfe-result-main">
+                    <div class="mfe-result-label">Parcela mensal estimada</div>
+                    <div class="mfe-result-parcela" id="mfe_parcela">R$ 5.220</div>
+                    <div class="mfe-result-sub" id="mfe_parcelaSub">18 parcelas · 1ª em 18/07/2026</div>
+                  </div>
+                  <div class="mfe-result-item">
+                    <span class="mfe-ri-label">Taxa mensal</span>
+                    <span class="mfe-ri-val" id="mfe_taxa">1,19%</span>
+                  </div>
+                  <div class="mfe-result-item">
+                    <span class="mfe-ri-label">Total de juros</span>
+                    <span class="mfe-ri-val" id="mfe_juros">R$ 13.960</span>
+                  </div>
+                  <div class="mfe-result-item">
+                    <span class="mfe-ri-label">CET anual</span>
+                    <span class="mfe-ri-val" id="mfe_cet">17,6%</span>
+                  </div>
+                  <div class="mfe-result-item">
+                    <span class="mfe-ri-label">Carência</span>
+                    <span class="mfe-ri-val">30 dias</span>
+                  </div>
+                </div>
+
+                <div class="mfe-cta-row">
+                  <button class="mfe-btn-primary" onclick="mfeShowSuccess()">Solicitar agora →</button>
+                  <button class="mfe-btn-secondary">Ver detalhes</button>
+                </div>
+
+                <div class="mfe-disclaimer">
+                  Taxa pré-fixada · Condição exclusiva para franqueados Cacau Show<br>
+                  Aprovação em até 2h · Crédito na conta em até 24h após assinatura
+                </div>
+
+              </div>
+            </div>
+
+          </div><!-- /mfe-body -->
+
+          <div class="mfe-powered">
+            <span>Capital de Giro · Bradesco BaaS · Crédito para Franquias</span>
+            <div class="mfe-powered-badge">
+              <div class="mpb-dot"></div>
+              <span>Powered by Bradesco BaaS</span>
+            </div>
+          </div>
+
+        </div><!-- /mfeRoot -->
+
+      </div><!-- /mfe-mount-area -->
+
+      <!-- Quick actions below MFE -->
+      <div>
+        <div class="cs-section-title">Outras ferramentas financeiras</div>
+        <div class="cs-quick-actions">
+          <div class="cs-qa">
+            <div class="cs-qa-icon">📊</div>
+            <div>
+              <div class="cs-qa-name">Análise de Fluxo de Caixa</div>
+              <div class="cs-qa-sub">Relatório mensal atualizado</div>
+            </div>
+          </div>
+          <div class="cs-qa">
+            <div class="cs-qa-icon">🧾</div>
+            <div>
+              <div class="cs-qa-name">Boletos e Royalties</div>
+              <div class="cs-qa-sub">3 vencimentos em jun/26</div>
+            </div>
+          </div>
+          <div class="cs-qa">
+            <div class="cs-qa-icon">📈</div>
+            <div>
+              <div class="cs-qa-name">Metas da Rede</div>
+              <div class="cs-qa-sub">Loja 0847 em 94% da meta</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /cs-content -->
+  </div><!-- /portal-wrap -->
+
+  <!-- ════ RIGHT: INSPECTOR PANEL ════ -->
+  <div class="inspector-panel">
+    <div class="ip-head">
+      <div class="ip-head-title">Design System Inspector · Runtime Import</div>
+      <div class="ip-pkg">
+        <div class="ip-pkg-icon">🍫</div>
+        <div>
+          <div class="ip-pkg-name">@cacaushow/design-tokens</div>
+          <div class="ip-pkg-ver">v3.2.1 · Partner Config API</div>
+        </div>
+      </div>
+      <div class="ip-controls">
+        <button class="ip-ctrl-btn primary" id="injectBtn" onclick="startTokenInjection()">▶ Aplicar tokens</button>
+        <button class="ip-ctrl-btn" id="resetBtn" onclick="resetTokens()">↺ Reset</button>
+      </div>
+    </div>
+
+    <div class="ip-body" id="inspectorBody">
+
+      <!-- Color group -->
+      <div class="tg open" id="tg-color">
+        <div class="tg-header" onclick="toggleGroup('color')">
+          <span class="tg-icon">🎨</span>
+          <span class="tg-name">Cores</span>
+          <span class="tg-count" id="cnt-color">0 / 5</span>
+          <span class="tg-chevron">›</span>
+        </div>
+        <div class="tg-items" id="items-color">
+          <div class="token-row" id="tr-primary">
+            <div class="tr-swatch" id="sw-primary" style="background:#e0e0e0"></div>
+            <span class="tr-key">--mfe-primary</span>
+            <span class="tr-val" id="tv-primary">—</span>
+            <span class="tr-check">✓</span>
+          </div>
+          <div class="token-row" id="tr-secondary">
+            <div class="tr-swatch" id="sw-secondary" style="background:#e0e0e0"></div>
+            <span class="tr-key">--mfe-secondary</span>
+            <span class="tr-val" id="tv-secondary">—</span>
+            <span class="tr-check">✓</span>
+          </div>
+          <div class="token-row" id="tr-accent">
+            <div class="tr-swatch" id="sw-accent" style="background:#e0e0e0"></div>
+            <span class="tr-key">--mfe-accent</span>
+            <span class="tr-val" id="tv-accent">—</span>
+            <span class="tr-check">✓</span>
+          </div>
+          <div class="token-row" id="tr-surface">
+            <div class="tr-swatch" id="sw-surface" style="background:#e0e0e0;border-color:#ccc"></div>
+            <span class="tr-key">--mfe-surface</span>
+            <span class="tr-val" id="tv-surface">—</span>
+            <span class="tr-check">✓</span>
+          </div>
+          <div class="token-row" id="tr-border">
+            <div class="tr-swatch" id="sw-border" style="background:#e0e0e0"></div>
+            <span class="tr-key">--mfe-border</span>
+            <span class="tr-val" id="tv-border">—</span>
+            <span class="tr-check">✓</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shape group -->
+      <div class="tg open" id="tg-shape">
+        <div class="tg-header" onclick="toggleGroup('shape')">
+          <span class="tg-icon">📐</span>
+          <span class="tg-name">Forma & Espaço</span>
+          <span class="tg-count" id="cnt-shape">0 / 2</span>
+          <span class="tg-chevron">›</span>
+        </div>
+        <div class="tg-items" id="items-shape">
+          <div class="token-row" id="tr-radius">
+            <div class="tr-swatch" style="background:transparent;border:none">📐</div>
+            <span class="tr-key">--mfe-radius</span>
+            <span class="tr-val" id="tv-radius">—</span>
+            <span class="tr-check">✓</span>
+          </div>
+          <div class="token-row" id="tr-radius-sm">
+            <div class="tr-swatch" style="background:transparent;border:none">╗</div>
+            <span class="tr-key">--mfe-radius-sm</span>
+            <span class="tr-val" id="tv-radius-sm">—</span>
+            <span class="tr-check">✓</span>
+          </div>
+          <!-- Shape preview -->
+          <div class="shape-demo">
+            <div class="sd-rect" id="shapePreview">btn</div>
+            <div>
+              <div class="sd-val" id="shapeVal">—</div>
+              <div class="sd-label">border-radius aplicado</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Typography group -->
+      <div class="tg open" id="tg-type">
+        <div class="tg-header" onclick="toggleGroup('type')">
+          <span class="tg-icon">✍️</span>
+          <span class="tg-name">Tipografia</span>
+          <span class="tg-count" id="cnt-type">0 / 2</span>
+          <span class="tg-chevron">›</span>
+        </div>
+        <div class="tg-items" id="items-type">
+          <div class="token-row" id="tr-font-head">
+            <div class="tr-swatch" style="background:transparent;border:none;font-size:12px;font-weight:700;color:#7B2D00">Aa</div>
+            <span class="tr-key">--mfe-font-head</span>
+            <span class="tr-val" id="tv-font-head">—</span>
+            <span class="tr-check">✓</span>
+          </div>
+          <div class="token-row" id="tr-font-body">
+            <div class="tr-swatch" style="background:transparent;border:none;font-size:11px;color:#7B2D00">Aa</div>
+            <span class="tr-key">--mfe-font-body</span>
+            <span class="tr-val" id="tv-font-body">—</span>
+            <span class="tr-check">✓</span>
+          </div>
+          <div class="font-preview">
+            <div class="fp-text" id="fontPreviewHead">Capital de Giro</div>
+            <div class="fp-label" id="fontLabelHead">heading font</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Elevation group -->
+      <div class="tg open" id="tg-elev">
+        <div class="tg-header" onclick="toggleGroup('elev')">
+          <span class="tg-icon">☁️</span>
+          <span class="tg-name">Elevação</span>
+          <span class="tg-count" id="cnt-elev">0 / 1</span>
+          <span class="tg-chevron">›</span>
+        </div>
+        <div class="tg-items" id="items-elev">
+          <div class="token-row" id="tr-shadow">
+            <div class="tr-swatch" style="background:transparent;border:none">🪞</div>
+            <span class="tr-key">--mfe-shadow</span>
+            <span class="tr-val" id="tv-shadow">—</span>
+            <span class="tr-check">✓</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /ip-body -->
+
+    <!-- Progress -->
+    <div class="ip-progress">
+      <div class="ipp-label">
+        <span>Tokens aplicados</span>
+        <span id="ipp-pct">0%</span>
+      </div>
+      <div class="ipp-track"><div class="ipp-fill" id="ippFill"></div></div>
+      <div class="ipp-tokens" id="ipp-count">0 de 10 tokens</div>
+    </div>
+  </div><!-- /inspector-panel -->
+
+</div><!-- /demo-layout -->
+
+<script>
+// ══════════════════════════════════════
+// CACAU SHOW DESIGN TOKENS
+// ══════════════════════════════════════
+const CACAU_DS = {
+  // token id, css var, value, swatch-id, val-id, group, display label
+  tokens: [
+    { id:'primary',   var:'--mfe-primary',   val:'#7B2D00', sw:'sw-primary',   tv:'tv-primary',   group:'color',  cnt:'cnt-color' },
+    { id:'secondary', var:'--mfe-secondary', val:'#C4501A', sw:'sw-secondary', tv:'tv-secondary', group:'color',  cnt:'cnt-color' },
+    { id:'accent',    var:'--mfe-accent',    val:'#F5A623', sw:'sw-accent',    tv:'tv-accent',    group:'color',  cnt:'cnt-color' },
+    { id:'surface',   var:'--mfe-surface',   val:'#FFF8F0', sw:'sw-surface',   tv:'tv-surface',   group:'color',  cnt:'cnt-color' },
+    { id:'border',    var:'--mfe-border',    val:'#E8DDD0', sw:'sw-border',    tv:'tv-border',    group:'color',  cnt:'cnt-color' },
+    { id:'radius',    var:'--mfe-radius',    val:'3px',     sw:null,           tv:'tv-radius',    group:'shape',  cnt:'cnt-shape' },
+    { id:'radius-sm', var:'--mfe-radius-sm', val:'2px',     sw:null,           tv:'tv-radius-sm', group:'shape',  cnt:'cnt-shape' },
+    { id:'font-head', var:'--mfe-font-head', val:'"Playfair Display", serif', sw:null, tv:'tv-font-head', group:'type', cnt:'cnt-type' },
+    { id:'font-body', var:'--mfe-font-body', val:'"Inter", sans-serif',        sw:null, tv:'tv-font-body', group:'type', cnt:'cnt-type' },
+    { id:'shadow',    var:'--mfe-shadow',    val:'0 4px 20px rgba(123,45,0,.15)', sw:null, tv:'tv-shadow', group:'elev', cnt:'cnt-elev' },
+  ]
+};
+
+const groupTotals = { color:5, shape:2, type:2, elev:1 };
+const groupApplied = { color:0, shape:0, type:0, elev:0 };
+
+let injecting = false;
+let injTimer = null;
+let mfePrazo = 18;
+let totalApplied = 0;
+
+// ── INJECT TOKENS ──────────────────────
+function startTokenInjection() {
+  if (injecting) return;
+  injecting = true;
+  totalApplied = 0;
+
+  // update UI
+  setStatus('loading','Importando @cacaushow/design-tokens...');
+  document.getElementById('injectBtn').disabled = true;
+  document.getElementById('resetBtn').disabled  = true;
+  document.getElementById('mfePlaceholder').style.display = 'none';
+  document.getElementById('mfeLoading').style.display = 'flex';
+
+  const loadingSteps = [
+    'Conectando ao Partner Config API...',
+    'Autenticando pacote (npm audit)...',
+    'Baixando @cacaushow/design-tokens@3.2.1',
+    'Resolvendo variáveis de design...',
+    'Aplicando tokens no #mfeRoot...',
+  ];
+  let ls = 0;
+  const loadInterval = setInterval(() => {
+    if (ls < loadingSteps.length) {
+      document.getElementById('mfeLoadingSub').textContent = loadingSteps[ls++];
+    }
+  }, 320);
+
+  setTimeout(() => {
+    clearInterval(loadInterval);
+    document.getElementById('mfeLoading').style.display = 'none';
+    document.getElementById('mfeRoot').style.display = 'block';
+    document.getElementById('mfeRoot').style.opacity = '0';
+    setTimeout(() => { document.getElementById('mfeRoot').style.opacity = '1'; }, 50);
+    applyTokensSequentially();
+  }, 1800);
+}
+
+function applyTokensSequentially() {
+  const TOTAL = CACAU_DS.tokens.length;
+  let idx = 0;
+
+  function applyNext() {
+    if (idx >= TOTAL) {
+      // done
+      injecting = false;
+      setStatus('done','Design System aplicado · ' + TOTAL + ' tokens ativos');
+      document.getElementById('injectBtn').disabled = false;
+      document.getElementById('resetBtn').disabled  = false;
+      mfeUpdateSim();
+      return;
+    }
+
+    const tk = CACAU_DS.tokens[idx];
+    const row = document.getElementById('tr-' + tk.id);
+
+    // highlight row as applying
+    if (row) {
+      row.classList.add('applying');
+      setTimeout(() => {
+        row.classList.remove('applying');
+        row.classList.add('applied');
+      }, 280);
+    }
+
+    // apply CSS Custom Property to MFE root
+    document.getElementById('mfeRoot').style.setProperty(tk.var, tk.val);
+
+    // update inspector swatch
+    if (tk.sw) {
+      const sw = document.getElementById(tk.sw);
+      if (sw) sw.style.background = tk.val;
+    }
+
+    // update val display
+    const tv = document.getElementById(tk.tv);
+    if (tv) {
+      const short = tk.val.length > 16 ? tk.val.slice(0,14)+'…' : tk.val;
+      tv.textContent = short;
+    }
+
+    // update group counter
+    groupApplied[tk.group]++;
+    const cnt = document.getElementById(tk.cnt);
+    if (cnt) cnt.textContent = groupApplied[tk.group] + ' / ' + groupTotals[tk.group];
+
+    // shape preview
+    if (tk.id === 'radius') {
+      document.getElementById('shapePreview').style.borderRadius = tk.val;
+      document.getElementById('shapeVal').textContent = tk.val;
+    }
+
+    // font preview
+    if (tk.id === 'font-head') {
+      document.getElementById('fontPreviewHead').style.fontFamily = tk.val;
+      document.getElementById('fontLabelHead').textContent = 'heading: ' + tk.val.replace(/"/g,'').split(',')[0];
+    }
+
+    // overall progress
+    totalApplied++;
+    const pct = Math.round((totalApplied / TOTAL) * 100);
+    document.getElementById('ippFill').style.width = pct + '%';
+    document.getElementById('ipp-pct').textContent = pct + '%';
+    document.getElementById('ipp-count').textContent = totalApplied + ' de ' + TOTAL + ' tokens';
+
+    // status
+    setStatus('loading', 'Aplicando: ' + tk.var);
+
+    idx++;
+    injTimer = setTimeout(applyNext, 220);
+  }
+
+  applyNext();
+}
+
+function resetTokens() {
+  if (injTimer) clearTimeout(injTimer);
+  injecting = false;
+  totalApplied = 0;
+
+  // reset CSS vars
+  const mfe = document.getElementById('mfeRoot');
+  CACAU_DS.tokens.forEach(tk => mfe.style.removeProperty(tk.var));
+  mfe.style.display = 'none';
+  mfe.style.opacity = '1';
+
+  // reset inspector rows
+  CACAU_DS.tokens.forEach(tk => {
+    const row = document.getElementById('tr-'+tk.id);
+    if (row) row.classList.remove('applied','applying');
+    const tv = document.getElementById(tk.tv);
+    if (tv) tv.textContent = '—';
+    if (tk.sw) {
+      const sw = document.getElementById(tk.sw);
+      if (sw) sw.style.background = '#e0e0e0';
+    }
+  });
+
+  // reset group counters
+  Object.keys(groupApplied).forEach(k => { groupApplied[k] = 0; });
+  Object.keys(groupTotals).forEach(k => {
+    const el = document.getElementById('cnt-' + (k==='color'?'color':k==='shape'?'shape':k==='type'?'type':'elev'));
+    if (el) el.textContent = '0 / ' + groupTotals[k];
+  });
+
+  // reset shape
+  document.getElementById('shapePreview').style.borderRadius = '8px';
+  document.getElementById('shapeVal').textContent = '—';
+
+  // reset font
+  document.getElementById('fontPreviewHead').style.fontFamily = '';
+  document.getElementById('fontLabelHead').textContent = 'heading font';
+
+  // progress
+  document.getElementById('ippFill').style.width = '0%';
+  document.getElementById('ipp-pct').textContent = '0%';
+  document.getElementById('ipp-count').textContent = '0 de 10 tokens';
+
+  // show placeholder
+  document.getElementById('mfePlaceholder').style.display = 'flex';
+  document.getElementById('mfeLoading').style.display = 'none';
+
+  // controls
+  document.getElementById('injectBtn').disabled = false;
+  document.getElementById('resetBtn').disabled  = false;
+
+  setStatus('idle','Aguardando injeção de tokens');
+}
+
+// ── STATUS ─────────────────────────────
+function setStatus(state, label) {
+  const dot = document.getElementById('statusDot');
+  const lbl = document.getElementById('statusLabel');
+  dot.className = 'dtb-status-dot ' + (state==='loading'?'dot-loading':state==='done'?'dot-done':'dot-idle');
+  lbl.textContent = label;
+}
+
+// ── TOGGLE GROUPS ──────────────────────
+function toggleGroup(id) {
+  const g = document.getElementById('tg-'+id);
+  g.classList.toggle('open');
+}
+
+// ── MFE SIMULATOR ──────────────────────
+function mfeUpdateSim() {
+  const val = parseInt(document.getElementById('mfeSlider').value);
+  const pct = ((val-10000)/(180000-10000))*100;
+  document.getElementById('mfeSlider').style.background =
+    `linear-gradient(to right,var(--mfe-primary) 0%,var(--mfe-primary) ${pct}%,var(--mfe-border,#ddd) ${pct}%)`;
+
+  let taxa = 1.19;
+  if (val < 50000) taxa = 1.35;
+  else if (val > 120000) taxa = 1.09;
+
+  const i = taxa/100;
+  const n = mfePrazo;
+  const pmt = val * (i*Math.pow(1+i,n))/(Math.pow(1+i,n)-1);
+  const juros = pmt*n - val;
+  const cet = ((Math.pow(1+taxa/100,12)-1)*100 + 1.8).toFixed(1);
+
+  document.getElementById('mfe_valorLbl').textContent = 'R$ ' + fmtN(val);
+  document.getElementById('mfe_parcela').textContent  = 'R$ ' + fmtN(Math.round(pmt));
+  document.getElementById('mfe_parcelaSub').textContent = n + ' parcelas · 1ª em 18/07/2026';
+  document.getElementById('mfe_taxa').textContent    = taxa.toFixed(2) + '%';
+  document.getElementById('mfe_juros').textContent   = 'R$ ' + fmtN(Math.round(juros));
+  document.getElementById('mfe_cet').textContent     = cet + '%';
+}
+
+function mfeSetPrazo(p, btn) {
+  mfePrazo = p;
+  document.querySelectorAll('.mfe-prazo-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  mfeUpdateSim();
+}
+
+function mfeShowSuccess() {
+  const mfeBody = document.querySelector('.mfe-body');
+  mfeBody.innerHTML = `
+    <div style="text-align:center;padding:28px 16px">
+      <div style="font-size:52px;margin-bottom:14px">🎉</div>
+      <div style="font-family:var(--mfe-font-head);font-size:22px;font-weight:800;color:var(--mfe-text);margin-bottom:8px;letter-spacing:-.3px">
+        Proposta enviada!
+      </div>
+      <div style="font-size:14px;color:var(--mfe-muted);line-height:1.7;margin-bottom:20px;max-width:280px;margin-left:auto;margin-right:auto">
+        Roberto, sua solicitação foi recebida. Você terá a resposta em até <strong>2 horas</strong> por e-mail.
+      </div>
+      <div style="background:var(--mfe-surface);border:1px solid var(--mfe-border);border-radius:var(--mfe-radius);padding:14px;margin-bottom:18px;text-align:left">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mfe-muted);margin-bottom:10px">Protocolo</div>
+        <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--mfe-border);font-size:12.5px">
+          <span style="color:var(--mfe-muted)">Número</span><span style="font-family:var(--mono);font-weight:600;color:var(--mfe-text)">#CG-2026-00847</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--mfe-border);font-size:12.5px">
+          <span style="color:var(--mfe-muted)">Loja</span><span style="font-weight:600;color:var(--mfe-text)">0847 · Campinas</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:7px 0;font-size:12.5px">
+          <span style="color:var(--mfe-muted)">Status</span><span style="font-weight:700;color:#059669">Em análise ✓</span>
+        </div>
+      </div>
+      <button onclick="location.reload()" style="padding:12px 24px;background:var(--mfe-primary);color:#fff;border:none;border-radius:var(--mfe-radius-sm);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--mfe-font-body)">
+        Voltar ao portal
+      </button>
+    </div>`;
+}
+
+function fmtN(n) { return n.toLocaleString('pt-BR'); }
+
+// ── INIT ──────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  mfeUpdateSim();
+});
+</script>
+</body>
+</html>

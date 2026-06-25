@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shell — Federated vs Standalone · White Label Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#06080d;--s1:#0d1018;--s2:#111520;--s3:#161b26;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#dde2f2;--muted:#4a5672;--dim:#1b2232;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'DM Sans',sans-serif;
+  --disp:'Syne',sans-serif;
+  --vivo:#660099;--vivo-l:#9b59f7;--vivo-g:rgba(102,0,153,.14);
+  --claro:#e8001c;--claro-l:#ff4466;--claro-g:rgba(232,0,28,.13);
+  --green:#1ecb97;--green-g:rgba(30,203,151,.11);
+  --amber:#f0a500;--amber-g:rgba(240,165,0,.12);
+  --blue:#4a9eff;--blue-g:rgba(74,158,255,.12);
+  --red2:#f0324f;
+}
+
+body{background:var(--bg);color:var(--text);font-family:var(--sans);overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;
+  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");opacity:.5}
+
+/* ── HEADER ── */
+.pg{padding:44px 52px 0;margin-bottom:36px}
+.eyebrow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.etag{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  padding:4px 12px;border-radius:20px;font-weight:600}
+.etag-g{background:var(--s2);color:var(--muted);border:1px solid var(--border)}
+.etag-live{background:rgba(30,203,151,.12);color:var(--green);border:1px solid rgba(30,203,151,.3);
+  display:flex;align-items:center;gap:6px}
+.ldot{width:6px;height:6px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 6px var(--green);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+h1{font-family:var(--disp);font-size:clamp(24px,3.5vw,44px);font-weight:800;
+  letter-spacing:-1.5px;line-height:1.05;margin-bottom:10px}
+h1 .dim{color:var(--muted)}
+.sub{font-size:13.5px;color:var(--muted);max-width:640px;line-height:1.75}
+
+/* ── MODE SELECTOR ── */
+.mode-bar{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;
+  padding:0 52px;margin-bottom:36px;
+}
+.mode-card{
+  border-radius:14px;padding:22px 24px;cursor:pointer;
+  border:2px solid var(--border);background:var(--s1);
+  transition:all .25s;position:relative;overflow:hidden;
+}
+.mode-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .25s}
+.mode-card:hover{border-color:var(--border2)}
+.mode-card.selected{border-color:rgba(255,255,255,.2)}
+.mode-card.selected::before{opacity:1}
+.mode-card.mc-federated.selected{border-color:rgba(30,203,151,.4);background:rgba(30,203,151,.05)}
+.mode-card.mc-standalone.selected{border-color:rgba(74,158,255,.4);background:rgba(74,158,255,.05)}
+
+.mode-icon{font-size:22px;margin-bottom:10px}
+.mode-title{font-family:var(--disp);font-size:16px;font-weight:700;margin-bottom:6px}
+.mc-federated .mode-title{color:var(--green)}
+.mc-standalone .mode-title{color:var(--blue)}
+.mode-desc{font-size:12.5px;color:var(--muted);line-height:1.65;margin-bottom:12px}
+.mode-badges{display:flex;gap:6px;flex-wrap:wrap}
+.mbadge{font-family:var(--mono);font-size:9px;letter-spacing:.5px;
+  padding:3px 9px;border-radius:6px;font-weight:600}
+.mb-green{background:var(--green-g);color:var(--green);border:1px solid rgba(30,203,151,.3)}
+.mb-blue{background:var(--blue-g);color:var(--blue);border:1px solid rgba(74,158,255,.3)}
+.mb-amber{background:var(--amber-g);color:var(--amber);border:1px solid rgba(240,165,0,.3)}
+.mb-red{background:rgba(240,50,79,.12);color:var(--red2);border:1px solid rgba(240,50,79,.3)}
+.mode-select-dot{
+  position:absolute;top:14px;right:14px;
+  width:10px;height:10px;border-radius:50%;
+  border:2px solid var(--border2);transition:all .25s;
+}
+.mc-federated.selected .mode-select-dot{background:var(--green);border-color:var(--green);box-shadow:0 0 8px var(--green)}
+.mc-standalone.selected .mode-select-dot{background:var(--blue);border-color:var(--blue);box-shadow:0 0 8px var(--blue)}
+
+/* ── CONTROLS ── */
+.ctrl-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:0 52px;margin-bottom:36px}
+.ctrl-label{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+select.spd{background:var(--s2);color:var(--text);border:1px solid var(--border);
+  border-radius:8px;padding:10px 14px;font-family:var(--mono);font-size:12px;cursor:pointer}
+.btn{display:flex;align-items:center;gap:8px;padding:11px 22px;border-radius:9px;
+  border:none;cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600;transition:all .2s}
+.btn-run{background:linear-gradient(135deg,var(--vivo),var(--claro));color:#fff}
+.btn-run:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(102,0,153,.25)}
+.btn-run:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-rst{background:var(--s2);color:var(--muted);border:1px solid var(--border2)}
+.btn-rst:hover{color:var(--text)}
+
+/* ── SPLIT ── */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:0 52px;margin-bottom:36px}
+
+/* ── PARTNER PANEL ── */
+.pp{border-radius:16px;overflow:hidden;border:1px solid var(--border);display:flex;flex-direction:column;transition:border-color .3s}
+.pp:hover{border-color:var(--border2)}
+.pp.vivo{--pc:var(--vivo);--pl:var(--vivo-l);--pg2:var(--vivo-g)}
+.pp.claro{--pc:var(--claro);--pl:var(--claro-l);--pg2:var(--claro-g)}
+
+.pp-head{padding:16px 20px;border-bottom:1px solid var(--border);background:var(--s1);
+  display:flex;align-items:center;justify-content:space-between}
+.pp-name{font-family:var(--disp);font-size:15px;font-weight:800;color:var(--pl)}
+.pp-dot{width:9px;height:9px;border-radius:50%;background:var(--pc);box-shadow:0 0 7px var(--pc);margin-right:8px;display:inline-block}
+.pp-sub{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:1px}
+.pp-status{font-family:var(--mono);font-size:9px;letter-spacing:1px;
+  padding:4px 10px;border-radius:6px;background:var(--pg2);color:var(--pl);
+  border:1px solid rgba(255,255,255,0.08);transition:all .3s}
+
+/* ── PHONE AREA ── */
+.ph-area{padding:24px 20px;background:var(--s2);display:flex;gap:20px;align-items:flex-start}
+
+.phone{width:164px;flex-shrink:0;background:#090b12;border-radius:28px;
+  border:2px solid var(--dim);padding:9px;
+  box-shadow:0 20px 60px rgba(0,0,0,.55);position:relative}
+.ph-notch{width:50px;height:5px;background:var(--dim);border-radius:3px;margin:0 auto 9px}
+.ph-screen{border-radius:18px;overflow:hidden;min-height:310px;position:relative;background:#090b12}
+
+.sc{position:absolute;inset:0;opacity:0;transition:opacity .35s ease;pointer-events:none;
+  display:flex;flex-direction:column}
+.sc.show{opacity:1;pointer-events:auto}
+
+/* blank */
+.sc-blank{align-items:center;justify-content:center;background:#090b12}
+.blank-icon{font-size:26px;opacity:.12}
+.blank-txt{font-family:var(--mono);font-size:7px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);opacity:.3;margin-top:6px}
+
+/* loading */
+.sc-load{align-items:center;justify-content:center;gap:10px;background:#090b12}
+.spinner{width:24px;height:24px;border-radius:50%;border:2px solid var(--dim);animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sp-txt{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+
+/* splash */
+.sc-splash{align-items:center;justify-content:center;gap:6px}
+.sp-logo{font-family:var(--disp);font-size:28px;font-weight:800;color:#fff;letter-spacing:-1px}
+.sp-tag{font-size:8px;color:rgba(255,255,255,.5);letter-spacing:2px;text-transform:uppercase}
+
+/* ── LOGIN SCREEN ── */
+.sc-login{background:#fff}
+.login-top{padding:16px 14px 12px;display:flex;align-items:center;gap:8px}
+.login-logo{font-family:var(--disp);font-size:17px;font-weight:800}
+.login-body{padding:10px 12px;flex:1;display:flex;flex-direction:column;gap:7px}
+.login-title{font-size:11px;font-weight:700;color:#1a1a2e;text-align:center;margin-bottom:2px}
+.login-subtitle{font-size:8px;color:#999;text-align:center;margin-bottom:6px;line-height:1.4}
+.login-field{background:#f4f5f8;border-radius:6px;padding:8px 10px;
+  display:flex;align-items:center;gap:7px}
+.lf-icon{font-size:11px;opacity:.5}
+.lf-txt{font-size:9px;color:#888;flex:1}
+.lf-val{font-size:9px;color:#333;font-weight:600}
+.login-mfa{
+  background:#fafafa;border:1px dashed #e0e0e0;border-radius:6px;
+  padding:8px;text-align:center;
+}
+.mfa-code{font-family:var(--mono);font-size:16px;font-weight:700;color:#1a1a2e;letter-spacing:6px}
+.mfa-label{font-size:7px;color:#aaa;letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+.login-btn{width:100%;padding:9px;border:none;border-radius:6px;
+  font-size:10px;font-weight:700;color:#fff;cursor:pointer}
+.login-security{display:flex;align-items:center;justify-content:center;gap:4px;margin-top:4px}
+.sec-txt{font-size:7px;color:#bbb;letter-spacing:.5px}
+.sec-badge{font-size:7px;color:#888;background:#f0f0f0;padding:2px 6px;border-radius:3px;font-family:var(--mono)}
+
+/* auth processing */
+.sc-auth{background:#fff}
+.auth-top{padding:14px 12px 12px}
+.auth-checking{display:flex;align-items:center;gap:6px;
+  font-size:9px;color:#888;margin:8px 12px}
+.auth-progress{margin:0 12px 10px;height:3px;background:#eee;border-radius:2px;overflow:hidden}
+.auth-fill{height:100%;border-radius:2px;animation:afill 1.4s ease infinite alternate}
+@keyframes afill{from{width:15%}to{width:90%}}
+.auth-steps-list{padding:0 12px;display:flex;flex-direction:column;gap:5px}
+.auth-step-row{display:flex;align-items:center;gap:8px;font-size:9px}
+.asr-icon{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;flex-shrink:0}
+.asr-done{background:#e8faf3;color:#1ecb64}
+.asr-active{background:#f0f0f0;color:#888;animation:pulse2 1s infinite}
+@keyframes pulse2{0%,100%{opacity:1}50%{opacity:.4}}
+.asr-wait{background:#f7f7f7;color:#ccc}
+.asr-label{color:#666}
+
+/* product */
+.sc-product{background:#fff}
+.prod-hdr{padding:13px 12px 11px;display:flex;align-items:center;justify-content:space-between}
+.prod-logo{font-family:var(--disp);font-size:14px;font-weight:800;color:#fff}
+.prod-label{font-size:7px;color:rgba(255,255,255,.6);letter-spacing:.5px;text-align:right}
+.prod-body{padding:9px}
+.prod-hero{border-radius:10px;padding:11px;margin-bottom:7px}
+.prod-hero-lbl{font-size:7px;color:rgba(255,255,255,.6);letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px}
+.prod-hero-val{font-family:var(--disp);font-size:21px;font-weight:800;color:#fff}
+.prod-hero-note{font-size:7px;color:rgba(255,255,255,.5);margin-top:2px}
+.prod-pills{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:7px}
+.pill{background:#f5f5f8;border-radius:6px;padding:7px 4px;text-align:center}
+.pill-val{font-size:12px;font-weight:700;display:block;margin-bottom:1px}
+.pill-sub{font-size:7px;color:#999}
+.prod-btn{width:100%;padding:9px;border:none;border-radius:7px;
+  font-size:10px;font-weight:700;color:#fff;cursor:pointer}
+
+/* ── LOG ── */
+.log-panel{flex:1;min-width:0}
+.log-ttl{font-family:var(--mono);font-size:8.5px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:9px;display:flex;align-items:center;gap:7px}
+.ldot2{width:5px;height:5px;border-radius:50%}
+.log-list{display:flex;flex-direction:column;gap:3px}
+.le{display:flex;gap:5px;opacity:0;transform:translateX(-6px);
+  transition:opacity .3s,transform .3s;font-family:var(--mono);font-size:9.5px;line-height:1.5}
+.le.show{opacity:1;transform:none}
+.lt{color:var(--muted);min-width:42px;flex-shrink:0}
+.lok{color:#1ecb64}.linfo{color:var(--pl)}.lwarn{color:var(--amber)}
+.lsec{color:var(--red2)}.lmsg{color:#5a6e8a}
+
+/* ── STEP TRACKER ── */
+.st{padding:14px 20px;background:var(--s1);border-top:1px solid var(--border)}
+.st-ttl{font-family:var(--mono);font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.st-pips{display:flex;gap:3px}
+.pip{flex:1;height:4px;border-radius:2px;background:var(--dim);transition:background .3s;position:relative;overflow:hidden}
+.pip.done{background:var(--pc)}
+.pip.active{background:var(--dim)}
+.pip.active::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,var(--pc),transparent);
+  animation:pipg 1s infinite}
+@keyframes pipg{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.st-lbls{display:flex;gap:3px;margin-top:5px}
+.piplbl{flex:1;font-family:var(--mono);font-size:7px;color:var(--muted);text-align:center;line-height:1.3;transition:color .3s}
+.piplbl.active,.piplbl.done{color:var(--pl)}
+
+/* ── RISK BANNER ── */
+.risk-banner{
+  margin:0 52px 28px;padding:20px 24px;
+  border-radius:12px;border:1px solid rgba(240,165,0,.25);
+  background:rgba(240,165,0,.07);
+  display:flex;gap:16px;align-items:flex-start;
+}
+.rb-icon{font-size:22px;flex-shrink:0}
+.rb-title{font-family:var(--disp);font-size:14px;font-weight:700;color:var(--amber);margin-bottom:6px}
+.rb-text{font-size:12.5px;color:var(--muted);line-height:1.7}
+.rb-text strong{color:var(--text)}
+
+/* ── COMPARISON TABLE ── */
+.compare-wrap{padding:0 52px;margin-bottom:52px}
+.cw-title{font-family:var(--disp);font-size:20px;font-weight:700;letter-spacing:-.5px;margin-bottom:6px}
+.cw-sub{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{font-family:var(--mono);font-size:8.5px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--muted);padding:10px 14px;text-align:left;border-bottom:1px solid var(--border2)}
+td{padding:13px 14px;border-bottom:1px solid var(--border);color:var(--muted);vertical-align:top;line-height:1.6}
+tr:hover td{background:rgba(255,255,255,.015)}
+td:first-child{color:var(--text);font-weight:500;font-size:13px}
+.ok{color:var(--green)}.warn{color:var(--amber)}.bad{color:var(--red2)}
+
+/* responsive */
+@media(max-width:760px){
+  .split,.mode-bar{grid-template-columns:1fr;padding:0 20px}
+  .ctrl-row,.compare-wrap,.risk-banner,.pg{padding-left:20px;padding-right:20px}
+  .ph-area{flex-direction:column;align-items:center}
+}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<div class="pg">
+  <div class="eyebrow">
+    <span class="etag etag-g">BaaS · Shell White Label</span>
+    <span class="etag etag-live"><div class="ldot"></div>Demo interativo</span>
+  </div>
+  <h1>Sem Login <span class="dim">vs</span> Com Login</h1>
+  <p class="sub">Compare os dois modelos de autenticação do portal white label. No modo <strong>Federado</strong>, o parceiro já autenticou o usuário. No modo <strong>Standalone</strong>, o Bradesco/Aarin é responsável pelo login — com MFA, segurança de credenciais e todos os riscos que isso implica.</p>
+</div>
+
+<!-- ── MODE SELECTOR ── -->
+<div class="mode-bar">
+  <div class="mode-card mc-federated selected" onclick="selectMode('federated')">
+    <div class="mode-select-dot"></div>
+    <div class="mode-icon">🔗</div>
+    <div class="mode-title">Modo Federado</div>
+    <div class="mode-desc">O parceiro autentica o usuário em seus próprios sistemas e repassa o token via Token Exchange. O Shell não exibe tela de login.</div>
+    <div class="mode-badges">
+      <span class="mbadge mb-green">sem tela de login</span>
+      <span class="mbadge mb-green">parceiro é o IdP</span>
+      <span class="mbadge mb-green">menor risco regulatório</span>
+    </div>
+  </div>
+  <div class="mode-card mc-standalone" onclick="selectMode('standalone')">
+    <div class="mode-select-dot"></div>
+    <div class="mode-icon">🔐</div>
+    <div class="mode-title">Modo Standalone</div>
+    <div class="mode-desc">Bradesco/Aarin é o Identity Provider. Portal completo com login, senha, MFA e recuperação de conta. Maior responsabilidade de segurança.</div>
+    <div class="mode-badges">
+      <span class="mbadge mb-blue">login + MFA</span>
+      <span class="mbadge mb-amber">maior responsabilidade</span>
+      <span class="mbadge mb-red">riscos de fraude</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── CONTROLS ── -->
+<div class="ctrl-row">
+  <span class="ctrl-label">Velocidade</span>
+  <select class="spd" id="spd">
+    <option value="650">Normal</option>
+    <option value="320">Rápido</option>
+    <option value="1300">Lento</option>
+  </select>
+  <button class="btn btn-run" id="playBtn">▶ Executar Demo</button>
+  <button class="btn btn-rst" id="resetBtn">↺ Resetar</button>
+</div>
+
+<!-- ── SPLIT ── -->
+<div class="split">
+
+  <!-- ══ VIVO ══ -->
+  <div class="pp vivo" id="pp-vivo">
+    <div class="pp-head">
+      <div>
+        <div><span class="pp-dot"></span><span class="pp-name">Vivo</span></div>
+        <div class="pp-sub" id="vivo-mode-sub">modo: federado · parceiro autentica</div>
+      </div>
+      <div class="pp-status" id="st-vivo">aguardando</div>
+    </div>
+    <div class="ph-area">
+      <!-- phone -->
+      <div class="phone">
+        <div class="ph-notch"></div>
+        <div class="ph-screen">
+          <div class="sc sc-blank show" id="v-blank"><div class="blank-icon">📱</div><div class="blank-txt">aguardando</div></div>
+          <div class="sc sc-load" id="v-load"><div class="spinner" style="border-top-color:var(--vivo)"></div><div class="sp-txt">shell init...</div></div>
+          <div class="sc sc-splash" id="v-splash" style="background:linear-gradient(135deg,#660099,#9b2dff)"><div class="sp-logo">vivo</div><div class="sp-tag">Serviços financeiros</div></div>
+
+          <!-- LOGIN (standalone only) -->
+          <div class="sc sc-login" id="v-login">
+            <div class="login-top" style="background:linear-gradient(135deg,#660099,#8b1ddc)">
+              <div class="login-logo" style="color:#fff">vivo</div>
+              <div style="font-size:8px;color:rgba(255,255,255,.6)">Área do cliente</div>
+            </div>
+            <div class="login-body">
+              <div class="login-title">Acesse sua conta</div>
+              <div class="login-subtitle">Informe seus dados para<br>acessar o Vivo Crédito</div>
+              <div class="login-field">
+                <span class="lf-icon">👤</span>
+                <span class="lf-txt">CPF</span>
+                <span class="lf-val">•••.456.•••-89</span>
+              </div>
+              <div class="login-field">
+                <span class="lf-icon">🔒</span>
+                <span class="lf-txt">Senha</span>
+                <span class="lf-val">••••••••</span>
+              </div>
+              <div class="login-mfa">
+                <div class="mfa-code" style="color:#660099">4 8 2 1</div>
+                <div class="mfa-label">código MFA · expira em 28s</div>
+              </div>
+              <button class="login-btn" style="background:#660099">Entrar →</button>
+              <div class="login-security">
+                <span class="sec-txt">🔒 autenticado por</span>
+                <span class="sec-badge">Bradesco BaaS</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- AUTH PROCESSING -->
+          <div class="sc sc-auth" id="v-auth">
+            <div class="auth-top" style="background:linear-gradient(135deg,#660099,#8b1ddc);padding:14px 12px">
+              <div style="font-family:var(--disp);font-size:14px;font-weight:800;color:#fff">vivo</div>
+              <div style="font-size:8px;color:rgba(255,255,255,.6)">Verificando...</div>
+            </div>
+            <div style="padding:10px 12px 0">
+              <div style="font-size:10px;font-weight:600;color:#1a1a2e;margin-bottom:8px" id="v-auth-title">Autenticando</div>
+              <div class="auth-progress"><div class="auth-fill" style="background:#660099"></div></div>
+              <div class="auth-steps-list" id="v-auth-steps" style="margin-top:8px">
+                <div class="auth-step-row"><div class="asr-icon asr-done">✓</div><span class="asr-label">Credenciais validadas</span></div>
+                <div class="auth-step-row"><div class="asr-icon asr-active" id="v-asr2">↻</div><span class="asr-label">Token Exchange</span></div>
+                <div class="auth-step-row"><div class="asr-icon asr-wait" id="v-asr3">○</div><span class="asr-label">UCT emitido</span></div>
+                <div class="auth-step-row"><div class="asr-icon asr-wait" id="v-asr4">○</div><span class="asr-label">Sessão iniciada</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PRODUCT -->
+          <div class="sc sc-product" id="v-product">
+            <div class="prod-hdr" style="background:linear-gradient(135deg,#660099,#8b1ddc)">
+              <div class="prod-logo">vivo</div>
+              <div class="prod-label">Capital de Giro<br>Vivo Empresas</div>
+            </div>
+            <div class="prod-body">
+              <div class="prod-hero" style="background:linear-gradient(135deg,#660099,#9b2dff)">
+                <div class="prod-hero-lbl">Limite disponível</div>
+                <div class="prod-hero-val">R$ 80.000</div>
+                <div class="prod-hero-note">✦ aprovação pré-qualificada</div>
+              </div>
+              <div class="prod-pills">
+                <div class="pill"><span class="pill-val" style="color:#660099">24x</span><span class="pill-sub">parcelas</span></div>
+                <div class="pill"><span class="pill-val" style="color:#660099">1,1%</span><span class="pill-sub">a.m.</span></div>
+                <div class="pill"><span class="pill-val" style="color:#660099">45d</span><span class="pill-sub">carência</span></div>
+              </div>
+              <button class="prod-btn" style="background:#660099">Contratar agora →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- log -->
+      <div class="log-panel">
+        <div class="log-ttl"><div class="ldot2" style="background:var(--vivo-l);box-shadow:0 0 5px var(--vivo-l)"></div>Shell Log · Vivo</div>
+        <div class="log-list" id="vlog"></div>
+      </div>
+    </div>
+    <!-- steps -->
+    <div class="st">
+      <div class="st-ttl">Progresso</div>
+      <div class="st-pips" id="v-pips"></div>
+      <div class="st-lbls" id="v-lbls"></div>
+    </div>
+  </div>
+
+  <!-- ══ CLARO ══ -->
+  <div class="pp claro" id="pp-claro">
+    <div class="pp-head">
+      <div>
+        <div><span class="pp-dot"></span><span class="pp-name">Claro</span></div>
+        <div class="pp-sub" id="claro-mode-sub">modo: federado · parceiro autentica</div>
+      </div>
+      <div class="pp-status" id="st-claro">aguardando</div>
+    </div>
+    <div class="ph-area">
+      <div class="phone">
+        <div class="ph-notch"></div>
+        <div class="ph-screen">
+          <div class="sc sc-blank show" id="c-blank"><div class="blank-icon">📱</div><div class="blank-txt">aguardando</div></div>
+          <div class="sc sc-load" id="c-load"><div class="spinner" style="border-top-color:var(--claro)"></div><div class="sp-txt">shell init...</div></div>
+          <div class="sc sc-splash" id="c-splash" style="background:linear-gradient(135deg,#c0001a,#e8001c)"><div class="sp-logo">claro</div><div class="sp-tag">Crédito empresarial</div></div>
+
+          <!-- LOGIN -->
+          <div class="sc sc-login" id="c-login">
+            <div class="login-top" style="background:linear-gradient(135deg,#c0001a,#e8001c)">
+              <div class="login-logo" style="color:#fff">claro</div>
+              <div style="font-size:8px;color:rgba(255,255,255,.6)">Área do cliente</div>
+            </div>
+            <div class="login-body">
+              <div class="login-title">Acesse sua conta</div>
+              <div class="login-subtitle">Informe seus dados para<br>acessar o Claro Crédito</div>
+              <div class="login-field">
+                <span class="lf-icon">👤</span>
+                <span class="lf-txt">CPF</span>
+                <span class="lf-val">•••.789.•••-12</span>
+              </div>
+              <div class="login-field">
+                <span class="lf-icon">🔒</span>
+                <span class="lf-txt">Senha</span>
+                <span class="lf-val">••••••••</span>
+              </div>
+              <div class="login-mfa">
+                <div class="mfa-code" style="color:#e8001c">7 3 9 6</div>
+                <div class="mfa-label">código MFA · expira em 24s</div>
+              </div>
+              <button class="login-btn" style="background:#e8001c">Entrar →</button>
+              <div class="login-security">
+                <span class="sec-txt">🔒 autenticado por</span>
+                <span class="sec-badge">Bradesco BaaS</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- AUTH PROCESSING -->
+          <div class="sc sc-auth" id="c-auth">
+            <div class="auth-top" style="background:linear-gradient(135deg,#c0001a,#e8001c);padding:14px 12px">
+              <div style="font-family:var(--disp);font-size:14px;font-weight:800;color:#fff">claro</div>
+              <div style="font-size:8px;color:rgba(255,255,255,.6)">Verificando...</div>
+            </div>
+            <div style="padding:10px 12px 0">
+              <div style="font-size:10px;font-weight:600;color:#1a1a2e;margin-bottom:8px">Autenticando</div>
+              <div class="auth-progress"><div class="auth-fill" style="background:#e8001c"></div></div>
+              <div class="auth-steps-list" style="margin-top:8px">
+                <div class="auth-step-row"><div class="asr-icon asr-done">✓</div><span class="asr-label">Credenciais validadas</span></div>
+                <div class="auth-step-row"><div class="asr-icon asr-active" id="c-asr2">↻</div><span class="asr-label">Token Exchange</span></div>
+                <div class="auth-step-row"><div class="asr-icon asr-wait" id="c-asr3">○</div><span class="asr-label">UCT emitido</span></div>
+                <div class="auth-step-row"><div class="asr-icon asr-wait" id="c-asr4">○</div><span class="asr-label">Sessão iniciada</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PRODUCT -->
+          <div class="sc sc-product" id="c-product">
+            <div class="prod-hdr" style="background:linear-gradient(135deg,#c0001a,#e8001c)">
+              <div class="prod-logo">claro</div>
+              <div class="prod-label">Capital de Giro<br>Claro Negócios</div>
+            </div>
+            <div class="prod-body">
+              <div class="prod-hero" style="background:linear-gradient(135deg,#c0001a,#ff3355)">
+                <div class="prod-hero-lbl">Limite disponível</div>
+                <div class="prod-hero-val">R$ 60.000</div>
+                <div class="prod-hero-note">✦ aprovação em 24h</div>
+              </div>
+              <div class="prod-pills">
+                <div class="pill"><span class="pill-val" style="color:#e8001c">18x</span><span class="pill-sub">parcelas</span></div>
+                <div class="pill"><span class="pill-val" style="color:#e8001c">1,3%</span><span class="pill-sub">a.m.</span></div>
+                <div class="pill"><span class="pill-val" style="color:#e8001c">30d</span><span class="pill-sub">carência</span></div>
+              </div>
+              <button class="prod-btn" style="background:#e8001c">Contratar agora →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="log-panel">
+        <div class="log-ttl"><div class="ldot2" style="background:var(--claro-l);box-shadow:0 0 5px var(--claro-l)"></div>Shell Log · Claro</div>
+        <div class="log-list" id="clog"></div>
+      </div>
+    </div>
+    <div class="st">
+      <div class="st-ttl">Progresso</div>
+      <div class="st-pips" id="c-pips"></div>
+      <div class="st-lbls" id="c-lbls"></div>
+    </div>
+  </div>
+</div><!-- /split -->
+
+<!-- ── RISK BANNER ── -->
+<div class="risk-banner" id="risk-banner" style="display:none">
+  <div class="rb-icon">⚠️</div>
+  <div>
+    <div class="rb-title">Modo Standalone — Responsabilidades Adicionais Ativas</div>
+    <div class="rb-text">
+      <strong>O Bradesco/Aarin passa a ser o guardião da identidade.</strong>
+      Isso ativa: MFA obrigatório para operações de crédito · proteção contra credential stuffing · 
+      logs de autenticação retidos por 5 anos (Bacen) · responsabilidade LGPD como controlador de dados · 
+      pentest específico do fluxo de login · monitoramento de phishing do domínio branco.
+    </div>
+  </div>
+</div>
+
+<!-- ── COMPARISON TABLE ── -->
+<div class="compare-wrap">
+  <div class="cw-title">Comparação: Federado vs Standalone</div>
+  <p class="cw-sub">Impacto em segurança, responsabilidade e complexidade de implementação.</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Dimensão</th>
+        <th>Federado (sem login)</th>
+        <th>Standalone (com login)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Quem autentica o usuário</td>
+        <td class="ok">Parceiro (IdP próprio)</td>
+        <td class="warn">Bradesco/Aarin</td>
+      </tr>
+      <tr>
+        <td>Tela de login no portal</td>
+        <td class="ok">Não existe — Shell já recebe UCT</td>
+        <td class="warn">Sim — login + senha + MFA obrigatório</td>
+      </tr>
+      <tr>
+        <td>Risco de phishing</td>
+        <td class="ok">Baixo — parceiro é alvo, não o portal</td>
+        <td class="bad">Alto — portal branco é alvo direto</td>
+      </tr>
+      <tr>
+        <td>Credential stuffing</td>
+        <td class="ok">Não se aplica</td>
+        <td class="bad">Risco real — rate limit + CAPTCHA obrigatórios</td>
+      </tr>
+      <tr>
+        <td>SIM Swap / MFA bypass</td>
+        <td class="ok">Não se aplica</td>
+        <td class="bad">Risco se MFA via SMS — preferir TOTP</td>
+      </tr>
+      <tr>
+        <td>Responsabilidade LGPD</td>
+        <td class="ok">Parceiro é controlador dos dados de auth</td>
+        <td class="bad">Bradesco/Aarin é controlador — obrigações maiores</td>
+      </tr>
+      <tr>
+        <td>Compliance Bacen 4.658</td>
+        <td class="warn">MFA recomendado</td>
+        <td class="bad">MFA obrigatório para operações financeiras</td>
+      </tr>
+      <tr>
+        <td>Retenção de logs de auth</td>
+        <td class="warn">Compartilhada com parceiro</td>
+        <td class="bad">100% responsabilidade Bradesco · mín. 5 anos</td>
+      </tr>
+      <tr>
+        <td>Complexidade de integração</td>
+        <td class="ok">Parceiro implementa Token Exchange</td>
+        <td class="warn">Bradesco entrega portal pronto — menor esforço do parceiro</td>
+      </tr>
+      <tr>
+        <td>Parceiros sem infra tech</td>
+        <td class="bad">Difícil — exige capacidade de Token Exchange</td>
+        <td class="ok">Perfeito — parceiro só distribui o link</td>
+      </tr>
+      <tr>
+        <td>Recuperação de senha</td>
+        <td class="ok">Não existe no portal BaaS</td>
+        <td class="bad">Vetor crítico de fraude — exige validação rigorosa</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+// ── MODE ────────────────────────────────────────────
+let currentMode = 'federated';
+
+function selectMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+  document.querySelector('.mc-'+mode).classList.add('selected');
+  document.getElementById('risk-banner').style.display = mode==='standalone' ? 'flex' : 'none';
+  const subTxt = mode==='federated'
+    ? 'modo: federado · parceiro autentica'
+    : 'modo: standalone · login próprio';
+  document.getElementById('vivo-mode-sub').textContent = subTxt;
+  document.getElementById('claro-mode-sub').textContent = subTxt;
+  resetFlow();
+}
+
+// ── STEP DEFINITIONS ────────────────────────────────
+
+function getSteps(partner, mode) {
+  const pc = partner==='vivo' ? '#660099' : '#e8001c';
+  const pl = partner==='vivo' ? '#9b59f7' : '#ff4466';
+  const pn = partner==='vivo' ? 'vivo' : 'claro';
+
+  const fedSteps = [
+    {screen:'load',  status:'montando...',  logType:'lok',  logTag:'[INIT]',    logMsg:`shell mounted · ${pn}`,       pipLabel:'Shell'},
+    {screen:'splash',status:'config...',    logType:'linfo',logTag:'[CFG]',     logMsg:'partner config loaded',        pipLabel:'Config'},
+    {screen:'splash',status:'tema...',      logType:'lwarn',logTag:'[THEME]',   logMsg:`--color-primary: ${pc}`,       pipLabel:'Tema'},
+    {screen:'splash',status:'auth...',      logType:'lok',  logTag:'[AUTH]',    logMsg:'X autenticado pelo parceiro',  pipLabel:'Auth'},
+    {screen:'auth',  status:'token...',     logType:'lok',  logTag:'[TOKEN]',   logMsg:'token exchange → UCT emitido', pipLabel:'Token'},
+    {screen:'auth',  status:'memória...',   logType:'lok',  logTag:'[MEM]',     logMsg:'UCT in memory only',           pipLabel:'Memória'},
+    {screen:'auth',  status:'registry...',  logType:'linfo',logTag:'[REG]',     logMsg:'capital-giro → v2.4.1',        pipLabel:'Registry'},
+    {screen:'auth',  status:'mfe...',       logType:'lok',  logTag:'[MFE]',     logMsg:'remoteEntry.js loaded',        pipLabel:'MFE'},
+    {screen:'product',status:'✓ ativo',    logType:'lok',  logTag:'[✓]',       logMsg:`CapGiro.mount() · ${pn} ✨`,   pipLabel:'Produto'},
+  ];
+
+  const standaloneSteps = [
+    {screen:'load',   status:'montando...',  logType:'lok',  logTag:'[INIT]',   logMsg:`shell mounted · ${pn}`,          pipLabel:'Shell'},
+    {screen:'splash', status:'config...',    logType:'linfo',logTag:'[CFG]',    logMsg:'partner config loaded',           pipLabel:'Config'},
+    {screen:'splash', status:'tema...',      logType:'lwarn',logTag:'[THEME]',  logMsg:`--color-primary: ${pc}`,          pipLabel:'Tema'},
+    {screen:'login',  status:'login...',     logType:'lwarn',logTag:'[LOGIN]',  logMsg:'tela de login exibida',           pipLabel:'Login'},
+    {screen:'login',  status:'mfa...',       logType:'lsec', logTag:'[MFA]',    logMsg:'TOTP code verificado · ok',       pipLabel:'MFA'},
+    {screen:'auth',   status:'token...',     logType:'lok',  logTag:'[TOKEN]',  logMsg:'credenciais válidas → UCT',       pipLabel:'Token'},
+    {screen:'auth',   status:'memória...',   logType:'lok',  logTag:'[MEM]',    logMsg:'UCT in memory only · seguro',     pipLabel:'Memória'},
+    {screen:'auth',   status:'registry...',  logType:'linfo',logTag:'[REG]',    logMsg:'capital-giro → v2.4.1',           pipLabel:'Registry'},
+    {screen:'auth',   status:'mfe...',       logType:'lok',  logTag:'[MFE]',    logMsg:'remoteEntry.js loaded',           pipLabel:'MFE'},
+    {screen:'product',status:'✓ ativo',     logType:'lok',  logTag:'[✓]',      logMsg:`CapGiro.mount() · ${pn} ✨`,      pipLabel:'Produto'},
+  ];
+
+  return mode==='federated' ? fedSteps : standaloneSteps;
+}
+
+// ── STATE ────────────────────────────────────────────
+let timers = [];
+let running = false;
+
+// ── HELPERS ─────────────────────────────────────────
+const screens = {
+  vivo:  ['v-blank','v-load','v-splash','v-login','v-auth','v-product'],
+  claro: ['c-blank','c-load','c-splash','c-login','c-auth','c-product'],
+};
+
+function showSc(partner, name) {
+  screens[partner].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.classList.remove('show');
+  });
+  const target = document.getElementById(partner[0]+'-'+name);
+  if(target) target.classList.add('show');
+}
+
+const times = ['+0ms','+38ms','+41ms','+200ms','+340ms','+450ms','+455ms','+470ms','+545ms','+554ms'];
+
+function addLog(partner, idx, type, tag, msg) {
+  const container = document.getElementById(partner==='vivo'?'vlog':'clog');
+  const div = document.createElement('div');
+  div.className = 'le';
+  div.innerHTML = `<span class="lt">${times[idx]||'---'}</span><span class="${type}">${tag}</span><span class="lmsg" style="margin-left:4px">${msg}</span>`;
+  container.appendChild(div);
+  requestAnimationFrame(() => { requestAnimationFrame(() => div.classList.add('show')); });
+  container.scrollTop = container.scrollHeight;
+}
+
+function buildPips(partner, count, labels) {
+  const pipsEl = document.getElementById(partner[0]+'-pips');
+  const lblsEl = document.getElementById(partner[0]+'-lbls');
+  pipsEl.innerHTML=''; lblsEl.innerHTML='';
+  for(let i=0;i<count;i++){
+    const p = document.createElement('div'); p.className='pip'; p.id=`pip-${partner}-${i}`; pipsEl.appendChild(p);
+    const l = document.createElement('div'); l.className='piplbl'; l.id=`lbl-${partner}-${i}`; l.textContent=labels[i]||''; lblsEl.appendChild(l);
+  }
+}
+
+function setPip(partner, step, total) {
+  for(let i=0;i<total;i++){
+    const p = document.getElementById(`pip-${partner}-${i}`);
+    const l = document.getElementById(`lbl-${partner}-${i}`);
+    if(!p) continue;
+    p.classList.remove('active','done');
+    if(l) l.classList.remove('active','done');
+    if(i<step){p.classList.add('done');if(l)l.classList.add('done');}
+    else if(i===step){p.classList.add('active');if(l)l.classList.add('active');}
+  }
+}
+
+function setStatus(partner, txt, done) {
+  const el = document.getElementById(`st-${partner}`);
+  if(!el) return;
+  el.textContent = txt;
+  if(done) {
+    const col = partner==='vivo' ? 'rgba(155,89,247,.25)' : 'rgba(248,113,113,.2)';
+    const tc  = partner==='vivo' ? '#c084fc' : '#f87171';
+    el.style.background = col; el.style.color = tc; el.style.borderColor = tc.replace(')',', .4)').replace('rgb','rgba');
+  }
+}
+
+function runPartner(partner, baseDelay, speed) {
+  const steps = getSteps(partner, currentMode);
+  buildPips(partner, steps.length, steps.map(s=>s.pipLabel));
+  showSc(partner, 'blank');
+
+  steps.forEach((step, i) => {
+    const t = setTimeout(() => {
+      showSc(partner, step.screen);
+      addLog(partner, i, step.logType, step.logTag, step.logMsg);
+      setPip(partner, i, steps.length);
+      setStatus(partner, step.status, step.status==='✓ ativo');
+    }, baseDelay + i * speed);
+    timers.push(t);
+  });
+}
+
+function startFlow() {
+  if(running) return;
+  running = true;
+  const btn = document.getElementById('playBtn');
+  btn.textContent = '⏸ Executando...'; btn.disabled = true;
+  const speed = parseInt(document.getElementById('spd').value);
+
+  runPartner('vivo',  200, speed);
+  runPartner('claro', 200 + Math.floor(speed*.35), speed);
+
+  const maxSteps = currentMode==='standalone' ? 10 : 9;
+  const totalTime = 200 + (maxSteps-1)*speed + Math.floor(speed*.35) + 400;
+  timers.push(setTimeout(() => {
+    running = false;
+    btn.textContent = '✓ Demo concluído'; btn.disabled = false;
+  }, totalTime));
+}
+
+function resetFlow() {
+  timers.forEach(clearTimeout); timers = []; running = false;
+  const btn = document.getElementById('playBtn');
+  btn.textContent = '▶ Executar Demo'; btn.disabled = false;
+  ['vivo','claro'].forEach(p => {
+    showSc(p, 'blank');
+    setStatus(p, 'aguardando', false);
+    const el = document.getElementById(`st-${p}`);
+    if(el){el.style.background='';el.style.color='';el.style.borderColor='';}
+    document.getElementById(p==='vivo'?'vlog':'clog').innerHTML = '';
+    const pipsEl = document.getElementById(p[0]+'-pips');
+    const lblsEl = document.getElementById(p[0]+'-lbls');
+    if(pipsEl) pipsEl.innerHTML='';
+    if(lblsEl) lblsEl.innerHTML='';
+  });
+}
+
+document.getElementById('playBtn').addEventListener('click', startFlow);
+document.getElementById('resetBtn').addEventListener('click', resetFlow);
+
+// init pips
+['vivo','claro'].forEach(p => {
+  const s = getSteps(p, currentMode);
+  buildPips(p, s.length, s.map(x=>x.pipLabel));
+});
+</script>
+</body>
+</html>
