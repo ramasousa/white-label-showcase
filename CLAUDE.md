@@ -35,7 +35,7 @@ sections (`#jornadas`, `#multiproduto`, `#runtime`, `#arquitetura`,
 |---|---|
 | `cg-portal-completo-v4.html` | **B2B**, the most complete prototype (~2100 lines). Operator portal: MFA/SSO login, RBAC (Gerente `Ana Lima` vs Operadores `Carlos Melo` / `Fernanda Rocha`), 3 credit products, 5-step proposal wizard, mock proposal list. |
 | `cg-cliente-final-b2c.html` | **B2C** self-service mobile journey, 4 screens, consumer language, no banking jargon. |
-| `cg-embedded-b2b2b-cacaushow.html` | **B2B2B** embedded MFE inside the Cacau Show franchisee portal — no chrome, no extra login, live design-token inspector. |
+| `cg-embedded-b2b2b-cacaushow.html` | **B2B2B** embedded MFE inside the Cacau Show franchisee portal — no chrome, no extra login. Right-hand panel has two tabs: **Runtime** (what happens under the hood — token exchange, security controls, MFE load, driven by the user's own actions) and **Design System** (the live token inspector). The panel deliberately keeps the dark `--shell-*` palette so it reads as *the platform* against the partner's branding. |
 
 ### Shell / runtime demos (animated, step-driven)
 | File | What it is |
