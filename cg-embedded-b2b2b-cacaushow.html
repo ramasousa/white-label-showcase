@@ -58,7 +58,98 @@ body::before{
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
 
 /* ── MAIN LAYOUT ── */
-.demo-layout{display:grid;grid-template-columns:1fr 340px;gap:0;min-height:calc(100vh - 49px)}
+.demo-layout{display:grid;grid-template-columns:1fr 400px;gap:0;min-height:calc(100vh - 49px)}
+
+
+/* ── RUNTIME PANEL · abas ── */
+.ip-tabs{display:flex;background:var(--shell-s2);border-bottom:1px solid var(--shell-border);flex-shrink:0}
+.ip-tab{
+  flex:1;padding:12px 8px;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--shell-muted);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;
+  transition:color .18s,border-color .18s;
+}
+.ip-tab:hover{color:var(--shell-text)}
+.ip-tab.active{color:#f5a623;border-bottom-color:#f5a623}
+.ip-pane{display:none;flex-direction:column;overflow:hidden;min-height:0;flex:1}
+.ip-pane.active{display:flex}
+
+/* ── sessão (estado do UCT) ── */
+.rt-head{padding:14px 16px;border-bottom:1px solid var(--shell-border);background:var(--shell-s2);flex-shrink:0}
+.rt-head-title{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--shell-muted);margin-bottom:10px}
+.rt-uct{background:rgba(0,212,154,.06);border:1px solid rgba(0,212,154,.22);border-radius:5px;padding:10px 12px}
+.rt-uct.dead{background:rgba(255,255,255,.03);border-color:var(--shell-border)}
+.rt-uct-top{display:flex;align-items:center;gap:7px;margin-bottom:9px}
+.rt-dot{width:6px;height:6px;border-radius:50%;background:#00d49a;flex-shrink:0;animation:rtpulse 2s infinite}
+.rt-uct.dead .rt-dot{background:var(--shell-muted);animation:none}
+@keyframes rtpulse{0%,100%{opacity:1}50%{opacity:.35}}
+.rt-uct-name{font-family:var(--mono);font-size:11px;font-weight:500;color:#00d49a;letter-spacing:.04em}
+.rt-uct.dead .rt-uct-name{color:var(--shell-muted)}
+.rt-uct-ttl{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:#00d49a}
+.rt-uct.dead .rt-uct-ttl{color:var(--shell-muted)}
+.rt-kv{display:grid;grid-template-columns:62px 1fr;gap:5px 8px;font-family:var(--mono);font-size:10px;line-height:1.5}
+.rt-k{color:var(--shell-muted)}
+.rt-v{color:var(--shell-text);word-break:break-all}
+.rt-scopes{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.rt-scope{font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px;background:rgba(59,158,255,.12);color:#5b9dd9;border:1px solid rgba(59,158,255,.25)}
+.rt-scope.denied{background:rgba(240,80,110,.1);color:#f0506e;border-color:rgba(240,80,110,.28);text-decoration:line-through}
+
+/* ── controles ── */
+.rt-ctrls{display:flex;gap:6px;margin-top:10px}
+.rt-btn{
+  flex:1;padding:7px 8px;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;
+  background:rgba(255,255,255,.04);color:var(--shell-text);border:1px solid var(--shell-b2);border-radius:4px;
+  cursor:pointer;transition:background .18s,border-color .18s;
+}
+.rt-btn:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2)}
+.rt-btn.warn:hover{border-color:rgba(240,80,110,.5);color:#f0506e}
+
+/* ── timeline de eventos ── */
+.rt-body{flex:1;overflow-y:auto;padding:4px 0 20px;scrollbar-width:thin;scrollbar-color:var(--shell-border) transparent}
+.rt-empty{padding:26px 18px;text-align:center;font-family:var(--mono);font-size:10px;color:var(--shell-muted);line-height:1.7}
+.rt-phase{
+  padding:9px 16px 5px;font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--shell-muted);border-top:1px solid var(--shell-border);margin-top:6px;
+}
+.rt-phase:first-child{border-top:none;margin-top:0}
+.rt-ev{
+  padding:6px 16px;display:grid;grid-template-columns:44px 40px 1fr;gap:8px;align-items:baseline;
+  font-family:var(--mono);font-size:10px;line-height:1.5;cursor:default;
+  opacity:0;transform:translateX(-5px);transition:opacity .35s,transform .35s,background .15s;
+}
+.rt-ev.show{opacity:1;transform:none}
+.rt-ev.has-detail{cursor:pointer}
+.rt-ev.has-detail:hover{background:rgba(255,255,255,.03)}
+.rt-t{color:var(--shell-muted);font-size:9.5px}
+.rt-tag{font-size:8.5px;letter-spacing:.04em;padding:1px 4px;border-radius:3px;text-align:center;white-space:nowrap}
+.tag-shell{background:rgba(255,255,255,.06);color:#98a8b6}
+.tag-cfg{background:rgba(245,166,35,.12);color:#f5a623}
+.tag-auth{background:rgba(168,124,248,.13);color:#a87cf8}
+.tag-mfe{background:rgba(59,158,255,.12);color:#5b9dd9}
+.tag-api{background:rgba(34,212,192,.12);color:#22d4c0}
+.tag-sec{background:rgba(0,212,154,.12);color:#00d49a}
+.tag-warn{background:rgba(240,80,110,.12);color:#f0506e}
+.rt-msg{color:var(--shell-text)}
+.rt-msg .hl{color:#f5a623}
+.rt-msg .ok{color:#00d49a}
+.rt-msg .no{color:#f0506e}
+.rt-prop{
+  display:inline-block;margin-left:5px;font-size:8px;letter-spacing:.08em;text-transform:uppercase;
+  padding:1px 5px;border-radius:3px;background:rgba(224,169,95,.13);color:#e0a95f;border:1px solid rgba(224,169,95,.3);
+  vertical-align:1px;
+}
+.rt-chev{color:var(--shell-muted);font-size:9px;margin-left:4px}
+.rt-detail{
+  grid-column:1/-1;max-height:0;overflow:hidden;opacity:0;
+  transition:max-height .35s,opacity .25s;
+}
+.rt-ev.open .rt-detail{max-height:420px;opacity:1;margin-top:6px}
+.rt-detail-in{
+  background:var(--shell-bg);border:1px solid var(--shell-border);border-left:2px solid #f5a623;border-radius:0 4px 4px 0;
+  padding:9px 11px;font-size:9.5px;line-height:1.65;color:#98a8b6;white-space:pre-wrap;word-break:break-word;
+}
+.rt-detail-in .c{color:#4d6376}
+.rt-detail-in .s{color:#8fd6a8}
+.rt-detail-in .k{color:#ff8a95}
 
 /* ── TOKEN INSPECTOR PANEL ── */
 .inspector-panel{
@@ -697,6 +788,42 @@ body::before{
 
   <!-- ════ RIGHT: INSPECTOR PANEL ════ -->
   <div class="inspector-panel">
+
+    <!-- ════ ABAS ════ -->
+    <div class="ip-tabs">
+      <button class="ip-tab active" id="tab-rt" onclick="switchPane('rt')">Runtime</button>
+      <button class="ip-tab" id="tab-ds" onclick="switchPane('ds')">Design System</button>
+    </div>
+
+    <!-- ════ PANE: RUNTIME ════ -->
+    <div class="ip-pane active" id="pane-rt">
+      <div class="rt-head">
+        <div class="rt-head-title">Sessão · o que roda por baixo</div>
+        <div class="rt-uct dead" id="rtUct">
+          <div class="rt-uct-top">
+            <span class="rt-dot"></span>
+            <span class="rt-uct-name" id="rtUctName">sem sessão</span>
+            <span class="rt-uct-ttl" id="rtTtl">—</span>
+          </div>
+          <div class="rt-kv">
+            <span class="rt-k">sub</span><span class="rt-v" id="rtSub">—</span>
+            <span class="rt-k">tenant</span><span class="rt-v" id="rtTenant">—</span>
+            <span class="rt-k">storage</span><span class="rt-v" id="rtStore">—</span>
+          </div>
+          <div class="rt-scopes" id="rtScopes"></div>
+        </div>
+        <div class="rt-ctrls">
+          <button class="rt-btn" onclick="rtBoot()">▶ Reexecutar boot</button>
+          <button class="rt-btn warn" onclick="rtExpire()">⏱ Expirar UCT</button>
+        </div>
+      </div>
+      <div class="rt-body" id="rtBody">
+        <div class="rt-empty" id="rtEmpty">Aguardando inicialização…</div>
+      </div>
+    </div>
+
+    <!-- ════ PANE: DESIGN SYSTEM ════ -->
+    <div class="ip-pane" id="pane-ds">
     <div class="ip-head">
       <div class="ip-head-title">Design System Inspector · Runtime Import</div>
       <div class="ip-pkg">
@@ -845,6 +972,7 @@ body::before{
       <div class="ipp-track"><div class="ipp-fill" id="ippFill"></div></div>
       <div class="ipp-tokens" id="ipp-count">0 de 10 tokens</div>
     </div>
+    </div><!-- /pane-ds -->
   </div><!-- /inspector-panel -->
 
 </div><!-- /demo-layout -->
@@ -882,6 +1010,7 @@ function startTokenInjection() {
   if (injecting) return;
   injecting = true;
   totalApplied = 0;
+  rtMfeLoad();
 
   // update UI
   setStatus('loading','Importando @cacaushow/design-tokens...');
@@ -993,6 +1122,7 @@ function applyTokensSequentially() {
 
 function resetTokens() {
   if (injTimer) clearTimeout(injTimer);
+  if (injecting) rtMfeUnload();
   injecting = false;
   totalApplied = 0;
 
@@ -1089,9 +1219,24 @@ function mfeSetPrazo(p, btn) {
   document.querySelectorAll('.mfe-prazo-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   mfeUpdateSim();
+
+  rtPhaseLive('Simulação · prazo ' + p + 'x');
+  rtEmit('api', 'tag-api', 'POST <span class="hl">/v1/credit/simulate</span>',
+    'POST /v1/credit/simulate\n<span class="k">Authorization</span>: DPoP {UCT}\n<span class="k">DPoP</span>: {prova assinada}      <span class="c">// ver evento seguinte</span>\n\n{ <span class="k">"amount"</span>: 45000, <span class="k">"term"</span>: ' + p + ' }');
+  rtEmit('sec', 'tag-sec', 'Token <span class="ok">sender-constrained</span> — prova por requisição', null, true);
+  rtEmit('sec', 'tag-sec', 'escopo <span class="ok">credit:simulate</span> confere');
+  rtEmit('api', 'tag-api', '200 · parcela calculada pelo motor de risco');
 }
 
 function mfeShowSuccess() {
+  rtPhaseLive('Contratação');
+  rtEmit('api', 'tag-api', 'POST <span class="hl">/v1/credit/apply</span>',
+    'POST /v1/credit/apply\n<span class="k">X-Idempotency-Key</span>: {aleatório do cliente}\n\n<span class="c">// a chave é escopada ao sub + partner_tenant do UCT.</span>\n<span class="c">// chave previsível transformaria o cache de idempotência</span>\n<span class="c">// em canal de leitura de proposta alheia — ameaça A-21.</span>');
+  rtEmit('sec', 'tag-sec', 'Idempotência ativa — retry não duplica desembolso');
+  rtEmit('api', 'tag-api', '202 · operação <span class="hl">#CG-2026-00847</span> em análise');
+  rtEmit('sec', 'tag-sec', 'Webhook ao parceiro <span class="ok">assinado (HMAC-SHA256)</span>', 
+    '<span class="c">// sem assinatura, um terceiro forja "aprovado" e o parceiro</span>\n<span class="c">// libera valor contra crédito que não existe — ameaça A-19.</span>\nPOST https://portal.cacaushow.com.br/webhooks/baas\n<span class="k">X-Signature</span>: sha256=…\n<span class="k">X-Timestamp</span>: 1748300000   <span class="c">// janela curta, anti-replay</span>', true);
+
   const mfeBody = document.querySelector('.mfe-body');
   mfeBody.innerHTML = `
     <div style="text-align:center;padding:28px 16px">
@@ -1122,9 +1267,193 @@ function mfeShowSuccess() {
 
 function fmtN(n) { return n.toLocaleString('pt-BR'); }
 
+
+// ══════════════════════════════════════
+// RUNTIME PANEL — o que roda por baixo
+// ══════════════════════════════════════
+
+// ── CONFIG ──────────────────────────────
+// Arquitetura ALVO. Itens marcados com prop:true são recomendações do
+// documento de segurança ainda pendentes de decisão — o selo evita que
+// sejam lidos como requisito já fechado.
+const RT_SEQ = [
+  {ph:'Boot do parceiro', t:0},
+  {t:0,   tag:'shell', c:'tag-shell', m:'Portal Cacau Show monta o container do MFE'},
+  {t:40,  tag:'cfg',   c:'tag-cfg',   m:'GET <span class="hl">/v1/partners/cacau-show/config</span>',
+   d:'<span class="c">// Partner Config API — 1 chamada, sem deploy</span>\n{\n  <span class="k">"designTokens"</span>: <span class="s">"@cacaushow/design-tokens@3.2.1"</span>,\n  <span class="k">"products"</span>: [<span class="s">"capital-giro"</span>],\n  <span class="k">"embedMode"</span>: <span class="s">"headless"</span>,   <span class="c">// sem chrome do Shell</span>\n  <span class="k">"sessionTimeoutMs"</span>: <span class="s">600000</span>\n}'},
+  {t:180, tag:'sec',   c:'tag-sec',   m:'CSP <span class="hl">frame-ancestors</span> resolvido para o parceiro',
+   d:'<span class="c">// gerado por partner_id — nunca curinga</span>\nframe-ancestors https://portal.cacaushow.com.br;\nconnect-src   \'self\' https://api.baas.bradesco.com.br;\nscript-src    \'self\' https://mfe.baas.bradesco.com.br \'nonce-{req}\';'},
+
+  {ph:'Identidade — sem novo login', t:215},
+  {t:220, tag:'auth',  c:'tag-auth',  m:'Roberto já está autenticado no portal do franqueado'},
+  {t:265, tag:'auth',  c:'tag-auth',  m:'Parceiro repassa identidade via <span class="hl">postMessage</span>'},
+  {t:275, tag:'sec',   c:'tag-sec',   m:'<span class="ok">event.origin validado</span> contra allowlist do parceiro',
+   d:'<span class="c">// a origem sozinha não basta — a assinatura do token também é validada</span>\n<span class="k">if</span> (e.origin !== partnerConfig.allowedOrigin) <span class="k">return</span>;  <span class="c">// ameaça A-04</span>'},
+  {t:330, tag:'auth',  c:'tag-auth',  m:'Token Exchange <span class="hl">RFC 8693</span> — PAT + subject_token',
+   d:'POST /oauth2/token/exchange\n<span class="k">Authorization</span>: Bearer {PAT}      <span class="c">// M2M do parceiro, server-side</span>\n\ngrant_type=urn:ietf:params:oauth:grant-type:token-exchange\n&subject_token={partner_user_token}\n&scope=credit:read credit:simulate credit:apply'},
+  {t:395, tag:'sec',   c:'tag-warn',  m:'escopo <span class="no">credit:approve negado</span> — fora do contrato',
+   d:'<span class="c">// o escopo máximo vem do contrato no lado do Auth,</span>\n<span class="c">// nunca do que o parceiro pede. Ameaça A-05.</span>\n<span class="k">"error"</span>: <span class="s">"invalid_scope"</span>   <span class="c">// falha explícita, sem downgrade silencioso</span>'},
+  {t:430, tag:'auth',  c:'tag-auth',  m:'<span class="ok">UCT emitido</span> · TTL 15 min',
+   d:'<span class="c">// User Context Token — identifica Roberto dentro do tenant Cacau Show</span>\n{\n  <span class="k">"sub"</span>: <span class="s">"usr_h8x3k2p9"</span>,           <span class="c">// anonimizado na fronteira</span>\n  <span class="k">"partner_tenant"</span>: <span class="s">"cacau-show-prod"</span>,\n  <span class="k">"exchange_chain"</span>: <span class="s">"pat_7f3c…"</span>,   <span class="c">// rastreabilidade</span>\n  <span class="k">"scope"</span>: <span class="s">"credit:read credit:simulate credit:apply"</span>,\n  <span class="k">"exp"</span>: 1748300000\n}'},
+  {t:445, tag:'sec',   c:'tag-sec',   m:'UCT em <span class="ok">memória JS</span> — localStorage proibido',
+   d:'<span class="c">// não persiste entre abas, não sobrevive a reload</span>\n<span class="k">let</span> uct = resp.access_token;   <span class="c">// closure privado, fora do window</span>\n<span class="c">// refresh token vai em cookie HttpOnly + SameSite=Strict</span>'},
+
+  {t:470, tag:'shell', c:'tag-shell', m:'sessão pronta · <span class="hl">aguardando import do Design System</span>',
+   d:'<span class="c">// o UCT já existe, mas o MFE ainda não foi montado.</span>\n<span class="c">// clique em "Injetar @cacaushow/design-tokens" no portal</span>\n<span class="c">// para ver a carga do micro frontend acontecer.</span>'},
+];
+
+// Carga do MFE — disparada pela injeção de tokens, não pelo boot
+const RT_MFE = [
+  {ph:'Carga do micro frontend', t:0},
+  {t:60,  tag:'mfe',   c:'tag-mfe',   m:'MFE Registry → <span class="hl">capital-giro 2.4.1</span>',
+   d:'<span class="c">// versão exata, sempre. Alias mutável é rejeitado —</span>\n<span class="c">// um ponteiro móvel muda o que todos carregam sem rastro. Ameaça A-09.</span>'},
+  {t:340, tag:'sec',   c:'tag-sec',   m:'Manifesto do Registry <span class="ok">assinado (JWS)</span> verificado', prop:true,
+   d:'<span class="c">// o Shell confia numa chave, não numa URL</span>\n<span class="k">const</span> manifest = <span class="k">await</span> verifyJWS(jws, REGISTRY_PUBLIC_KEY);\n<span class="c">// falha ⇒ aborta a carga</span>'},
+  {t:640, tag:'sec',   c:'tag-sec',   m:'Integridade <span class="ok">sha384 confere</span> antes de executar', prop:true,
+   d:'fetch(mod.url, {\n  <span class="k">integrity</span>: <span class="s">"sha384-oqVuAfXRKap7…"</span>,  <span class="c">// vem do manifesto assinado</span>\n  <span class="k">credentials</span>: <span class="s">"omit"</span>              <span class="c">// CDN nunca recebe cookie</span>\n});'},
+  {t:1100,tag:'mfe',   c:'tag-mfe',   m:'Module Federation carrega <span class="hl">remoteEntry.js</span>'},
+  {t:1800,tag:'mfe',   c:'tag-mfe',   m:'<span class="ok">CapGiro.mount()</span> — tokens da Cacau Show aplicados',
+   d:'<span class="c">// mesmo bundle servido a todo parceiro.</span>\n<span class="c">// o que muda é o partnerId e os design tokens injetados em runtime.</span>\nCapGiro.mount(el, { uct, tokens, locale: <span class="s">"pt-BR"</span> });'},
+];
+
+// ── STATE ───────────────────────────────
+let rtTimers = [];
+let rtTtlTimer = null;
+let rtExp = 0;
+let rtAlive = false;
+
+// ── HELPERS ─────────────────────────────
+function switchPane(id) {
+  ['rt','ds'].forEach(k => {
+    document.getElementById('tab-'+k).classList.toggle('active', k === id);
+    document.getElementById('pane-'+k).classList.toggle('active', k === id);
+  });
+}
+
+function rtPhase(label) {
+  const el = document.createElement('div');
+  el.className = 'rt-phase';
+  el.textContent = label;
+  document.getElementById('rtBody').appendChild(el);
+}
+
+function rtAdd(ev) {
+  const body = document.getElementById('rtBody');
+  const el = document.createElement('div');
+  el.className = 'rt-ev' + (ev.d ? ' has-detail' : '');
+  const stamp = ev.t !== undefined ? '+' + ev.t + 'ms' : '';
+  el.innerHTML =
+    `<span class="rt-t">${stamp}</span>` +
+    `<span class="rt-tag ${ev.c}">${ev.tag}</span>` +
+    `<span class="rt-msg">${ev.m}` +
+      (ev.prop ? '<span class="rt-prop">proposto</span>' : '') +
+      (ev.d ? '<span class="rt-chev">▸</span>' : '') +
+    `</span>` +
+    (ev.d ? `<div class="rt-detail"><div class="rt-detail-in">${ev.d}</div></div>` : '');
+  if (ev.d) el.onclick = () => el.classList.toggle('open');
+  body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  body.scrollTop = body.scrollHeight;
+}
+
+// Fase disparada por ação do usuário — só entra com sessão ativa,
+// para não deixar cabeçalho órfão quando o UCT já expirou
+function rtPhaseLive(label) {
+  if (rtAlive) rtPhase(label);
+}
+
+// Evento avulso, disparado por ação do usuário (fora da sequência de boot)
+function rtEmit(tag, cls, msg, detail, prop) {
+  if (!rtAlive) return;
+  rtAdd({tag: tag, c: cls, m: msg, d: detail, prop: prop});
+}
+
+function rtSetSession(on) {
+  rtAlive = on;
+  const box = document.getElementById('rtUct');
+  box.classList.toggle('dead', !on);
+  document.getElementById('rtUctName').textContent = on ? 'UCT ativo' : 'sem sessão';
+  document.getElementById('rtSub').textContent    = on ? 'usr_h8x3k2p9' : '—';
+  document.getElementById('rtTenant').textContent = on ? 'cacau-show-prod' : '—';
+  document.getElementById('rtStore').textContent  = on ? 'memória JS' : '—';
+  document.getElementById('rtScopes').innerHTML   = on
+    ? '<span class="rt-scope">credit:read</span><span class="rt-scope">credit:simulate</span>' +
+      '<span class="rt-scope">credit:apply</span><span class="rt-scope denied">credit:approve</span>'
+    : '';
+  if (on) {
+    rtExp = Date.now() + 15 * 60 * 1000;
+    clearInterval(rtTtlTimer);
+    rtTtlTimer = setInterval(rtTick, 1000);
+    rtTick();
+  } else {
+    clearInterval(rtTtlTimer);
+    document.getElementById('rtTtl').textContent = '—';
+  }
+}
+
+function rtTick() {
+  const left = Math.max(0, rtExp - Date.now());
+  const m = Math.floor(left / 60000);
+  const sec = Math.floor((left % 60000) / 1000);
+  document.getElementById('rtTtl').textContent =
+    'expira em ' + m + ':' + String(sec).padStart(2, '0');
+  if (left <= 0) rtExpire();
+}
+
+// ── AÇÕES ───────────────────────────────
+function rtBoot() {
+  rtTimers.forEach(clearTimeout);
+  rtTimers = [];
+  clearInterval(rtTtlTimer);
+  const body = document.getElementById('rtBody');
+  body.innerHTML = '';
+  rtSetSession(false);
+
+  RT_SEQ.forEach(step => {
+    if (step.ph) {
+      // fases entram junto com o próximo evento cronológico
+      rtTimers.push(setTimeout(() => rtPhase(step.ph), (step.t || 0)));
+      return;
+    }
+    rtTimers.push(setTimeout(() => {
+      rtAdd(step);
+      if (step.t === 430) rtSetSession(true);
+    }, step.t));
+  });
+}
+
+function rtMfeLoad() {
+  if (!rtAlive) return;
+  RT_MFE.forEach(step => {
+    rtTimers.push(setTimeout(() => {
+      if (step.ph) rtPhase(step.ph); else rtAdd(step);
+    }, step.t));
+  });
+}
+
+function rtMfeUnload() {
+  if (!rtAlive) return;
+  rtPhase('Descarga do MFE');
+  rtAdd({tag:'mfe', c:'tag-mfe', m:'<span class="hl">CapGiro.unmount()</span> — tokens removidos do container',
+    d:'<span class="c">// a sessão continua válida: o UCT não depende do MFE.</span>\n<span class="c">// remontar não exige novo Token Exchange.</span>'});
+}
+
+function rtExpire() {
+  if (!rtAlive) return;
+  clearInterval(rtTtlTimer);
+  rtAlive = false;
+  rtPhase('Expiração da sessão');
+  rtAdd({tag:'warn', c:'tag-warn', m:'UCT <span class="no">expirado</span> — 15 min decorridos'});
+  rtAdd({tag:'auth', c:'tag-auth', m:'Shell emite <span class="hl">auth:required</span> ao parceiro',
+    d:'<span class="c">// o Shell não redireciona sozinho: quem autentica é o parceiro</span>\nparent.postMessage({ <span class="k">type</span>: <span class="s">"auth:required"</span> }, partnerOrigin);'});
+  rtAdd({tag:'sec', c:'tag-sec', m:'MFE desmontado · estado em memória <span class="ok">descartado</span>'});
+  rtSetSession(false);
+}
+
 // ── INIT ──────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   mfeUpdateSim();
+  rtBoot();
 });
 </script>
 </body>
