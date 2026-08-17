@@ -149,6 +149,7 @@ h3.sub{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;letter-spaci
 .matrix{display:grid;gap:2px;margin:22px 0}
 .mx-row{display:grid;grid-template-columns:1.35fr 1fr 1fr 1fr;gap:2px}
 .mx-c{background:var(--white);border:1px solid var(--cream-3);padding:13px 15px;font-size:12.5px;line-height:1.55}
+.matrix.five .mx-row{grid-template-columns:1.15fr 1fr 1fr 1fr 1fr}
 .mx-row.head .mx-c{background:var(--ink);color:var(--cream);border-color:var(--ink);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.11em;text-transform:uppercase}
 .mx-c.lbl{font-weight:500;color:var(--ink-2)}
 .mx-v{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.04em;display:block;margin-bottom:4px}
@@ -208,6 +209,8 @@ h3.sub{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;letter-spaci
     <a class="nav-link" href="#tokens">Tokens</a>
     <a class="nav-link" href="#compliance">Regulatório</a>
     <a class="nav-link" href="#incidentes">Incidentes</a>
+    <a class="nav-link" href="#deploy">Build &amp; Deploy</a>
+    <a class="nav-link" href="#lgpd">Papéis LGPD</a>
     <a class="nav-link" href="#golive">Go-Live</a>
   </div>
 </nav>
@@ -1161,7 +1164,8 @@ h3.sub{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;letter-spaci
         <div class="attr"><div class="attr-k">O dado real</div><div class="attr-v">O portal do operador lista como finalidades de Antecipação: <strong>duplicatas, cartão e nota fiscal</strong>. Não é um produto de conta e boleto apenas.</div></div>
         <div class="attr"><div class="attr-k">PCI-DSS</div><div class="attr-v">Antecipar recebível de cartão opera sobre a <strong>agenda de recebíveis</strong> — unidades de recebíveis, credenciadora, valores e datas de liquidação —, não sobre o PAN. O escopo PCI tende a permanecer nulo, e vale mantê-lo assim por desenho: nenhum campo de número de cartão em nenhum MFE.</div></div>
         <div class="attr"><div class="attr-k">A lacuna real</div><div class="attr-v">A antecipação de recebíveis de arranjo de pagamento envolve <strong>registradoras de recebíveis e a trava de domicílio</strong>, com integração, contratos e obrigações próprias. Este documento não modela essa fronteira, e ela não aparece em nenhum artefato do showcase — é um <em>ponto cego</em>, não um controle pendente.</div></div>
-        <div class="attr"><div class="attr-k">A validar</div><div class="attr-v">Confirmar com Produto e Compliance se a antecipação de cartão está no escopo do MVP ou é fase posterior. Se estiver no MVP, o modelo de ameaças precisa de uma fronteira adicional — plataforma ⇄ registradora — antes do go-live.</div></div>
+        <div class="attr"><div class="attr-k">Status</div><div class="attr-v"><strong>Confirmado como fase posterior do roadmap</strong> — não integra o MVP. Não bloqueia o go-live do primeiro parceiro.</div></div>
+        <div class="attr"><div class="attr-k">Gatilho</div><div class="attr-v">Quando a antecipação de cartão entrar em desenvolvimento, o modelo de ameaças precisa ser reaberto com uma fronteira nova: <strong>plataforma ⇄ registradora de recebíveis</strong>, com trava de domicílio, contratos de integração e obrigações próprias. Registrar agora como dependência de escopo evita que ela chegue como surpresa de última hora à Segurança.</div></div>
         <div class="attr"><div class="attr-k">Princípio</div><div class="attr-v">Se um produto futuro exigir captura de cartão, o campo deve ser <strong>isolado em iframe do provedor de pagamento</strong>. Registrar isso agora custa nada; descobrir depois custa uma certificação.</div></div>
       </div></div>
     </div>
@@ -1268,9 +1272,202 @@ h3.sub{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;letter-spaci
   </div>
 </div>
 
+
+<!-- ═══ DECISÃO: BUILD & DEPLOY ═══ -->
+<div class="wrap" id="deploy">
+  <div class="eyebrow">09 · Decisão Estrutural</div>
+  <h2 class="sec">Quem escreve, quem compila, quem serve</h2>
+  <p class="sec-desc">A hipótese de a Aarin desenvolver um MFE e publicá-lo na AWS dela não é uma variação menor de processo — ela redefine qual é a fronteira de confiança F2 e qual controle ainda resta ao Bradesco depois que o código está executando no browser do cliente.</p>
+
+  <div class="callout">
+    <div class="callout-t">A distinção que organiza a decisão</div>
+    <p>“Quem desenvolve o MFE” é a pergunta errada. São <strong>três eixos independentes</strong>: quem <em>escreve</em> o código, quem <em>compila</em> o artefato e quem <em>serve</em> o arquivo em runtime. O risco de segurança está concentrado nos dois últimos.</p>
+    <p>Código escrito por terceiro e compilado no pipeline do Bradesco é auditável, escaneável e reproduzível. Código compilado e servido por terceiro é <strong>confiança operacional em tempo real</strong>: o que executa no browser pode mudar a qualquer momento, sem release, sem aviso e sem rastro do lado do Bradesco.</p>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-t">Atenção — isso talvez já seja o desenho atual</div>
+    <p>O documento de decisão estratégica descreve o modelo híbrido como <strong>“AWS (Aarin) e Azure (Bradesco)”</strong>. Se o CloudFront e o S3 que hospedam os MFEs já vivem na conta AWS da Aarin, então a fronteira F2 <strong>já atravessa uma organização distinta hoje</strong> — e o cenário D abaixo não é hipótese futura, é o estado corrente sem os controles correspondentes.</p>
+    <p>Confirmar a titularidade da conta AWS onde os artefatos são publicados é o primeiro passo desta decisão, antes de qualquer discussão sobre modelo alvo.</p>
+  </div>
+
+  <h3 class="sub">Quatro cenários e o que muda em cada um</h3>
+  <div class="matrix five">
+    <div class="mx-row head">
+      <div class="mx-c">Critério</div>
+      <div class="mx-c">A · Bradesco integral</div>
+      <div class="mx-c">B · Aarin escreve<br>Bradesco compila e serve</div>
+      <div class="mx-c">C · Aarin escreve e compila<br>Bradesco serve</div>
+      <div class="mx-c">D · Aarin integral<br>serve na AWS dela</div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Controle do que executa no browser</div>
+      <div class="mx-c"><span class="mx-v yes">✓ total</span></div>
+      <div class="mx-c"><span class="mx-v yes">✓ total</span><span class="mx-note">O gate de publicação é do Bradesco</span></div>
+      <div class="mx-c"><span class="mx-v part">~ no release</span><span class="mx-note">Controla o que publica, não o que foi compilado</span></div>
+      <div class="mx-c"><span class="mx-v no">✕ nenhum</span><span class="mx-note">O bundle pode ser trocado sem release do Bradesco</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Integridade verificável (seção 04)</div>
+      <div class="mx-c"><span class="mx-v yes">✓ nativa</span></div>
+      <div class="mx-c"><span class="mx-v yes">✓ nativa</span></div>
+      <div class="mx-c"><span class="mx-v yes">✓ viável</span><span class="mx-note">Hash calculado na ingestão do artefato</span></div>
+      <div class="mx-c"><span class="mx-v part">~ condicionada</span><span class="mx-note">Só funciona se a Aarin registrar o artefato antes de publicar</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Superfície de CSP</div>
+      <div class="mx-c"><span class="mx-v yes">1 domínio</span></div>
+      <div class="mx-c"><span class="mx-v yes">1 domínio</span></div>
+      <div class="mx-c"><span class="mx-v yes">1 domínio</span></div>
+      <div class="mx-c"><span class="mx-v no">+1 domínio de terceiro</span><span class="mx-note">script-src passa a autorizar host fora do controle do Bradesco</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Disponibilidade do produto</div>
+      <div class="mx-c"><span class="mx-v yes">✓ própria</span></div>
+      <div class="mx-c"><span class="mx-v yes">✓ própria</span></div>
+      <div class="mx-c"><span class="mx-v yes">✓ própria</span></div>
+      <div class="mx-c"><span class="mx-v no">✕ dependente</span><span class="mx-note">Incidente na AWS da Aarin derruba o crédito de todos os parceiros</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Rollback e forense</div>
+      <div class="mx-c"><span class="mx-v yes">✓ imediato</span></div>
+      <div class="mx-c"><span class="mx-v yes">✓ imediato</span></div>
+      <div class="mx-c"><span class="mx-v yes">✓ imediato</span></div>
+      <div class="mx-c"><span class="mx-v no">✕ negociado</span><span class="mx-note">Versão anterior e logs de CDN dependem da retenção da Aarin</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Enquadramento BACEN 4.893</div>
+      <div class="mx-c"><span class="mx-v yes">interno</span></div>
+      <div class="mx-c"><span class="mx-v part">fornecedor de desenvolvimento</span></div>
+      <div class="mx-c"><span class="mx-v part">fornecedor de desenvolvimento</span></div>
+      <div class="mx-c"><span class="mx-v no">prestador relevante</span><span class="mx-note">Serviço em nuvem relevante — avaliação prévia, auditoria, continuidade</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Veredito</div>
+      <div class="mx-c"><span class="mx-v yes">Baseline</span></div>
+      <div class="mx-c"><span class="mx-v yes">Recomendado</span><span class="mx-note">Captura a velocidade da Aarin sem abrir mão do controle</span></div>
+      <div class="mx-c"><span class="mx-v part">Aceitável com controles</span><span class="mx-note">Exige SBOM, attestation e scan bloqueante na ingestão</span></div>
+      <div class="mx-c"><span class="mx-v no">Só com iframe</span><span class="mx-note">Ou com registro prévio de artefato — que anula a vantagem de hospedar lá</span></div>
+    </div>
+  </div>
+
+  <h3 class="sub">Por que o cenário D é qualitativamente diferente</h3>
+  <div class="cards two">
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Consequência 1</div>
+          <div class="card-title">A confiança deixa de ser contratual e passa a ser contínua</div>
+          <div class="card-sub">Nos cenários A a C, o Bradesco confia num artefato que aprovou. No D, confia numa organização a cada request.</div>
+        </div>
+        <div class="card-side"><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">O ponto</div><div class="attr-v">Um artefato aprovado é um fato verificável. Um endpoint de terceiro é uma promessa renovada a cada carregamento — inclusive nos fins de semana, durante incidentes, e sob qualquer credencial comprometida do lado de lá.</div></div>
+        <div class="attr"><div class="attr-k">Não é desconfiança da Aarin</div><div class="attr-v">O risco não pressupõe má-fé: uma credencial de CI vazada na Aarin produz exatamente o mesmo efeito que uma no Bradesco — com a diferença de que o Bradesco <strong>não veria</strong>, não teria log e não conseguiria conter sem cooperação externa.</div></div>
+        <div class="attr"><div class="attr-k">Mitigação parcial</div><div class="attr-v">O manifesto assinado da seção 04 <em>funciona</em> aqui: se a Aarin publicar bundle diferente do registrado, a verificação falha e o MFE não carrega. Mas isso exige que a Aarin submeta o artefato ao Bradesco <strong>antes</strong> de publicar — momento em que hospedar do lado dela deixa de trazer vantagem operacional.</div></div>
+      </div></div>
+    </div>
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Consequência 2</div>
+          <div class="card-title">O realm compartilhado transforma escopo em acesso total</div>
+          <div class="card-sub">Um MFE hospedado por terceiro tem o mesmo poder que um MFE interno — porque o browser não distingue os dois.</div>
+        </div>
+        <div class="card-side"><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">O ponto</div><div class="attr-v">Pela seção 05, todo MFE alcança o UCT, o DOM e o <span class="mono">fetch</span> do Shell. Um MFE de Antecipação servido pela Aarin não fica restrito a Antecipação: ele tem, tecnicamente, o mesmo alcance de qualquer outro produto na sessão.</div></div>
+        <div class="attr"><div class="attr-k">Consequência de desenho</div><div class="attr-v">É exatamente o gatilho que a matriz da seção 05 define para <strong>iframe de origem distinta</strong>. Se o cenário D for a decisão, ele deixa de ser opcional — e o custo de UX correspondente entra no planejamento da Squad 4, não como imprevisto.</div></div>
+        <div class="attr"><div class="attr-k">Efeito colateral na CSP</div><div class="attr-v">Autorizar o domínio da Aarin em <span class="mono">script-src</span> vale para <strong>qualquer arquivo</strong> naquele host. Se o MFE também chamar APIs da Aarin, <span class="mono">connect-src</span> cresce junto — e cada domínio adicional é um destino a mais para exfiltração em caso de XSS.</div></div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="callout neutral">
+    <div class="callout-t">Recomendação</div>
+    <p><strong>Cenário B como modelo alvo</strong> — a Aarin escreve, o Bradesco compila a partir do código-fonte e publica na infra que controla. Captura a velocidade de entrega que motiva envolver a Aarin, sem transferir o controle de runtime. O código-fonte no pipeline do Bradesco também endereça a dimensão de propriedade intelectual levantada no documento de decisão estratégica.</p>
+    <p><strong>Cenário C como transição aceitável</strong>, se a Aarin precisar manter o próprio build: exige SBOM, attestation de build, scan bloqueante na ingestão e build reproduzível o suficiente para o Bradesco reconstruir e comparar o hash por amostragem.</p>
+    <p><strong>Cenário D apenas com iframe de origem distinta</strong>, e com a Aarin formalmente enquadrada como prestador de serviço relevante sob a Res. 4.893 — avaliação prévia, direito de auditoria, plano de continuidade, retenção de logs de CDN contratada e SLA de notificação de incidente.</p>
+  </div>
+</div>
+
+<!-- ═══ DECISÃO: LGPD ═══ -->
+<div class="wrap" id="lgpd">
+  <div class="eyebrow">10 · Decisão Estrutural</div>
+  <h2 class="sec">Papéis LGPD — os três cenários e o que cada um custa</h2>
+  <p class="sec-desc">Insumo para a decisão do Jurídico, não parecer. O objetivo aqui é mostrar o que <em>muda na engenharia e na operação</em> conforme a qualificação escolhida — porque a decisão jurídica tem consequência técnica imediata, e a arquitetura atual já favorece um dos cenários.</p>
+
+  <div class="cards">
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Cenário 1</div>
+          <div class="card-title">Bradesco controlador · parceiro operador</div>
+          <div class="card-sub">O parceiro trata dados apenas sob instrução documentada do Bradesco, sem finalidade própria.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">frágil na prática</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Como opera</div><div class="attr-v">Bradesco define finalidade, base legal e retenção; atende ao titular; conduz o RIPD. O parceiro segue instruções e não usa o dado para nada seu.</div></div>
+        <div class="attr"><div class="attr-k">Vantagem</div><div class="attr-v">Simples e centralizado. Um único ponto de contato para o titular e uma única política de retenção.</div></div>
+        <div class="attr"><div class="attr-k">Por que costuma não se sustentar</div><div class="attr-v">Basta o parceiro usar a informação para <strong>finalidade própria</strong> — saber que o franqueado buscou crédito e agir comercialmente sobre isso — para ele deixar de ser operador e virar controlador de fato. A qualificação não decorre do contrato, e sim da conduta.</div></div>
+        <div class="attr"><div class="attr-k">Quando cabe</div><div class="attr-v">Integrações puramente de canal, em que o parceiro apenas hospeda a jornada e não retém nem reaproveita nada — mais próximo do B2C que do B2B2B.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-green" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Cenário 2</div>
+          <div class="card-title">Controladores independentes em cadeia</div>
+          <div class="card-sub">Cada lado é controlador do próprio tratamento; a passagem de identidade é uma transferência entre controladores.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-green">mais aderente</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Como opera</div><div class="attr-v">O parceiro é controlador da base de relacionamento dele e da decisão de <em>ofertar</em>. O Bradesco passa a ser controlador quando recebe o pedido, com finalidade e base legal próprias para a operação de crédito.</div></div>
+        <div class="attr"><div class="attr-k">Por que a arquitetura já favorece</div><div class="attr-v">O <span class="mono">sub</span> é anonimizado na fronteira, o PAT nunca chega ao browser e o parceiro não recebe dado de decisão. <strong>Não há base compartilhada</strong> — cada lado detém o seu conjunto. Isso é precisamente o desenho que sustenta controladorias independentes.</div></div>
+        <div class="attr"><div class="attr-k">Custo</div><div class="attr-v">Exige transparência ao titular sobre a transferência e base legal declarada de cada lado. Direitos do titular são atendidos por quem detém o dado — o que exige um roteiro claro de encaminhamento quando o pedido chega pela porta errada.</div></div>
+        <div class="attr"><div class="attr-k">Consequência técnica</div><div class="attr-v">Reforça manter o <span class="mono">sub</span> anonimizado e <strong>não</strong> enriquecer o UCT com dado pessoal do parceiro. Qualquer claim adicional com dado identificável enfraquece a tese de bases separadas.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Cenário 3</div>
+          <div class="card-title">Controladoria conjunta na originação</div>
+          <div class="card-sub">Parceiro e Bradesco decidem em conjunto finalidades da etapa de oferta e originação.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-blue">para casos B2B2B</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Quando é o retrato correto</div><div class="attr-v">Quando o parceiro <strong>co-decide o critério de oferta</strong> — por exemplo, escolhendo quais franqueados veem a proposta com base em dados de faturamento que só ele tem. Aí a finalidade é definida a quatro mãos, e chamar isso de operador não descreve a realidade.</div></div>
+        <div class="attr"><div class="attr-k">Custo</div><div class="attr-v">Exige acordo formal repartindo responsabilidades, e o titular pode exercer direitos contra qualquer um dos dois. Operacionalmente é o cenário mais pesado: dois controladores, um titular, uma jornada só.</div></div>
+        <div class="attr"><div class="attr-k">Consequência técnica</div><div class="attr-v">Exige trilha de auditoria que registre <strong>de quem partiu cada decisão</strong> na originação. O claim <span class="mono">exchange_chain</span> já dá parte disso; faltaria registrar o critério de elegibilidade aplicado pelo parceiro.</div></div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-t">O ponto de decisão que a engenharia não pode adiar — o payload do webhook</div>
+    <p>Independentemente do cenário escolhido, há uma decisão técnica com efeito jurídico direto e imediato: <strong>o que exatamente a plataforma devolve ao parceiro na notificação de status</strong>.</p>
+    <p>“Reprovado”, “valor aprovado” e “taxa” são dados sobre a situação creditícia do titular saindo do Bradesco para outra organização. Quanto mais rico o payload, mais o desenho se aproxima de compartilhamento entre controladores — com base legal e transparência próprias — e mais difícil fica sustentar qualquer cenário de separação.</p>
+    <p><strong>Recomendação de engenharia:</strong> minimizar o payload ao mínimo operacional. O parceiro precisa saber que a operação foi concluída e se pode liberar o que depende dela; raramente precisa saber o motivo da recusa. Devolver <span class="mono">status</span> sem motivo, e oferecer o detalhe apenas ao próprio titular na jornada, mantém as três opções jurídicas abertas em vez de fechar a questão por acidente de implementação.</p>
+  </div>
+
+  <div class="callout neutral">
+    <div class="callout-t">Recomendação para levar ao Jurídico</div>
+    <p><strong>Cenário 2 como padrão contratual</strong>, com o Cenário 3 acionado por exceção nos parceiros que co-decidem critério de oferta — tipicamente os B2B2B como Cacau Show. A arquitetura já foi construída de um jeito que sustenta o Cenário 2; mudá-la depois para acomodar outra qualificação é retrabalho evitável.</p>
+    <p>Três perguntas objetivas para o fórum jurídico, que destravam o desenho: <strong>(i)</strong> o parceiro pode usar para finalidade própria o fato de o cliente ter solicitado crédito? <strong>(ii)</strong> quem responde ao titular quando o pedido chega pelo parceiro? <strong>(iii)</strong> o motivo da recusa pode ser compartilhado com o parceiro?</p>
+  </div>
+</div>
+
 <!-- ═══ GO-LIVE ═══ -->
 <div class="wrap" id="golive">
-  <div class="eyebrow">09 · Critério de Aceite</div>
+  <div class="eyebrow">11 · Critério de Aceite</div>
   <h2 class="sec">Checklist de go-live do primeiro parceiro</h2>
   <p class="sec-desc">O que precisa estar pronto antes de um cliente real contratar crédito pela plataforma. Marque para acompanhar — o estado é local, apenas para uso em discussão.</p>
 
