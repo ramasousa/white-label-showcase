@@ -229,7 +229,7 @@ h3.sub{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;letter-spaci
     <div class="hero-kpis">
       <div><div class="kpi-v">6</div><div class="kpi-l">Fronteiras de confiança</div></div>
       <div><div class="kpi-v">21</div><div class="kpi-l">Ameaças modeladas</div></div>
-      <div><div class="kpi-v" style="color:var(--red-br)">6</div><div class="kpi-l">Lacunas críticas</div></div>
+      <div><div class="kpi-v" style="color:var(--red-br)">5</div><div class="kpi-l">Lacunas críticas</div></div>
       <div><div class="kpi-v">6</div><div class="kpi-l">Marcos regulatórios</div></div>
     </div>
   </div>
@@ -383,7 +383,7 @@ h3.sub{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;letter-spaci
       <div class="card-body"><div class="card-body-in">
         <div class="attr"><div class="attr-k">Atravessa</div><div class="attr-v">Dado de decisão de crédito saindo do domínio do Bradesco para o do parceiro, sem usuário presente na transação</div></div>
         <div class="attr"><div class="attr-k">Por que é fronteira própria</div><div class="attr-v">Todas as outras fronteiras são <strong>síncronas e iniciadas pelo cliente</strong>. Esta é assíncrona, iniciada pela plataforma, e por isso escapa de todo controle desenhado em cima de UCT e sessão: não há token de usuário, não há origem de browser, não há CSP.</div></div>
-        <div class="attr"><div class="attr-k">Estado atual</div><div class="attr-v">A arquitetura prevê eventos Kafka internos e SSE para o Shell, mas <strong>não especifica a entrega ao backend do parceiro</strong> — que é justamente onde a proposta vira efeito financeiro no sistema dele.</div></div>
+        <div class="attr"><div class="attr-k">Estado atual</div><div class="attr-v">O webhook <strong>existe na especificação</strong> — a resposta de originação oferece <span class="mono">polling</span> ou <span class="mono">"POST parceiro webhook (se configurado)"</span>, e o roadmap da Squad 3 traz "Webhooks de eventos de crédito". O que não existe é <strong>qualquer especificação de segurança para ele</strong>: nem assinatura, nem anti-replay, nem validação do destino cadastrado.</div></div>
         <div class="attr"><div class="attr-k">Controles necessários</div><div class="attr-v">Assinatura HMAC-SHA256 com segredo por parceiro · timestamp no payload assinado com janela curta (anti-replay) · <span class="mono">event_id</span> único para deduplicação no consumidor · mTLS quando o parceiro suportar · retry com backoff e fila morta · <strong>allowlist de destino</strong> para conter SSRF</div></div>
         <div class="attr"><div class="attr-k">Ameaças</div><div class="attr-v">A-19, A-20 — seção 03</div></div>
       </div></div>
@@ -648,17 +648,17 @@ h3.sub{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;letter-spaci
     <div class="card acc-red" onclick="toggleCard(this)">
       <div class="card-head">
         <div class="card-head-main">
-          <div class="card-kicker">A-21 · Tampering</div>
-          <div class="card-title">Replay de submissão sem idempotência</div>
-          <div class="card-sub">A mesma requisição de contratação é reenviada — por retry de rede, duplo clique ou ação deliberada.</div>
+          <div class="card-kicker">A-21 · Information disclosure</div>
+          <div class="card-title">Chave de idempotência previsível</div>
+          <div class="card-sub">A idempotência já é obrigatória — mas a chave recomendada é derivada de um identificador de recurso, não de um valor aleatório.</div>
         </div>
-        <div class="card-side"><span class="flag">aberto</span><span class="card-chev">›</span></div>
+        <div class="card-side"><span class="badge badge-amber">refinar</span><span class="card-chev">›</span></div>
       </div>
       <div class="card-body"><div class="card-body-in">
-        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v"><strong>Duas propostas de crédito para a mesma operação</strong> — possivelmente dois desembolsos. Diferente das demais ameaças, esta não exige atacante: um timeout de rede em hora de pico produz o mesmo resultado.</div></div>
-        <div class="attr"><div class="attr-k">Estado atual</div><div class="attr-v">A documentação especifica retries e tratamento de erro, mas não declara chave de idempotência em nenhuma operação com efeito financeiro</div></div>
-        <div class="attr"><div class="attr-k">Correção</div><div class="attr-v">Header <span class="mono">Idempotency-Key</span> obrigatório em toda operação de escrita com efeito financeiro, gerado no cliente e persistido no BFF com o resultado da primeira execução. Requisição repetida retorna a <strong>resposta original</strong>, não um novo recurso — e nunca um erro, para que o retry legítimo funcione.</div></div>
-        <div class="attr"><div class="attr-k">Nota</div><div class="attr-v">Idempotência é controle de integridade, não de disponibilidade. Vale para a cadeia inteira: Shell → BFF → Core. Se o Core não for idempotente, o BFF não consegue garantir a propriedade sozinho.</div></div>
+        <div class="attr"><div class="attr-k">Já coberto</div><div class="attr-v">A especificação de APIs exige <span class="mono">X-Idempotency-Key</span> na originação, com janela de 24h e retorno do resultado original em vez de nova operação. O risco de duplo desembolso por retry <strong>está tratado</strong>.</div></div>
+        <div class="attr"><div class="attr-k">O que refinar</div><div class="attr-v">A orientação é usar o <span class="mono">simulationId</span> como chave. Se esse identificador for previsível ou enumerável, quem acertar a chave de outro cliente <strong>recebe a resposta original daquela operação</strong> — a idempotência vira canal de leitura de proposta alheia.</div></div>
+        <div class="attr"><div class="attr-k">Correção</div><div class="attr-v">Escopar a chave ao <span class="mono">sub</span> + <span class="mono">partner_tenant</span> do UCT, de modo que a mesma chave em contextos diferentes seja tratada como operações distintas · reautorizar a resposta cacheada antes de devolvê-la, em vez de servi-la direto do cache · preferir valor aleatório gerado pelo cliente, mantendo o <span class="mono">simulationId</span> apenas como vínculo de negócio</div></div>
+        <div class="attr"><div class="attr-k">Extensão</div><div class="attr-v">Confirmar que a propriedade vale na cadeia inteira — Shell → BFF → Core. Se o Core não for idempotente, o BFF não garante a propriedade sozinho: ele apenas não repete a <em>sua</em> chamada.</div></div>
       </div></div>
     </div>
   </div>
@@ -1151,15 +1151,18 @@ h3.sub{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;letter-spaci
     <div class="card acc-green" onclick="toggleCard(this)">
       <div class="card-head">
         <div class="card-head-main">
-          <div class="card-kicker">PCI-DSS</div>
-          <div class="card-title">Fora de escopo — e vale mantê-lo assim</div>
-          <div class="card-sub">Os produtos de crédito não trafegam número de cartão.</div>
+          <div class="card-kicker">PCI-DSS · Recebíveis de arranjo</div>
+          <div class="card-title">Escopo PCI provavelmente nulo — mas há outra regulação em jogo</div>
+          <div class="card-sub">Antecipação de Recebíveis inclui antecipação de cartão, o que traz o ecossistema de registradoras junto.</div>
         </div>
-        <div class="card-side"><span class="badge badge-green">escopo nulo</span><span class="card-chev">›</span></div>
+        <div class="card-side"><span class="badge badge-amber">validar</span><span class="card-chev">›</span></div>
       </div>
       <div class="card-body"><div class="card-body-in">
-        <div class="attr"><div class="attr-k">Posição</div><div class="attr-v">Capital de Giro, Emergencial e Antecipação operam com conta e boleto. Nenhum PAN atravessa o Shell, os MFEs ou o BFF — o escopo PCI é nulo por desenho.</div></div>
-        <div class="attr"><div class="attr-k">Decisão de arquitetura</div><div class="attr-v">Se um produto futuro exigir cartão, o campo deve ser <strong>isolado em iframe do provedor de pagamento</strong>, mantendo o escopo fora da plataforma. Registrar como princípio agora custa nada; descobrir depois custa uma certificação.</div></div>
+        <div class="attr"><div class="attr-k">O dado real</div><div class="attr-v">O portal do operador lista como finalidades de Antecipação: <strong>duplicatas, cartão e nota fiscal</strong>. Não é um produto de conta e boleto apenas.</div></div>
+        <div class="attr"><div class="attr-k">PCI-DSS</div><div class="attr-v">Antecipar recebível de cartão opera sobre a <strong>agenda de recebíveis</strong> — unidades de recebíveis, credenciadora, valores e datas de liquidação —, não sobre o PAN. O escopo PCI tende a permanecer nulo, e vale mantê-lo assim por desenho: nenhum campo de número de cartão em nenhum MFE.</div></div>
+        <div class="attr"><div class="attr-k">A lacuna real</div><div class="attr-v">A antecipação de recebíveis de arranjo de pagamento envolve <strong>registradoras de recebíveis e a trava de domicílio</strong>, com integração, contratos e obrigações próprias. Este documento não modela essa fronteira, e ela não aparece em nenhum artefato do showcase — é um <em>ponto cego</em>, não um controle pendente.</div></div>
+        <div class="attr"><div class="attr-k">A validar</div><div class="attr-v">Confirmar com Produto e Compliance se a antecipação de cartão está no escopo do MVP ou é fase posterior. Se estiver no MVP, o modelo de ameaças precisa de uma fronteira adicional — plataforma ⇄ registradora — antes do go-live.</div></div>
+        <div class="attr"><div class="attr-k">Princípio</div><div class="attr-v">Se um produto futuro exigir captura de cartão, o campo deve ser <strong>isolado em iframe do provedor de pagamento</strong>. Registrar isso agora custa nada; descobrir depois custa uma certificação.</div></div>
       </div></div>
     </div>
 
