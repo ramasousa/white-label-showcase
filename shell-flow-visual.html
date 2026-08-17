@@ -710,7 +710,7 @@ mfe.baas.bradesco.com.br/
           <span class="step-phase phase-mfe">MODULE FEDERATION</span>
         </div>
         <div class="step-title">Carrega o módulo remoto via CDN</div>
-        <div class="step-desc">Webpack Module Federation baixa o <code>remoteEntry.js</code> do CloudFront. O MFE é carregado em isolamento — sem acesso ao estado interno do Shell ou de outros MFEs.</div>
+        <div class="step-desc">Webpack Module Federation baixa o <code>remoteEntry.js</code> do CloudFront. O isolamento aqui é <strong>de build</strong> — escopo de módulo e dependências negociadas. Em runtime o MFE compartilha realm, DOM e origem com o Shell: por isso ele é tratado como código first-party, com integridade verificada no carregamento.</div>
         <div class="step-code">
 <span class="cm">// Module Federation carrega em runtime</span>
 <span class="kw">const</span> CapGiro = <span class="kw">await</span> <span class="fn">loadRemote</span>(

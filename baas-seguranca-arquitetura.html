@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BaaS White Label · Arquitetura de Segurança — Threat Model & Controles</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  /* ── superfícies ── */
+  --cream:#f5f2ec;--cream-2:#ebe6dc;--cream-3:#dcd6c8;--white:#ffffff;
+  --ink:#0b1219;--ink-deep:#070c11;--ink-2:#243444;--ink-3:#5c7082;--ink-4:#98a8b6;
+
+  /* ── accent ── */
+  --red:#bf1e2d;--red-br:#ff4757;--red-soft:rgba(191,30,45,.08);--red-line:rgba(191,30,45,.22);
+
+  /* ── semânticas ── */
+  --green:#4fc79a;--green-d:#1d8f66;--green-s:rgba(79,199,154,.12);
+  --amber:#e0a95f;--amber-d:#b57320;--amber-s:rgba(224,169,95,.12);
+  --blue:#5b9dd9;--blue-d:#2c6ba8;--blue-s:rgba(91,157,217,.12);
+
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+html{scroll-behavior:smooth}
+body{background:var(--cream);color:var(--ink-2);font-family:'Inter',sans-serif;font-size:15px;line-height:1.68;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+
+/* ═══ ELEMENTOS BASE ═══ */
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--red);display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.eyebrow::before{content:'';display:block;width:14px;height:1px;background:var(--red)}
+.eyebrow.on-dark{color:var(--red-br)}
+.eyebrow.on-dark::before{background:var(--red-br)}
+
+.noise{position:absolute;inset:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E")}
+.glow{position:absolute;border-radius:50%;pointer-events:none;background:radial-gradient(ellipse,rgba(191,30,45,.16) 0%,transparent 70%)}
+
+.badge,.flag{display:inline-flex;align-items:center;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.badge-green{background:var(--green-s);color:var(--green-d);border:1px solid rgba(79,199,154,.3)}
+.badge-amber{background:var(--amber-s);color:var(--amber-d);border:1px solid rgba(224,169,95,.3)}
+.badge-gray{background:var(--cream-2);color:var(--ink-4);border:1px solid var(--cream-3)}
+.badge-blue{background:var(--blue-s);color:var(--blue-d);border:1px solid rgba(91,157,217,.25)}
+.flag{background:var(--red-soft);color:var(--red);border:1px solid var(--red-line)}
+
+.big-num{font-family:'Syne',sans-serif;font-weight:800;letter-spacing:-.05em;line-height:1}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* ═══ NAV ═══ */
+.nav{position:sticky;top:0;z-index:600;background:rgba(11,18,25,.93);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.07);padding:11px 40px;display:flex;align-items:center;gap:26px}
+.nav-mark{font-family:'Syne',sans-serif;font-weight:800;font-size:12.5px;letter-spacing:-.02em;color:var(--cream);flex-shrink:0}
+.nav-links{display:flex;gap:19px;flex:1;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-link{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-4);white-space:nowrap;transition:color .25s var(--ease)}
+.nav-link:hover{color:var(--red-br)}
+
+/* ═══ HERO ═══ */
+.hero{background:var(--ink);position:relative;overflow:hidden;padding:76px 40px 66px}
+.hero-in{max-width:1080px;margin:0 auto;position:relative;z-index:2}
+.hero .glow{width:620px;height:620px;top:-260px;right:-160px}
+.hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(32px,5vw,54px);letter-spacing:-.045em;line-height:1.04;color:var(--cream);margin-bottom:20px;max-width:830px}
+.hero h1 em{font-style:normal;color:var(--red-br)}
+.hero-sub{font-size:16px;font-weight:300;color:var(--ink-4);line-height:1.72;max-width:660px;margin-bottom:34px}
+.hero-tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:30px}
+.hero-tags .badge{background:rgba(255,255,255,.05);color:var(--ink-4);border:1px solid rgba(255,255,255,.1)}
+.hero-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:28px;padding-top:32px;border-top:1px solid rgba(255,255,255,.09)}
+.kpi-v{font-family:'Syne',sans-serif;font-weight:800;font-size:38px;letter-spacing:-.05em;line-height:1;color:var(--cream)}
+.kpi-l{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-4);margin-top:8px}
+
+/* ═══ FAIXA ESCURA (destaque) ═══ */
+.band{background:var(--ink-deep);position:relative;padding:64px 40px}
+.band-in{max-width:1080px;margin:0 auto;position:relative;z-index:2}
+.band h2{font-family:'Syne',sans-serif;font-weight:800;font-size:30px;letter-spacing:-.035em;color:var(--cream);margin-bottom:12px;line-height:1.14}
+.band-desc{font-size:14.5px;font-weight:300;color:var(--ink-4);max-width:660px;line-height:1.72;margin-bottom:34px}
+
+/* fronteiras de confiança */
+.tb-track{display:flex;flex-direction:column;gap:2px}
+.tb{display:grid;grid-template-columns:52px 1fr auto;gap:18px;align-items:center;padding:16px 18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:3px;transition:background .3s var(--ease),border-color .3s var(--ease)}
+.tb:hover{background:rgba(255,255,255,.06);border-color:rgba(255,68,87,.3)}
+.tb-id{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;color:var(--red-br);letter-spacing:.06em}
+.tb-name{font-size:13.5px;color:var(--cream);font-weight:500;margin-bottom:3px}
+.tb-what{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-4);letter-spacing:.02em}
+.tb-arrow{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-3);letter-spacing:.06em;text-align:right}
+
+/* ═══ WRAP CLARO ═══ */
+.wrap{max-width:1080px;margin:0 auto;padding:64px 40px 40px}
+.wrap:last-of-type{padding-bottom:100px}
+h2.sec{font-family:'Syne',sans-serif;font-weight:800;font-size:30px;letter-spacing:-.035em;line-height:1.14;margin-bottom:12px;max-width:760px}
+.sec-desc{font-size:14.5px;color:var(--ink-3);max-width:700px;line-height:1.72;margin-bottom:34px}
+h3.sub{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;letter-spacing:-.025em;margin:38px 0 14px}
+
+/* callout */
+.callout{border-left:3px solid var(--red);background:var(--red-soft);padding:18px 22px;margin:26px 0;border-radius:0 3px 3px 0}
+.callout-t{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--red);margin-bottom:8px}
+.callout p{font-size:14px;line-height:1.7;color:var(--ink-2)}
+.callout p+p{margin-top:10px}
+.callout.neutral{border-left-color:var(--blue-d);background:var(--blue-s)}
+.callout.neutral .callout-t{color:var(--blue-d)}
+.callout.warn{border-left-color:var(--amber-d);background:var(--amber-s)}
+.callout.warn .callout-t{color:var(--amber-d)}
+
+/* ═══ CARDS EXPANSÍVEIS ═══ */
+.cards{display:grid;gap:12px}
+.cards.two{grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+.card{background:var(--white);border:1px solid var(--cream-3);border-radius:4px;cursor:pointer;overflow:hidden;position:relative;transition:transform .3s var(--ease),box-shadow .3s var(--ease)}
+.card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(11,18,25,.1)}
+.card.open{box-shadow:0 0 0 2px var(--red-br),0 16px 40px rgba(11,18,25,.12)}
+.card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--cream-3)}
+.card.acc-red::after{background:var(--red)}
+.card.acc-amber::after{background:var(--amber)}
+.card.acc-green::after{background:var(--green)}
+.card.acc-blue::after{background:var(--blue)}
+.card-head{padding:20px 22px;display:flex;align-items:flex-start;gap:16px}
+.card-head-main{flex:1;min-width:0}
+.card-kicker{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-4);margin-bottom:7px}
+.card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:16.5px;letter-spacing:-.02em;line-height:1.28;margin-bottom:6px}
+.card-sub{font-size:13px;color:var(--ink-3);line-height:1.6}
+.card-side{display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex-shrink:0}
+.card-chev{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ink-4);transition:transform .35s var(--ease)}
+.card.open .card-chev{transform:rotate(90deg)}
+.card-body{max-height:0;overflow:hidden;opacity:0;transition:max-height .5s var(--ease),opacity .35s}
+.card.open .card-body{max-height:2600px;opacity:1}
+.card-body-in{padding:2px 22px 24px;border-top:1px solid var(--cream-2)}
+.card-body-in>*:first-child{margin-top:18px}
+
+/* linhas de atributo dentro do card */
+.attr{display:grid;grid-template-columns:118px 1fr;gap:14px;padding:9px 0;border-bottom:1px solid var(--cream-2);font-size:13.5px;line-height:1.62}
+.attr:last-child{border-bottom:none}
+.attr-k{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);padding-top:3px}
+.attr-v{color:var(--ink-2)}
+.attr-v strong{font-weight:600}
+
+/* lista de controles */
+.ctrl-list{display:flex;flex-direction:column;gap:9px;margin:16px 0}
+.ctrl{display:flex;gap:11px;font-size:13.5px;line-height:1.6;align-items:flex-start}
+.ctrl-dot{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green-d);flex-shrink:0;padding-top:2px}
+.ctrl-dot.gap{color:var(--red)}
+.ctrl-dot.part{color:var(--amber-d)}
+
+/* ═══ CÓDIGO ═══ */
+.code{background:var(--ink);border-radius:4px;overflow:hidden;margin:18px 0}
+.code-bar{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02)}
+.code-lang{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-4)}
+.code-tag{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.06em;color:var(--red-br)}
+.code pre{padding:17px 18px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.75;color:#c8d4e0}
+.c-key{color:#ff8a95}.c-str{color:#8fd6a8}.c-com{color:#4d6376;font-style:italic}.c-fn{color:#7fb8e8}.c-num{color:#e0a95f}.c-warn{color:#ff4757}
+
+/* ═══ MATRIZ COMPARATIVA ═══ */
+.matrix{display:grid;gap:2px;margin:22px 0}
+.mx-row{display:grid;grid-template-columns:1.35fr 1fr 1fr 1fr;gap:2px}
+.mx-c{background:var(--white);border:1px solid var(--cream-3);padding:13px 15px;font-size:12.5px;line-height:1.55}
+.matrix.five .mx-row{grid-template-columns:1.15fr 1fr 1fr 1fr 1fr}
+.mx-row.head .mx-c{background:var(--ink);color:var(--cream);border-color:var(--ink);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.11em;text-transform:uppercase}
+.mx-c.lbl{font-weight:500;color:var(--ink-2)}
+.mx-v{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.04em;display:block;margin-bottom:4px}
+.mx-v.yes{color:var(--green-d)}.mx-v.no{color:var(--red)}.mx-v.part{color:var(--amber-d)}
+.mx-note{color:var(--ink-3);font-size:11.5px;line-height:1.5}
+
+/* ═══ CHECKLIST ═══ */
+.check{display:flex;flex-direction:column;gap:2px;margin-top:20px}
+.chk{display:flex;align-items:flex-start;gap:14px;padding:14px 18px;background:var(--white);border:1px solid var(--cream-3);border-radius:3px;cursor:pointer;transition:background .25s var(--ease),border-color .25s var(--ease)}
+.chk:hover{background:var(--cream-2)}
+.chk.done{border-color:rgba(79,199,154,.45);background:var(--green-s)}
+.chk-box{width:17px;height:17px;border:1.5px solid var(--cream-3);border-radius:3px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;transition:all .25s var(--ease)}
+.chk.done .chk-box{background:var(--green-d);border-color:var(--green-d);color:#fff}
+.chk-main{flex:1}
+.chk-t{font-size:13.5px;font-weight:500;line-height:1.5;margin-bottom:3px}
+.chk.done .chk-t{color:var(--green-d)}
+.chk-d{font-size:12.5px;color:var(--ink-3);line-height:1.55}
+.chk-owner{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.08em;color:var(--ink-4);flex-shrink:0;padding-top:3px}
+.chk-progress{display:flex;align-items:center;gap:14px;margin-top:18px;padding:15px 18px;background:var(--ink);border-radius:3px}
+.chk-bar{flex:1;height:5px;background:rgba(255,255,255,.09);border-radius:3px;overflow:hidden}
+.chk-fill{height:100%;background:var(--red-br);width:0;transition:width .5s var(--ease)}
+.chk-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cream);letter-spacing:.05em}
+
+/* ═══ RODAPÉ ═══ */
+.foot{border-top:1px solid var(--cream-3);padding:34px 40px 60px;max-width:1080px;margin:0 auto}
+.foot-in{font-family:'JetBrains Mono',monospace;font-size:10.5px;line-height:1.9;color:var(--ink-4);letter-spacing:.03em}
+.foot-links{display:flex;gap:18px;flex-wrap:wrap;margin-top:16px}
+.foot-links a{color:var(--red);transition:opacity .25s var(--ease)}
+.foot-links a:hover{opacity:.6}
+
+@media (max-width:860px){
+  .nav{padding:11px 20px;gap:16px}
+  .hero{padding:52px 24px 46px}
+  .band,.wrap{padding-left:24px;padding-right:24px}
+  .wrap{padding-top:48px}
+  .cards.two{grid-template-columns:1fr}
+  .mx-row{grid-template-columns:1fr}
+  .mx-row.head{display:none}
+  .tb{grid-template-columns:40px 1fr;gap:12px}
+  .tb-arrow{display:none}
+  .attr{grid-template-columns:1fr;gap:3px}
+  .foot{padding:30px 24px 50px}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<nav class="nav">
+  <div class="nav-mark">BaaS · Segurança</div>
+  <div class="nav-links">
+    <a class="nav-link" href="#postura">Postura</a>
+    <a class="nav-link" href="#fronteiras">Fronteiras</a>
+    <a class="nav-link" href="#threat">Threat Model</a>
+    <a class="nav-link" href="#supply">Supply Chain</a>
+    <a class="nav-link" href="#isolamento">Isolamento</a>
+    <a class="nav-link" href="#tokens">Tokens</a>
+    <a class="nav-link" href="#compliance">Regulatório</a>
+    <a class="nav-link" href="#incidentes">Incidentes</a>
+    <a class="nav-link" href="#deploy">Build &amp; Deploy</a>
+    <a class="nav-link" href="#lgpd">Papéis LGPD</a>
+    <a class="nav-link" href="#golive">Go-Live</a>
+  </div>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<div class="hero">
+  <div class="noise"></div>
+  <div class="glow"></div>
+  <div class="hero-in">
+    <div class="eyebrow on-dark">Arquitetura de Segurança · Camada Executiva + Técnica</div>
+    <h1>Um bundle, muitos parceiros — e <em>uma única</em> superfície de ataque compartilhada.</h1>
+    <p class="hero-sub">O modelo white label concentra em um Shell App o acesso a dados de crédito de todos os parceiros. Este documento modela as ameaças dessa concentração, detalha os controles por fronteira de confiança e mapeia o que ainda é lacuna aberta antes do go-live do primeiro parceiro.</p>
+    <div class="hero-tags">
+      <span class="badge">STRIDE por fronteira</span>
+      <span class="badge">Supply chain de MFE</span>
+      <span class="badge">OAuth2 · RFC 8693 · DPoP</span>
+      <span class="badge">BACEN · LGPD · Open Finance</span>
+    </div>
+    <div class="hero-kpis">
+      <div><div class="kpi-v">6</div><div class="kpi-l">Fronteiras de confiança</div></div>
+      <div><div class="kpi-v">21</div><div class="kpi-l">Ameaças modeladas</div></div>
+      <div><div class="kpi-v" style="color:var(--red-br)">5</div><div class="kpi-l">Lacunas críticas</div></div>
+      <div><div class="kpi-v">6</div><div class="kpi-l">Marcos regulatórios</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ POSTURA — CAMADA EXECUTIVA ═══ -->
+<div class="band" id="postura">
+  <div class="noise"></div>
+  <div class="band-in">
+    <div class="eyebrow on-dark">01 · Camada Executiva</div>
+    <h2>A tese de segurança em seis frases</h2>
+    <p class="band-desc">O que a área de Cibersegurança precisa aceitar para que o modelo white label vá a produção. Cada afirmação abaixo é sustentada por uma seção técnica adiante — e três delas ainda não estão sustentadas hoje.</p>
+
+    <div class="tb-track">
+      <div class="tb">
+        <div class="tb-id">T-01</div>
+        <div><div class="tb-name">O parceiro autentica; o Bradesco autoriza</div><div class="tb-what">O parceiro nunca emite credencial de acesso a dado bancário — só apresenta identidade, que é trocada por UCT no Token Exchange</div></div>
+        <div class="tb-arrow"><span class="badge badge-green">sustentado</span></div>
+      </div>
+      <div class="tb">
+        <div class="tb-id">T-02</div>
+        <div><div class="tb-name">Nenhum token de longa duração toca o browser</div><div class="tb-what">UCT de 15 min em memória, refresh em cookie HttpOnly, PAT exclusivamente server-side no parceiro</div></div>
+        <div class="tb-arrow"><span class="badge badge-green">sustentado</span></div>
+      </div>
+      <div class="tb">
+        <div class="tb-id">T-03</div>
+        <div><div class="tb-name">Revogação é efetiva em segundos, não em minutos</div><div class="tb-what">jti em blacklist Redis, evento Kafka, push por SSE para o Shell desmontar os MFEs</div></div>
+        <div class="tb-arrow"><span class="badge badge-green">sustentado</span></div>
+      </div>
+      <div class="tb">
+        <div class="tb-id">T-04</div>
+        <div><div class="tb-name">O código que roda no browser do cliente é íntegro e rastreável</div><div class="tb-what">O Shell baixa MFEs de CDN em runtime — hoje sem verificação criptográfica de integridade</div></div>
+        <div class="tb-arrow"><span class="flag">lacuna</span></div>
+      </div>
+      <div class="tb">
+        <div class="tb-id">T-05</div>
+        <div><div class="tb-name">Um MFE comprometido não alcança o token nem os dados de outro produto</div><div class="tb-what">Module Federation não oferece isolamento de segurança — a contenção depende de controles que ainda não existem</div></div>
+        <div class="tb-arrow"><span class="flag">lacuna</span></div>
+      </div>
+      <div class="tb">
+        <div class="tb-id">T-06</div>
+        <div><div class="tb-name">O parceiro consegue provar que uma notificação veio de nós</div><div class="tb-what">A entrega assíncrona de status ao backend do parceiro não tem assinatura nem anti-replay especificados</div></div>
+        <div class="tb-arrow"><span class="flag">lacuna</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FRONTEIRAS ═══ -->
+<div class="wrap" id="fronteiras">
+  <div class="eyebrow">02 · Modelo de Confiança</div>
+  <h2 class="sec">Seis fronteiras — e o que atravessa cada uma</h2>
+  <p class="sec-desc">Segurança em arquitetura distribuída se raciocina por fronteira, não por componente. Cada fronteira abaixo é um ponto onde dado ou credencial muda de domínio de controle. Quem está de cada lado, o que atravessa, e qual a premissa de confiança — clicar expande.</p>
+
+  <div class="cards">
+
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">F0 · Usuário ↔ Browser</div>
+          <div class="card-title">O ambiente que não controlamos</div>
+          <div class="card-sub">Dispositivo do cliente final ou do operador do parceiro. Extensões, malware e rede hostil são premissa, não exceção.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">confiança zero</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Atravessa</div><div class="attr-v">Credenciais do usuário, UCT em memória JS, dados de proposta renderizados em DOM</div></div>
+        <div class="attr"><div class="attr-k">Premissa</div><div class="attr-v"><strong>Nada no browser é secreto.</strong> Extensões com permissão de leitura de página, DevTools e malware de endpoint têm acesso ao mesmo realm que o Shell.</div></div>
+        <div class="attr"><div class="attr-k">Implicação</div><div class="attr-v">A defesa não é impedir a leitura do token — é <strong>reduzir a janela</strong> (15 min), <strong>vincular o token ao dispositivo</strong> (DPoP) e <strong>detectar o uso anômalo</strong> (motor de risco + revogação por evento).</div></div>
+        <div class="attr"><div class="attr-k">Controles</div><div class="attr-v">CSP restritiva · Trusted Types · timeout de inatividade · sem token em storage persistente · fingerprint de device no claim <span class="mono">device_hint</span></div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">F1 · Parceiro → Shell</div>
+          <div class="card-title">A fronteira contratual</div>
+          <div class="card-sub">O parceiro (Banco XPTO, Cacau Show, Vivo) autentica seu próprio usuário e repassa identidade ao Shell via postMessage ou embed.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">semi-confiável</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Atravessa</div><div class="attr-v">Partner User Token (identidade do usuário no domínio do parceiro) → trocado por UCT; eventos de sessão via postMessage</div></div>
+        <div class="attr"><div class="attr-k">Premissa</div><div class="attr-v">O parceiro é <strong>contratualmente confiável, tecnicamente não verificável</strong>. Não auditamos o código do portal dele. Um parceiro comprometido pode tentar obter UCT para usuários que não existem no sistema dele.</div></div>
+        <div class="attr"><div class="attr-k">Controle-chave</div><div class="attr-v">O escopo máximo é definido <strong>no contrato, no lado do Auth</strong> — nunca pelo que o parceiro pede no exchange. Um parceiro que solicita <span class="mono">credit:approve</span> sem tê-lo em contrato recebe 403, não um token com escopo reduzido silenciosamente.</div></div>
+        <div class="attr"><div class="attr-k">Controles</div><div class="attr-v">mTLS + <span class="mono">client_credentials</span> para o PAT · allowlist de <span class="mono">origin</span> por <span class="mono">partner_id</span> · <span class="mono">frame-ancestors</span> dinâmico · rate limit por parceiro · anomalia de volume de exchange</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">F2 · Shell → MFE (CDN)</div>
+          <div class="card-title">A fronteira mais frágil hoje</div>
+          <div class="card-sub">O Shell resolve o MFE Registry e baixa <span class="mono">remoteEntry.js</span> do CloudFront em runtime, executando-o no seu próprio realm.</div>
+        </div>
+        <div class="card-side"><span class="flag">lacuna crítica</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Atravessa</div><div class="attr-v">Código JavaScript executável — com acesso total ao realm do Shell, incluindo o UCT em memória</div></div>
+        <div class="attr"><div class="attr-k">Premissa atual</div><div class="attr-v">Confiança implícita na integridade do CDN e do pipeline de build de cada MFE. <strong>Não há verificação criptográfica</strong> entre o artefato publicado e o artefato executado.</div></div>
+        <div class="attr"><div class="attr-k">Por que importa</div><div class="attr-v">É a única fronteira em que um comprometimento afeta <strong>todos os parceiros simultaneamente</strong>, sem tocar em nenhuma API bancária. Um bucket S3 mal configurado tem o mesmo efeito prático de um comprometimento do Core Platform.</div></div>
+        <div class="attr"><div class="attr-k">Tratada em</div><div class="attr-v">Seção 04 — Supply chain do MFE federado</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-green" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">F3 · Shell → BFF</div>
+          <div class="card-title">A fronteira do bearer token</div>
+          <div class="card-sub">Chamadas HTTPS do browser para o BFF carregando o UCT no header Authorization.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-green">bem coberta</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Atravessa</div><div class="attr-v">UCT (Bearer) · payloads de simulação e proposta · documentos enviados pelo cliente</div></div>
+        <div class="attr"><div class="attr-k">Premissa</div><div class="attr-v">Um bearer token é, por definição, <strong>utilizável por quem o possui</strong>. Se exfiltrado, vale pelos 15 minutos restantes a partir de qualquer rede.</div></div>
+        <div class="attr"><div class="attr-k">Controles</div><div class="attr-v">Validação de assinatura + <span class="mono">jti</span> em blacklist + <span class="mono">partner_match</span> · rate limit por usuário · sanitização de input · TLS 1.3</div></div>
+        <div class="attr"><div class="attr-k">Evolução proposta</div><div class="attr-v">Migrar de Bearer para <strong>sender-constrained (DPoP, RFC 9449)</strong> — detalhado na seção 06. Torna o token roubado inútil sem a chave privada não-extraível do dispositivo.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-green" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">F4 · BFF → Core Platform</div>
+          <div class="card-title">A fronteira server-side</div>
+          <div class="card-sub">Rede privada entre AKS (Azure) e o Core Platform. O BFF troca o UCT por um Service Token e nunca repassa o UCT adiante.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-green">bem coberta</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Atravessa</div><div class="attr-v">Service Token · dados bancários reais · operações de crédito com efeito financeiro</div></div>
+        <div class="attr"><div class="attr-k">Premissa</div><div class="attr-v">Rede privada não é controle de autenticação. Todo chamador se identifica por <strong>certificado mTLS</strong>, mesmo dentro do perímetro.</div></div>
+        <div class="attr"><div class="attr-k">Controles</div><div class="attr-v">mTLS com validação de cadeia · Core aceita <strong>apenas</strong> Service Token, nunca UCT direto · isolamento multi-tenant por <span class="mono">X-Tenant</span> · auditoria de toda operação financeira com retenção de 5 anos</div></div>
+        <div class="attr"><div class="attr-k">Ponto de atenção</div><div class="attr-v">Tenancy por <strong>header</strong> só é segura se o valor for derivado do Service Token no servidor — nunca aceito como entrada do chamador. Ver ameaça A-16.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">F5 · Plataforma → Parceiro (assíncrono)</div>
+          <div class="card-title">A fronteira de saída, na direção inversa</div>
+          <div class="card-sub">Notificação de mudança de status da proposta — aprovada, assinada, desembolsada — entregue ao backend do parceiro por webhook.</div>
+        </div>
+        <div class="card-side"><span class="flag">não especificada</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Atravessa</div><div class="attr-v">Dado de decisão de crédito saindo do domínio do Bradesco para o do parceiro, sem usuário presente na transação</div></div>
+        <div class="attr"><div class="attr-k">Por que é fronteira própria</div><div class="attr-v">Todas as outras fronteiras são <strong>síncronas e iniciadas pelo cliente</strong>. Esta é assíncrona, iniciada pela plataforma, e por isso escapa de todo controle desenhado em cima de UCT e sessão: não há token de usuário, não há origem de browser, não há CSP.</div></div>
+        <div class="attr"><div class="attr-k">Estado atual</div><div class="attr-v">O webhook <strong>existe na especificação</strong> — a resposta de originação oferece <span class="mono">polling</span> ou <span class="mono">"POST parceiro webhook (se configurado)"</span>, e o roadmap da Squad 3 traz "Webhooks de eventos de crédito". O que não existe é <strong>qualquer especificação de segurança para ele</strong>: nem assinatura, nem anti-replay, nem validação do destino cadastrado.</div></div>
+        <div class="attr"><div class="attr-k">Controles necessários</div><div class="attr-v">Assinatura HMAC-SHA256 com segredo por parceiro · timestamp no payload assinado com janela curta (anti-replay) · <span class="mono">event_id</span> único para deduplicação no consumidor · mTLS quando o parceiro suportar · retry com backoff e fila morta · <strong>allowlist de destino</strong> para conter SSRF</div></div>
+        <div class="attr"><div class="attr-k">Ameaças</div><div class="attr-v">A-19, A-20 — seção 03</div></div>
+      </div></div>
+    </div>
+
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-t">Fronteira futura — produto com IA no portfólio</div>
+    <p>A promessa de "adicionar produto sem deploy" inclui, mais cedo ou mais tarde, um MFE com LLM: atendimento assistido, análise de documento enviado pelo cliente, resumo de proposta. <strong>Esse produto introduz uma fronteira que este modelo não cobre.</strong></p>
+    <p>Documento enviado pelo cliente que chega a um prompt é <em>injeção indireta</em> — o mesmo canal de upload que hoje é tratado só como risco de malware. Somam-se exfiltração de dado via output do modelo, e excesso de agência se o MFE ganhar tools com acesso a API de crédito. Quando esse produto entrar no roadmap, o threat model precisa ser reaberto com o OWASP LLM Top 10, não estendido por analogia.</p>
+  </div>
+</div>
+
+<!-- ═══ THREAT MODEL ═══ -->
+<div class="wrap" id="threat">
+  <div class="eyebrow">03 · Threat Model</div>
+  <h2 class="sec">21 ameaças modeladas por STRIDE</h2>
+  <p class="sec-desc">Modelagem por fronteira usando STRIDE — Spoofing, Tampering, Repudiation, Information disclosure, Denial of service, Elevation of privilege. Cada ameaça declara o atacante plausível, o impacto concreto e o controle que a mitiga. O status indica se o controle existe hoje na arquitetura desenhada.</p>
+
+  <div class="callout neutral">
+    <div class="callout-t">Como ler o status</div>
+    <p><span class="badge badge-green">mitigado</span> o controle está especificado na arquitetura atual &nbsp;·&nbsp; <span class="badge badge-amber">parcial</span> existe controle, mas com lacuna declarada &nbsp;·&nbsp; <span class="flag">aberto</span> nenhum controle especificado hoje</p>
+  </div>
+
+  <h3 class="sub">F0 · Usuário ↔ Browser</h3>
+  <div class="cards">
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">A-01 · Information disclosure</div>
+          <div class="card-title">Exfiltração do UCT por XSS</div>
+          <div class="card-sub">Script injetado lê a variável em memória e envia o token para domínio externo.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">parcial</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Atacante</div><div class="attr-v">Injeção via campo de proposta não sanitizado, dependência npm comprometida, ou MFE malicioso</div></div>
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">Acesso à conta do cliente pela janela restante do token (até 15 min), incluindo submissão de proposta</div></div>
+        <div class="attr"><div class="attr-k">Controle atual</div><div class="attr-v">Token só em memória (não sobrevive a reload nem cruza abas) + TTL curto</div></div>
+        <div class="attr"><div class="attr-k">Lacuna</div><div class="attr-v">Memória JS <strong>não protege contra XSS no mesmo realm</strong> — só contra roubo passivo de storage. A afirmação "XSS não consegue exfiltrar" no documento de arquitetura é imprecisa: XSS <em>consegue</em>, apenas precisa executar durante a sessão ativa.</div></div>
+        <div class="attr"><div class="attr-k">Correção</div><div class="attr-v">CSP com <span class="mono">nonce</span> + Trusted Types + DPoP (token inútil fora do dispositivo) + <span class="mono">connect-src</span> restrito, que bloqueia o envio para domínio externo</div></div>
+      </div></div>
+    </div>
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">A-02 · Spoofing</div>
+          <div class="card-title">Clickjacking do Shell embarcado</div>
+          <div class="card-sub">Site hostil embute o Shell em iframe transparente e induz o usuário a aprovar uma proposta.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-green">mitigado</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">Contratação de crédito sem consentimento real do titular</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v"><span class="mono">frame-ancestors</span> na CSP, gerado dinamicamente a partir do <span class="mono">partner_id</span> — só os domínios daquele parceiro podem embutir. Reforçado por confirmação explícita com MFA na etapa de assinatura.</div></div>
+      </div></div>
+    </div>
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">A-03 · Information disclosure</div>
+          <div class="card-title">Dados de proposta em cache do browser</div>
+          <div class="card-sub">CPF, limite e rating persistindo em cache HTTP ou histórico após logout.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">parcial</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">Exposição de dado pessoal e financeiro em dispositivo compartilhado — relevante para o portal do operador do parceiro</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v"><span class="mono">Cache-Control: no-store</span> em toda resposta com dado de cliente · limpeza de estado no <span class="mono">terminateSession()</span> · sem dado pessoal em query string (só em body)</div></div>
+      </div></div>
+    </div>
+  </div>
+
+  <h3 class="sub">F1 · Parceiro → Shell</h3>
+  <div class="cards">
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">A-04 · Spoofing</div>
+          <div class="card-title">postMessage de origem não validada</div>
+          <div class="card-sub">Qualquer página que embuta o Shell envia <span class="mono">auth:token-refreshed</span> com um UCT arbitrário.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-green">mitigado</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">Injeção de sessão — o Shell operaria sob identidade escolhida pelo atacante</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">Validação de <span class="mono">event.origin</span> contra a allowlist do <span class="mono">PartnerConfig</span> <strong>antes</strong> de qualquer processamento, e validação da assinatura do UCT recebido — a origem sozinha não basta</div></div>
+        <div class="attr"><div class="attr-k">Armadilha</div><div class="attr-v">Nunca usar <span class="mono">targetOrigin: '*'</span> no envio, e nunca confiar em <span class="mono">event.source</span> sem checar <span class="mono">origin</span>. Ambos são erros comuns em integração de MFE embarcado.</div></div>
+      </div></div>
+    </div>
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">A-05 · Elevation of privilege</div>
+          <div class="card-title">Escalada de escopo no Token Exchange</div>
+          <div class="card-sub">Parceiro solicita escopos além do contratado no <span class="mono">grant_type=token-exchange</span>.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-green">mitigado</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">Parceiro de varejo obtendo escopo de aprovação de crédito</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">O Auth calcula a interseção entre o escopo pedido e o <strong>escopo máximo contratual do PAT</strong>. Pedido acima do contrato retorna <span class="mono">invalid_scope</span> — falha explícita, sem downgrade silencioso, para que a tentativa apareça na trilha de auditoria.</div></div>
+      </div></div>
+    </div>
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">A-06 · Tampering</div>
+          <div class="card-title">Parceiro solicita UCT para usuário de outro tenant</div>
+          <div class="card-sub">Banco XPTO apresenta um <span class="mono">subject_token</span> referente a cliente de outro parceiro.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">parcial</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">Vazamento cruzado entre parceiros — o cenário de maior dano reputacional do modelo white label</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">O <span class="mono">partner_tenant</span> do UCT é derivado do <strong>PAT autenticado</strong>, não do token apresentado. O BFF valida <span class="mono">partner_match</span> em toda chamada.</div></div>
+        <div class="attr"><div class="attr-k">Lacuna</div><div class="attr-v">Falta especificar a validação de que o <span class="mono">subject_token</span> foi emitido pelo próprio parceiro — exige que o parceiro registre seu emissor (JWKS ou segredo compartilhado) no onboarding. Sem isso, o parceiro pode inventar identidades <em>dentro do próprio tenant</em>, o que é aceitável, mas o limite precisa estar documentado no contrato.</div></div>
+      </div></div>
+    </div>
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">A-07 · Repudiation</div>
+          <div class="card-title">Parceiro nega ter originado uma contratação</div>
+          <div class="card-sub">Disputa sobre quem autorizou uma operação de crédito com efeito financeiro.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-green">mitigado</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">Claim <span class="mono">exchange_chain</span> no UCT amarra a operação ao PAT que a originou · <span class="mono">correlation_id</span> propagado ponta a ponta · auditoria imutável com retenção de 5 anos · assinatura eletrônica do contrato como evidência final</div></div>
+        <div class="attr"><div class="attr-k">Requisito</div><div class="attr-v">A trilha precisa ser <strong>append-only e resistente a alteração pelo próprio operador</strong> — WORM em storage, não apenas tabela relacional com <span class="mono">created_at</span>.</div></div>
+      </div></div>
+    </div>
+  </div>
+
+  <h3 class="sub">F2 · Shell → MFE (CDN)</h3>
+  <div class="cards">
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">A-08 · Tampering</div>
+          <div class="card-title">Substituição do bundle no CDN</div>
+          <div class="card-sub">Atacante com escrita no bucket S3 publica um <span class="mono">remoteEntry.js</span> alterado.</div>
+        </div>
+        <div class="card-side"><span class="flag">aberto</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Atacante</div><div class="attr-v">Credencial de CI vazada, bucket com política permissiva, insider com acesso de deploy, ou comprometimento da conta AWS</div></div>
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v"><strong>Total e simultâneo em todos os parceiros.</strong> Código arbitrário no realm do Shell: leitura do UCT, alteração de valores exibidos na proposta, redirecionamento de desembolso.</div></div>
+        <div class="attr"><div class="attr-k">Controle atual</div><div class="attr-v">Nenhum controle criptográfico. HTTPS garante o transporte, não a autenticidade do conteúdo publicado.</div></div>
+        <div class="attr"><div class="attr-k">Correção</div><div class="attr-v">Manifesto assinado do Registry + verificação de hash antes da execução — seção 04</div></div>
+      </div></div>
+    </div>
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">A-09 · Tampering</div>
+          <div class="card-title">Sequestro do alias <span class="mono">latest</span></div>
+          <div class="card-sub">O alias móvel de versão é repontado para um artefato malicioso ou para uma versão vulnerável antiga.</div>
+        </div>
+        <div class="card-side"><span class="flag">aberto</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Origem</div><div class="attr-v">A estrutura de versionamento atual prevê explicitamente um alias <span class="mono">latest</span> ao lado das URLs versionadas</div></div>
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">Um alias é um ponteiro mutável — muda o que todos os parceiros carregam sem alterar nenhuma configuração visível, e sem deixar rastro no Registry</div></div>
+        <div class="attr"><div class="attr-k">Correção</div><div class="attr-v"><strong>Proibir alias mutável em produção.</strong> O Registry resolve sempre versão exata (<span class="mono">2.4.1</span>), e a promoção de versão é uma alteração auditável de configuração, não uma repontagem de arquivo. <span class="mono">latest</span> permanece válido apenas em staging.</div></div>
+      </div></div>
+    </div>
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">A-10 · Elevation of privilege</div>
+          <div class="card-title">MFE lê o token e o estado de outro MFE</div>
+          <div class="card-sub">Module Federation carrega todos os MFEs no mesmo realm JavaScript.</div>
+        </div>
+        <div class="card-side"><span class="flag">aberto</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">O MFE de Antecipação pode ler o UCT, interceptar <span class="mono">fetch</span> e observar o DOM do MFE de Capital de Giro</div></div>
+        <div class="attr"><div class="attr-k">Premissa quebrada</div><div class="attr-v">A documentação atual afirma isolamento entre MFEs. Isso não se sustenta tecnicamente — ver seção 05.</div></div>
+        <div class="attr"><div class="attr-k">Correção</div><div class="attr-v">Aceitar MFEs como código <em>first-party</em> (defesa via supply chain), ou adotar iframe de origem distinta quando um MFE for desenvolvido por terceiro</div></div>
+      </div></div>
+    </div>
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">A-11 · Tampering</div>
+          <div class="card-title">Dependência transitiva comprometida</div>
+          <div class="card-sub">Pacote npm malicioso entra no bundle de um MFE pela cadeia de dependências.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">parcial</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">Idêntico a A-08, mas entrando pelo pipeline legítimo — a assinatura de artefato <strong>não protege</strong>, porque o artefato malicioso é assinado corretamente</div></div>
+        <div class="attr"><div class="attr-k">Controle atual</div><div class="attr-v">SAST/DAST no pipeline (mencionado no roadmap, sem especificação)</div></div>
+        <div class="attr"><div class="attr-k">Correção</div><div class="attr-v">SBOM CycloneDX por MFE · lockfile obrigatório com <span class="mono">npm ci</span> · registry interno como proxy com allowlist · SCA bloqueante para CVE crítica · revisão obrigatória para toda nova dependência direta · <span class="mono">connect-src</span> restritivo como contenção de exfiltração em runtime</div></div>
+      </div></div>
+    </div>
+  </div>
+
+  <h3 class="sub">F3 · Shell → BFF</h3>
+  <div class="cards">
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">A-12 · Spoofing</div>
+          <div class="card-title">Replay de UCT exfiltrado</div>
+          <div class="card-sub">Token capturado é reutilizado a partir de outro dispositivo ou rede.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">parcial</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Controle atual</div><div class="attr-v">TTL de 15 minutos limita a janela; blacklist permite corte manual</div></div>
+        <div class="attr"><div class="attr-k">Lacuna</div><div class="attr-v">Bearer puro é replayável por definição durante a validade</div></div>
+        <div class="attr"><div class="attr-k">Correção</div><div class="attr-v">DPoP (RFC 9449) com chave <span class="mono">extractable: false</span> — seção 06. Também alinha com FAPI, exigido no Open Finance.</div></div>
+      </div></div>
+    </div>
+    <div class="card acc-green" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">A-13 · Elevation of privilege</div>
+          <div class="card-title">IDOR em proposta de outro cliente</div>
+          <div class="card-sub">Alteração do <span class="mono">proposalId</span> na requisição para acessar dado de terceiro.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-green">mitigado</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">Vazamento de dado pessoal e financeiro — incidente reportável à ANPD</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">Autorização por objeto no BFF: toda leitura filtra por <span class="mono">sub</span> + <span class="mono">partner_tenant</span> do UCT, nunca apenas pelo ID recebido. RBAC do portal (Gerente vê a equipe, Operador vê o próprio) é aplicado <strong>no servidor</strong> — o filtro de UI é conveniência, não controle.</div></div>
+      </div></div>
+    </div>
+    <div class="card acc-green" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">A-14 · Denial of service</div>
+          <div class="card-title">Abuso do motor de simulação</div>
+          <div class="card-sub">Volume alto de simulações para inferir a política de crédito ou degradar o serviço.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-green">mitigado</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">Além da indisponibilidade, <strong>extração da régua de risco</strong> por sondagem sistemática — um risco de propriedade intelectual frequentemente ignorado</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">Rate limit em três níveis (usuário, parceiro, global) · WAF · detecção de padrão de sondagem · granularidade de resposta limitada em faixas</div></div>
+      </div></div>
+    </div>
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">A-15 · Tampering</div>
+          <div class="card-title">CSRF em operação de estado</div>
+          <div class="card-sub">Requisição forjada a partir de outro site aproveitando o cookie de refresh.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">parcial</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Controle atual</div><div class="attr-v"><span class="mono">SameSite=Strict</span> no cookie de refresh e <span class="mono">Path=/auth</span> reduzem substancialmente a superfície</div></div>
+        <div class="attr"><div class="attr-k">Lacuna</div><div class="attr-v">CSRF não é tratado explicitamente na documentação. As APIs de negócio usam <strong>Bearer em header</strong>, o que já as torna imunes a CSRF clássico — mas o endpoint de refresh, que depende de cookie, precisa de proteção própria.</div></div>
+        <div class="attr"><div class="attr-k">Correção</div><div class="attr-v">Documentar que nenhuma operação de estado aceita autenticação por cookie · exigir <span class="mono">Origin</span>/<span class="mono">Sec-Fetch-Site</span> no endpoint de refresh · CORS sem <span class="mono">Access-Control-Allow-Origin: *</span> e sem reflexão de origem arbitrária</div></div>
+      </div></div>
+    </div>
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">A-21 · Information disclosure</div>
+          <div class="card-title">Chave de idempotência previsível</div>
+          <div class="card-sub">A idempotência já é obrigatória — mas a chave recomendada é derivada de um identificador de recurso, não de um valor aleatório.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">refinar</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Já coberto</div><div class="attr-v">A especificação de APIs exige <span class="mono">X-Idempotency-Key</span> na originação, com janela de 24h e retorno do resultado original em vez de nova operação. O risco de duplo desembolso por retry <strong>está tratado</strong>.</div></div>
+        <div class="attr"><div class="attr-k">O que refinar</div><div class="attr-v">A orientação é usar o <span class="mono">simulationId</span> como chave. Se esse identificador for previsível ou enumerável, quem acertar a chave de outro cliente <strong>recebe a resposta original daquela operação</strong> — a idempotência vira canal de leitura de proposta alheia.</div></div>
+        <div class="attr"><div class="attr-k">Correção</div><div class="attr-v">Escopar a chave ao <span class="mono">sub</span> + <span class="mono">partner_tenant</span> do UCT, de modo que a mesma chave em contextos diferentes seja tratada como operações distintas · reautorizar a resposta cacheada antes de devolvê-la, em vez de servi-la direto do cache · preferir valor aleatório gerado pelo cliente, mantendo o <span class="mono">simulationId</span> apenas como vínculo de negócio</div></div>
+        <div class="attr"><div class="attr-k">Extensão</div><div class="attr-v">Confirmar que a propriedade vale na cadeia inteira — Shell → BFF → Core. Se o Core não for idempotente, o BFF não garante a propriedade sozinho: ele apenas não repete a <em>sua</em> chamada.</div></div>
+      </div></div>
+    </div>
+  </div>
+
+  <h3 class="sub">F5 · Plataforma → Parceiro (assíncrono)</h3>
+  <div class="cards">
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">A-19 · Spoofing</div>
+          <div class="card-title">Webhook de status forjado</div>
+          <div class="card-sub">Terceiro envia ao endpoint do parceiro uma notificação de "proposta aprovada" que a plataforma nunca emitiu.</div>
+        </div>
+        <div class="card-side"><span class="flag">aberto</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Atacante</div><div class="attr-v">Qualquer um que descubra a URL de callback do parceiro — que costuma ser previsível e fica exposta em documentação de integração</div></div>
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">O parceiro libera mercadoria, serviço ou limite com base em um crédito que não existe. <strong>Fraude com prejuízo do parceiro, causada por falha de desenho do Bradesco</strong> — com o dano reputacional correspondente.</div></div>
+        <div class="attr"><div class="attr-k">Correção</div><div class="attr-v">Assinatura HMAC-SHA256 sobre o corpo bruto, com segredo por parceiro rotacionável · <span class="mono">timestamp</span> dentro do payload assinado, com janela de tolerância curta · comparação em tempo constante no lado do parceiro · publicação de um guia de verificação no onboarding — <strong>assinar sem ensinar a verificar não protege ninguém</strong></div></div>
+        <div class="attr"><div class="attr-k">Anti-replay</div><div class="attr-v"><span class="mono">event_id</span> único e persistido pelo consumidor. Entrega é <em>at-least-once</em> por natureza: o parceiro <strong>vai</strong> receber duplicatas em operação normal, e precisa distinguir duplicata legítima de replay hostil.</div></div>
+      </div></div>
+    </div>
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">A-20 · Information disclosure</div>
+          <div class="card-title">SSRF pela URL de callback</div>
+          <div class="card-sub">O parceiro cadastra como destino de webhook um endereço interno da infraestrutura do Bradesco.</div>
+        </div>
+        <div class="card-side"><span class="flag">aberto</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Vetor</div><div class="attr-v">A URL de callback é entrada controlada pelo parceiro. Sem validação, a plataforma passa a fazer requisições autenticadas a endereços escolhidos por ele — incluindo <span class="mono">169.254.169.254</span>, faixas privadas e <span class="mono">localhost</span>.</div></div>
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">Varredura de rede interna e, no pior caso, acesso a metadados de instância — a partir de um formulário de configuração legítimo, sem nenhuma invasão</div></div>
+        <div class="attr"><div class="attr-k">Correção</div><div class="attr-v">Allowlist de domínio validada no onboarding (não apenas no cadastro) · HTTPS obrigatório · resolução de DNS com bloqueio de faixas privadas <strong>no momento da requisição</strong>, para conter rebinding · egress por proxy dedicado, sem credencial de nuvem no path · sem seguir redirecionamento automático</div></div>
+      </div></div>
+    </div>
+  </div>
+
+  <h3 class="sub">F4 · BFF → Core Platform</h3>
+  <div class="cards">
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">A-16 · Elevation of privilege</div>
+          <div class="card-title">Header <span class="mono">X-Tenant</span> forjado</div>
+          <div class="card-sub">Chamador manipula o header de tenancy para alcançar dados de outro parceiro.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">parcial</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">Quebra do isolamento multi-tenant — a garantia central vendida a cada parceiro</div></div>
+        <div class="attr"><div class="attr-k">Requisito</div><div class="attr-v">O tenant precisa ser <strong>derivado do Service Token no servidor</strong>, e o header tratado como telemetria, nunca como fonte de autorização. Se um header pode alterar o escopo de dados retornado, ele é uma credencial — e credencial em header de texto plano, dentro de rede privada, é um controle frágil.</div></div>
+        <div class="attr"><div class="attr-k">Reforço</div><div class="attr-v">Row-level security no banco, com o tenant vindo do contexto de sessão da aplicação, como segunda camada independente</div></div>
+      </div></div>
+    </div>
+    <div class="card acc-green" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">A-17 · Spoofing</div>
+          <div class="card-title">Serviço não autorizado chamando o Core</div>
+          <div class="card-sub">Carga hostil dentro da rede privada tentando alcançar APIs bancárias.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-green">mitigado</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">mTLS com validação de cadeia e revogação · Core aceita exclusivamente Service Token emitido por Token Exchange · segmentação de rede · rotação automática de certificado</div></div>
+        <div class="attr"><div class="attr-k">Requisito operacional</div><div class="attr-v">Certificado de curta duração com rotação automatizada. Certificado de validade longa gerenciado manualmente vira o elo fraco — e costuma expirar em produção num sábado.</div></div>
+      </div></div>
+    </div>
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">A-18 · Information disclosure</div>
+          <div class="card-title">Dado sensível em log e telemetria</div>
+          <div class="card-sub">CPF, valores e trecho de token em log de aplicação, APM ou trilha de erro.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">parcial</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">Vazamento por canal lateral — a causa mais comum de incidente LGPD reportável, e a que menos aparece em threat model</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">Redação estruturada na saída de log · proibição de <span class="mono">console.log</span> de payload em produção · mascaramento de CPF/CNPJ · segregação entre trilha de auditoria (retenção 5 anos, acesso restrito) e log operacional (retenção curta)</div></div>
+        <div class="attr"><div class="attr-k">Atenção</div><div class="attr-v">O <span class="mono">correlation_id</span> propagado ponta a ponta é excelente para rastreabilidade — e por isso mesmo não pode conter nenhum identificador derivado do titular.</div></div>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SUPPLY CHAIN ═══ -->
+<div class="wrap" id="supply">
+  <div class="eyebrow">04 · Lacuna Crítica</div>
+  <h2 class="sec">Supply chain do MFE federado</h2>
+  <p class="sec-desc">A arquitetura promete adicionar produtos sem deploy do Shell. Essa promessa tem um custo de segurança que ainda não foi pago: o Shell executa, no browser do cliente, código que baixa de uma URL em runtime — sem verificar que aquele código é o que foi aprovado.</p>
+
+  <div class="callout">
+    <div class="callout-t">A tensão central</div>
+    <p><strong>Integridade criptográfica e deploy independente puxam em direções opostas.</strong> A forma clássica de garantir integridade — SRI, com o hash no HTML do Shell — exigiria alterar e redeployar o Shell a cada release de MFE, destruindo exatamente a propriedade que motiva a arquitetura.</p>
+    <p>A saída é mover o hash do <em>código</em> do Shell para o <em>dado</em> que o Shell consome: o manifesto do Registry, assinado digitalmente. O Shell passa a confiar em uma chave, não em uma URL.</p>
+  </div>
+
+  <h3 class="sub">Fluxo proposto — carregamento verificado</h3>
+  <div class="code">
+    <div class="code-bar"><span class="code-lang">TypeScript · Shell · verified-remote-loader.ts</span><span class="code-tag">proposta</span></div>
+<pre><span class="c-com">// 1. O Registry devolve um manifesto assinado (JWS), não um JSON simples.</span>
+<span class="c-com">//    A chave pública fica embarcada no Shell — é o único ponto de confiança estático.</span>
+<span class="c-key">const</span> jws = <span class="c-key">await</span> (<span class="c-key">await</span> <span class="c-fn">fetch</span>(<span class="c-str">`/v1/partners/</span>${partnerId}<span class="c-str">/mfe-manifest`</span>)).<span class="c-fn">text</span>();
+<span class="c-key">const</span> manifest = <span class="c-key">await</span> <span class="c-fn">verifyJWS</span>(jws, REGISTRY_PUBLIC_KEY); <span class="c-com">// falha ⇒ aborta o boot</span>
+
+<span class="c-com">// manifest.modules = [{ name, version, url, integrity, publishedBy, builtAt }]</span>
+<span class="c-com">// A versão é sempre exata. Alias mutável é rejeitado pelo schema.</span>
+
+<span class="c-key">async function</span> <span class="c-fn">loadVerifiedRemote</span>(mod: ManifestEntry) {
+  <span class="c-key">if</span> (!<span class="c-str">/^\d+\.\d+\.\d+$/</span>.<span class="c-fn">test</span>(mod.version)) {
+    <span class="c-key">throw new</span> <span class="c-fn">Error</span>(<span class="c-str">`versão não fixada: </span>${mod.version}<span class="c-str">`</span>); <span class="c-com">// bloqueia "latest"</span>
+  }
+
+  <span class="c-com">// 2. fetch() valida o hash nativamente — resposta corrompida rejeita a Promise.</span>
+  <span class="c-com">//    O integrity vem do manifesto assinado, não do HTML: o Shell não muda a cada release.</span>
+  <span class="c-key">const</span> res = <span class="c-key">await</span> <span class="c-fn">fetch</span>(mod.url, {
+    integrity: mod.integrity,        <span class="c-com">// sha384-…</span>
+    credentials: <span class="c-str">'omit'</span>,           <span class="c-com">// CDN nunca recebe cookie</span>
+    mode: <span class="c-str">'cors'</span>,
+  });
+  <span class="c-key">if</span> (!res.ok) <span class="c-key">throw new</span> <span class="c-fn">Error</span>(<span class="c-str">`MFE indisponível: </span>${mod.name}<span class="c-str">`</span>);
+
+  <span class="c-com">// 3. Só então o container é registrado no runtime de Module Federation.</span>
+  <span class="c-key">return</span> <span class="c-fn">registerRemote</span>(mod.name, <span class="c-key">await</span> res.<span class="c-fn">text</span>());
+}
+
+<span class="c-com">// 4. Falha de integridade é evento de segurança, não erro de rede:</span>
+<span class="c-com">//    telemetria imediata + fallback para o último bom conhecido + alerta ao SOC.</span></pre>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-t">Limite honesto desta solução</div>
+    <p>O <span class="mono">integrity</span> cobre o <span class="mono">remoteEntry.js</span>. Os <em>chunks</em> que o próprio remoteEntry carrega depois não são cobertos automaticamente — exigem o plugin de Subresource Integrity do webpack no build de cada MFE, com os hashes emitidos dentro do próprio bundle. Sem esse passo, a verificação protege a porta de entrada e deixa os cômodos abertos.</p>
+    <p>Além disso, nenhuma verificação de integridade protege contra A-11 (dependência maliciosa entrando pelo pipeline legítimo): o artefato comprometido seria assinado corretamente. Integridade e proveniência resolvem problemas diferentes.</p>
+  </div>
+
+  <h3 class="sub">Controles de pipeline e artefato</h3>
+  <div class="cards two">
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Artefato</div>
+          <div class="card-title">Imutabilidade no armazenamento</div>
+          <div class="card-sub">Um artefato publicado nunca é sobrescrito.</div>
+        </div>
+        <div class="card-side"><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="ctrl-list">
+          <div class="ctrl"><span class="ctrl-dot gap">→</span><span>Object Lock no S3 em modo compliance — impede sobrescrita inclusive por credencial administrativa</span></div>
+          <div class="ctrl"><span class="ctrl-dot gap">→</span><span>Deploy cria caminho novo versionado; não existe operação de update sobre caminho existente</span></div>
+          <div class="ctrl"><span class="ctrl-dot gap">→</span><span>Bucket privado com Origin Access Control — acesso apenas via CloudFront</span></div>
+          <div class="ctrl"><span class="ctrl-dot gap">→</span><span>Credencial de deploy via OIDC de curta duração, sem chave estática no CI</span></div>
+        </div>
+      </div></div>
+    </div>
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Proveniência</div>
+          <div class="card-title">Quem construiu, de qual commit</div>
+          <div class="card-sub">Rastreabilidade do artefato até o código-fonte revisado.</div>
+        </div>
+        <div class="card-side"><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="ctrl-list">
+          <div class="ctrl"><span class="ctrl-dot gap">→</span><span>Attestation de build assinada (padrão SLSA) ligando artefato ⇄ commit ⇄ pipeline</span></div>
+          <div class="ctrl"><span class="ctrl-dot gap">→</span><span>SBOM CycloneDX publicado junto de cada MFE, versionado com o artefato</span></div>
+          <div class="ctrl"><span class="ctrl-dot gap">→</span><span>Build reproduzível o suficiente para que a Segurança possa reconstruir e comparar o hash</span></div>
+          <div class="ctrl"><span class="ctrl-dot gap">→</span><span>Publicação em produção exige aprovação de dois pares, com identidade registrada no manifesto</span></div>
+        </div>
+      </div></div>
+    </div>
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Registry</div>
+          <div class="card-title">Manifesto assinado e rotação de chave</div>
+          <div class="card-sub">O Registry vira raiz de confiança — e precisa ser tratado como tal.</div>
+        </div>
+        <div class="card-side"><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="ctrl-list">
+          <div class="ctrl"><span class="ctrl-dot part">→</span><span>Chave de assinatura em HSM ou KMS — jamais em variável de ambiente ou repositório</span></div>
+          <div class="ctrl"><span class="ctrl-dot part">→</span><span>Shell embarca duas chaves públicas (atual e próxima) para permitir rotação sem redeploy coordenado</span></div>
+          <div class="ctrl"><span class="ctrl-dot part">→</span><span>Manifesto com <span class="mono">exp</span> curto, obrigando renovação e impedindo replay de manifesto antigo com versão vulnerável</span></div>
+          <div class="ctrl"><span class="ctrl-dot part">→</span><span>Alteração no Registry gera evento auditável com autor — é mudança de produção, não configuração casual</span></div>
+        </div>
+      </div></div>
+    </div>
+    <div class="card acc-green" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Resposta</div>
+          <div class="card-title">Rollback e kill switch</div>
+          <div class="card-sub">O que acontece nos primeiros cinco minutos após a detecção.</div>
+        </div>
+        <div class="card-side"><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="ctrl-list">
+          <div class="ctrl"><span class="ctrl-dot">→</span><span>Rollback = alterar a versão no manifesto do Registry; propaga em segundos, sem pipeline</span></div>
+          <div class="ctrl"><span class="ctrl-dot">→</span><span>Kill switch por MFE e por parceiro — desabilita o produto mantendo o resto da plataforma no ar</span></div>
+          <div class="ctrl"><span class="ctrl-dot">→</span><span>Falha de integridade no cliente é reportada por telemetria: detecção não depende de alguém olhar o CDN</span></div>
+          <div class="ctrl"><span class="ctrl-dot">→</span><span>Exercício de rollback ensaiado antes do go-live, com tempo medido — o mesmo mecanismo do registry dinâmico, agora como controle de segurança</span></div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ISOLAMENTO ═══ -->
+<div class="wrap" id="isolamento">
+  <div class="eyebrow">05 · Correção Técnica</div>
+  <h2 class="sec">O que "isolamento de MFE" realmente significa</h2>
+  <p class="sec-desc">Há uma afirmação recorrente no material atual que não se sustenta tecnicamente e precisa ser corrigida antes de chegar à área de Cibersegurança — porque ela será desmontada na primeira revisão, e leva junto a credibilidade do resto.</p>
+
+  <div class="callout">
+    <div class="callout-t">A afirmação a corrigir</div>
+    <p>“O MFE é carregado em isolamento — sem acesso ao estado interno do Shell ou de outros MFEs.”</p>
+    <p><strong>Module Federation não isola nada em termos de segurança.</strong> Ele resolve colisão de nomes de módulo e negocia dependências compartilhadas. Todos os MFEs executam no mesmo realm JavaScript, mesmo <span class="mono">window</span>, mesmo DOM, mesma origem e mesmo storage do Shell. O isolamento é <em>de build</em>, não <em>de execução</em>.</p>
+  </div>
+
+  <p style="font-size:14.5px;color:var(--ink-3);margin-bottom:6px">Na prática, um MFE carregado pode:</p>
+  <div class="ctrl-list">
+    <div class="ctrl"><span class="ctrl-dot gap">✕</span><span>Ler qualquer variável acessível no escopo global, incluindo o UCT se ele estiver exposto</span></div>
+    <div class="ctrl"><span class="ctrl-dot gap">✕</span><span>Sobrescrever <span class="mono">window.fetch</span> ou <span class="mono">XMLHttpRequest</span> e interceptar todo tráfego do Shell — inclusive de outros MFEs</span></div>
+    <div class="ctrl"><span class="ctrl-dot gap">✕</span><span>Ler o DOM inteiro, incluindo campos preenchidos em outro produto</span></div>
+    <div class="ctrl"><span class="ctrl-dot gap">✕</span><span>Registrar listeners globais de teclado</span></div>
+    <div class="ctrl"><span class="ctrl-dot gap">✕</span><span>Acessar <span class="mono">sessionStorage</span>, <span class="mono">IndexedDB</span> e cookies não-<span class="mono">HttpOnly</span> da origem</span></div>
+  </div>
+
+  <p style="font-size:14.5px;color:var(--ink-3);margin:22px 0 6px">Shadow DOM, usado no theming, também não muda esse quadro: <strong>encapsula CSS, não JavaScript</strong>. É controle de colisão de estilo, não fronteira de segurança.</p>
+
+  <h3 class="sub">Matriz de decisão — qual estratégia por tipo de MFE</h3>
+  <div class="matrix">
+    <div class="mx-row head">
+      <div class="mx-c">Critério</div>
+      <div class="mx-c">Module Federation</div>
+      <div class="mx-c">Iframe · origem distinta</div>
+      <div class="mx-c">Web Component + Shadow DOM</div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Isolamento de JavaScript</div>
+      <div class="mx-c"><span class="mx-v no">✕ nenhum</span><span class="mx-note">Mesmo realm — confiança total exigida</span></div>
+      <div class="mx-c"><span class="mx-v yes">✓ completo</span><span class="mx-note">Realm e origem separados pelo browser</span></div>
+      <div class="mx-c"><span class="mx-v no">✕ nenhum</span><span class="mx-note">Mesmo realm que o host</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Acesso ao UCT do Shell</div>
+      <div class="mx-c"><span class="mx-v no">✕ direto</span><span class="mx-note">Qualquer MFE alcança o token</span></div>
+      <div class="mx-c"><span class="mx-v yes">✓ bloqueado</span><span class="mx-note">Token nunca cruza; o iframe pede operações via postMessage</span></div>
+      <div class="mx-c"><span class="mx-v no">✕ direto</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Theming por design token</div>
+      <div class="mx-c"><span class="mx-v yes">✓ nativo</span><span class="mx-note">Custom properties herdam do Shell</span></div>
+      <div class="mx-c"><span class="mx-v part">~ manual</span><span class="mx-note">Tokens replicados por postMessage ou query</span></div>
+      <div class="mx-c"><span class="mx-v yes">✓ nativo</span><span class="mx-note">Custom properties atravessam shadow boundary</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">UX integrada</div>
+      <div class="mx-c"><span class="mx-v yes">✓ perfeita</span><span class="mx-note">Modais, foco e rolagem naturais</span></div>
+      <div class="mx-c"><span class="mx-v part">~ com atrito</span><span class="mx-note">Altura dinâmica, modais presos, foco e a11y exigem trabalho</span></div>
+      <div class="mx-c"><span class="mx-v yes">✓ boa</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Quando usar</div>
+      <div class="mx-c"><span class="mx-v yes">Padrão</span><span class="mx-note">MFE desenvolvido pelo Bradesco ou pela Aarin, sob o mesmo pipeline auditado</span></div>
+      <div class="mx-c"><span class="mx-v yes">Exceção</span><span class="mx-note">MFE de terceiro, parceiro ou fornecedor fora do pipeline</span></div>
+      <div class="mx-c"><span class="mx-v part">Caso a caso</span><span class="mx-note">Widget simples, sem acesso a dado sensível</span></div>
+    </div>
+  </div>
+
+  <div class="callout neutral">
+    <div class="callout-t">A recomendação</div>
+    <p>Manter Module Federation como padrão, e <strong>declarar explicitamente que todo MFE é código first-party</strong>, sujeito ao mesmo pipeline, revisão e attestation do Shell. Isso é uma posição defensável — desde que a supply chain da seção 04 seja implementada, porque ela passa a ser o <em>único</em> controle real dessa fronteira.</p>
+    <p>No momento em que um MFE for desenvolvido por terceiro fora desse pipeline, a decisão muda: iframe de origem distinta, sem exceção.</p>
+  </div>
+
+  <h3 class="sub">CSP concreta — e onde ela conflita com Module Federation</h3>
+  <div class="code">
+    <div class="code-bar"><span class="code-lang">HTTP · resposta do Shell · gerada por partner_id</span><span class="code-tag">proposta</span></div>
+<pre>Content-Security-Policy:
+  default-src <span class="c-str">'none'</span>;
+  script-src <span class="c-str">'self'</span> https://mfe.baas.bradesco.com.br <span class="c-str">'nonce-{req}'</span>;
+  style-src  <span class="c-str">'self'</span> <span class="c-str">'nonce-{req}'</span> https://fonts.googleapis.com;
+  font-src   https://fonts.gstatic.com;
+  img-src    <span class="c-str">'self'</span> data: https://cdn.parceiro.com;
+  <span class="c-com">// connect-src é o controle que impede exfiltração: mesmo com XSS,</span>
+  <span class="c-com">// o token não tem para onde ser enviado.</span>
+  connect-src <span class="c-str">'self'</span> https://api.baas.bradesco.com.br https://auth.baas.bradesco.com.br;
+  <span class="c-com">// gerado dinamicamente a partir do PartnerConfig — nunca curinga</span>
+  frame-ancestors https://portal.parceiro.com.br;
+  base-uri <span class="c-str">'none'</span>; form-action <span class="c-str">'none'</span>; object-src <span class="c-str">'none'</span>;
+  require-trusted-types-for <span class="c-str">'script'</span>;
+  report-to csp-endpoint;</pre>
+  </div>
+
+  <div class="ctrl-list">
+    <div class="ctrl"><span class="ctrl-dot part">!</span><span><strong>Conflito 1 — <span class="mono">'unsafe-eval'</span>.</strong> Configurações de <span class="mono">devtool</span> baseadas em <span class="mono">eval</span> quebram a CSP. O build de produção precisa usar <span class="mono">source-map</span> puro. Verificável no pipeline.</span></div>
+    <div class="ctrl"><span class="ctrl-dot part">!</span><span><strong>Conflito 2 — CSS-in-JS.</strong> Emotion e similares injetam <span class="mono">&lt;style&gt;</span> em runtime. Exige propagar o <span class="mono">nonce</span> ao provider de estilo do Shell e de cada MFE — combinação que precisa entrar no contrato de interface do MFE.</span></div>
+    <div class="ctrl"><span class="ctrl-dot part">!</span><span><strong>Conflito 3 — <span class="mono">script-src</span> por domínio.</strong> Liberar o host inteiro do CDN autoriza qualquer arquivo nele. É aceitável apenas porque o carregamento passa por verificação de integridade; sem ela, a CSP dá falsa sensação de controle.</span></div>
+    <div class="ctrl"><span class="ctrl-dot">✓</span><span><strong><span class="mono">frame-ancestors</span> dinâmico.</strong> Como o Shell é embutido por cada parceiro, o valor sai do <span class="mono">PartnerConfig</span> em vez de ser estático — mesma configuração que já governa tokens e produtos.</span></div>
+  </div>
+</div>
+
+<!-- ═══ TOKENS ═══ -->
+<div class="wrap" id="tokens">
+  <div class="eyebrow">06 · Camada Técnica</div>
+  <h2 class="sec">Endurecimento dos tokens</h2>
+  <p class="sec-desc">A base de tokens já é sólida: exchange RFC 8693, TTL curto, storage correto, revogação por evento. Esta seção cobre apenas o que falta — e o que o Open Finance vai exigir de qualquer forma.</p>
+
+  <h3 class="sub">DPoP — de bearer para sender-constrained</h3>
+  <p style="font-size:14.5px;color:var(--ink-3)">Um bearer token vale para quem o tem. Com DPoP (RFC 9449), o token só funciona acompanhado de uma prova assinada pela chave privada do dispositivo — e essa chave pode ser criada como não-extraível, de modo que nem XSS consegue copiá-la.</p>
+  <div class="code">
+    <div class="code-bar"><span class="code-lang">TypeScript · Shell · dpop.ts</span><span class="code-tag">proposta</span></div>
+<pre><span class="c-com">// Chave gerada no boot, NUNCA extraível — nem por XSS, nem por DevTools.</span>
+<span class="c-com">// O objeto CryptoKey pode ser usado para assinar, mas não pode ser lido.</span>
+<span class="c-key">const</span> kp = <span class="c-key">await</span> crypto.subtle.<span class="c-fn">generateKey</span>(
+  { name: <span class="c-str">'ECDSA'</span>, namedCurve: <span class="c-str">'P-256'</span> },
+  <span class="c-warn">false</span>,                      <span class="c-com">// extractable: false ← o controle inteiro está aqui</span>
+  [<span class="c-str">'sign'</span>]
+);
+
+<span class="c-com">// Cada requisição carrega uma prova ligada a método + URL + instante.</span>
+<span class="c-key">async function</span> <span class="c-fn">dpopProof</span>(method: string, url: string) {
+  <span class="c-key">return</span> <span class="c-fn">signJWT</span>({
+    typ: <span class="c-str">'dpop+jwt'</span>, alg: <span class="c-str">'ES256'</span>, jwk: <span class="c-key">await</span> <span class="c-fn">publicJwk</span>(kp.publicKey),
+  }, {
+    htm: method, htu: url,
+    iat: Math.<span class="c-fn">floor</span>(Date.<span class="c-fn">now</span>() / <span class="c-num">1000</span>),
+    jti: crypto.<span class="c-fn">randomUUID</span>(),   <span class="c-com">// anti-replay no servidor</span>
+  }, kp.privateKey);
+}
+
+<span class="c-com">// O UCT passa a carregar a impressão digital da chave (cnf.jkt).</span>
+<span class="c-com">// Token roubado + outro dispositivo = 401. A janela de 15 min deixa de importar.</span>
+<span class="c-fn">fetch</span>(url, { headers: {
+  <span class="c-str">'Authorization'</span>: <span class="c-str">`DPoP </span>${uct}<span class="c-str">`</span>,
+  <span class="c-str">'DPoP'</span>: <span class="c-key">await</span> <span class="c-fn">dpopProof</span>(<span class="c-str">'POST'</span>, url),
+}});</pre>
+  </div>
+
+  <div class="cards two">
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Rotação de chave</div>
+          <div class="card-title">JWKS, <span class="mono">kid</span> e janela de sobreposição</div>
+          <div class="card-sub">Citado na arquitetura, sem operação definida.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">a especificar</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="ctrl-list">
+          <div class="ctrl"><span class="ctrl-dot part">→</span><span>Todo JWT emitido carrega <span class="mono">kid</span>; o validador resolve a chave pelo JWKS, nunca por chave fixa em configuração</span></div>
+          <div class="ctrl"><span class="ctrl-dot part">→</span><span>Cache do JWKS com TTL e refresh sob <span class="mono">kid</span> desconhecido — com rate limit, para que um <span class="mono">kid</span> inválido não vire vetor de DoS contra o Auth</span></div>
+          <div class="ctrl"><span class="ctrl-dot part">→</span><span>Janela de sobreposição maior que o TTL do token mais longo, para que a rotação não invalide sessão em curso</span></div>
+          <div class="ctrl"><span class="ctrl-dot part">→</span><span>Rotação programada trimestral e procedimento de rotação de emergência ensaiado</span></div>
+          <div class="ctrl"><span class="ctrl-dot part">→</span><span>Algoritmo fixado na validação (<span class="mono">ES256</span>); rejeitar <span class="mono">alg</span> vindo do header — inclusive <span class="mono">none</span></span></div>
+        </div>
+      </div></div>
+    </div>
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Segredos</div>
+          <div class="card-title">Onde vivem as chaves</div>
+          <div class="card-sub">Ausente na documentação atual.</div>
+        </div>
+        <div class="card-side"><span class="flag">lacuna</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="ctrl-list">
+          <div class="ctrl"><span class="ctrl-dot gap">→</span><span>Chave de assinatura de UCT e do manifesto do Registry em HSM ou serviço de KMS — operação de assinatura remota, chave nunca exportada</span></div>
+          <div class="ctrl"><span class="ctrl-dot gap">→</span><span>Segredos de aplicação em cofre gerenciado com identidade de workload, sem segredo estático em pipeline</span></div>
+          <div class="ctrl"><span class="ctrl-dot gap">→</span><span>Certificados mTLS de curta duração com rotação automatizada</span></div>
+          <div class="ctrl"><span class="ctrl-dot gap">→</span><span>Detecção de segredo no commit, bloqueante no pipeline</span></div>
+          <div class="ctrl"><span class="ctrl-dot gap">→</span><span>Procedimento de comprometimento de chave documentado, com tempo-alvo de rotação declarado</span></div>
+        </div>
+      </div></div>
+    </div>
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Fluxo de autorização</div>
+          <div class="card-title">PAR e OAuth 2.1</div>
+          <div class="card-sub">O restante do perfil FAPI que ainda não aparece na arquitetura.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">avaliar</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="ctrl-list">
+          <div class="ctrl"><span class="ctrl-dot part">→</span><span><strong>PAR</strong> (Pushed Authorization Requests, RFC 9126): os parâmetros de autorização são enviados server-to-server antes do redirecionamento, e o browser carrega apenas uma referência opaca. Elimina adulteração de parâmetro em trânsito e evita expor escopo e <span class="mono">redirect_uri</span> na barra de endereço.</span></div>
+          <div class="ctrl"><span class="ctrl-dot part">→</span><span><strong>OAuth 2.1</strong> consolida o que a arquitetura já adota — PKCE obrigatório, sem <em>implicit</em>, sem <em>password grant</em>, <span class="mono">redirect_uri</span> por correspondência exata. Vale declarar a conformidade explicitamente: é a linguagem que a revisão de segurança espera ver.</span></div>
+          <div class="ctrl"><span class="ctrl-dot part">→</span><span>Ordem de prioridade sugerida: <strong>sender-constrained primeiro</strong> (fecha A-12), PAR em seguida. PAR protege o fluxo de autorização; DPoP protege o token já emitido, que é a exposição maior no modelo embarcado.</span></div>
+        </div>
+      </div></div>
+    </div>
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Dados</div>
+          <div class="card-title">Criptografia em repouso e em trânsito</div>
+          <div class="card-sub">Ausente na documentação de frontend — e cobrada em toda revisão.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">declarar</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="ctrl-list">
+          <div class="ctrl"><span class="ctrl-dot part">→</span><span>TLS 1.3 como mínimo em toda fronteira; 1.0 e 1.1 desabilitados, inclusive no CDN e no callback ao parceiro</span></div>
+          <div class="ctrl"><span class="ctrl-dot part">→</span><span>AES-256-GCM em repouso, com chaves gerenciadas por KMS/HSM e rotação definida (NIST SP 800-57)</span></div>
+          <div class="ctrl"><span class="ctrl-dot part">→</span><span>Documentos enviados pelo cliente cifrados por objeto, com URL pré-assinada de validade curta — nunca bucket público</span></div>
+          <div class="ctrl"><span class="ctrl-dot part">→</span><span>Backup cifrado e restauração testada — controle de continuidade exigido pela Res. 4.893</span></div>
+          <div class="ctrl"><span class="ctrl-dot part">→</span><span>mTLS com verificação de revogação (OCSP stapling ou CRL), não apenas validação de cadeia — certificado revogado que continua aceito anula o controle de F4</span></div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ COMPLIANCE ═══ -->
+<div class="wrap" id="compliance">
+  <div class="eyebrow">07 · Regulatório</div>
+  <h2 class="sec">Mapeamento regulatório para controles</h2>
+  <p class="sec-desc">O que cada marco exige e onde isso aparece concretamente na arquitetura. O modelo white label cria uma pergunta que não existe em produto próprio: quando o cliente é do parceiro e o crédito é do Bradesco, quem responde pelo dado?</p>
+
+  <div class="callout warn">
+    <div class="callout-t">Enquadramento</div>
+    <p>Este mapeamento é uma <strong>leitura de arquitetura, não um parecer</strong>. A qualificação dos papéis sob a LGPD e o enquadramento no Open Finance precisam de validação formal do Jurídico e do Compliance do Bradesco antes de virarem compromisso contratual com parceiro.</p>
+  </div>
+
+  <div class="cards">
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">LGPD · Lei 13.709/2018</div>
+          <div class="card-title">Quem é controlador do dado do cliente do parceiro?</div>
+          <div class="card-sub">A questão mais sensível do modelo — e a que mais afeta o desenho técnico.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">definir</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">A questão</div><div class="attr-v">O franqueado Cacau Show que contrata Capital de Giro é titular de dado tratado por quem? A Cacau Show origina e apresenta; o Bradesco decide o crédito e mantém a relação regulada.</div></div>
+        <div class="attr"><div class="attr-k">Leitura técnica</div><div class="attr-v">O Bradesco determina finalidade e meios do tratamento de crédito — <strong>controlador</strong> para a operação. O parceiro é controlador dos dados do <em>próprio</em> relacionamento e, na originação, tende a operar em controladoria conjunta para a etapa que ele executa.</div></div>
+        <div class="attr"><div class="attr-k">Consequência</div><div class="attr-v">A arquitetura já favorece esse desenho: o <span class="mono">sub</span> é <strong>anonimizado</strong> na fronteira, o PAT nunca chega ao browser, e o parceiro não recebe dado de decisão de crédito. Cada fronteira minimiza o dado que atravessa — minimização por desenho, não por política.</div></div>
+        <div class="attr"><div class="attr-k">Pendências</div><div class="attr-v">Bases legais por finalidade (execução de contrato para a proposta; legítimo interesse para prevenção à fraude) · fluxo de atendimento a direitos do titular quando o pedido chega pelo parceiro · RIPD antes do go-live · prazos de retenção por categoria, conciliando os 5 anos de auditoria com o princípio da necessidade</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">BACEN · Res. CMN 4.893/2021</div>
+          <div class="card-title">Política de segurança cibernética e nuvem</div>
+          <div class="card-sub">Sucede a 4.658/2018. Governa a contratação de processamento e armazenamento em nuvem.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-blue">estruturante</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Exige</div><div class="attr-v">Política formal · classificação de dados · gestão de incidentes com comunicação ao BACEN · requisitos para contratação de serviços relevantes em nuvem · plano de continuidade · avaliação prévia de fornecedor</div></div>
+        <div class="attr"><div class="attr-k">Impacto na arquitetura</div><div class="attr-v">Sustenta diretamente a escolha híbrida: <strong>frontend na AWS, dados e APIs bancárias no Azure</strong>, com nenhum dado de cliente em repouso na camada de distribuição. A fronteira "nenhum dado de cliente na AWS" deixa de ser preferência técnica e vira controle regulatório demonstrável.</div></div>
+        <div class="attr"><div class="attr-k">Atenção</div><div class="attr-v">Se a Aarin desenvolver ou operar parte da plataforma, ela entra como prestador relevante — com avaliação prévia, cláusulas específicas e direito de auditoria. Conecta diretamente com a decisão estratégica Bradesco vs Aarin.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Open Finance Brasil · FAPI</div>
+          <div class="card-title">O padrão que a arquitetura já está quase cumprindo</div>
+          <div class="card-sub">Financial-grade API — perfil de segurança OAuth2 exigido no ecossistema.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">alinhar</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Por que importa</div><div class="attr-v">Mesmo que o produto de crédito não entre hoje no escopo regulado, adotar o perfil desde já evita retrabalho — e é o vocabulário que a área de Segurança já usa.</div></div>
+        <div class="attr"><div class="attr-k">Já atendido</div><div class="attr-v">mTLS na autenticação do cliente confidencial · PKCE · TTL curto · escopos granulares · tokens assinados com <span class="mono">ES256</span></div></div>
+        <div class="attr"><div class="attr-k">A adotar</div><div class="attr-v"><strong>Sender-constrained tokens</strong> (mTLS-bound ou DPoP) — o perfil não aceita bearer puro — e <strong>PAR</strong> no fluxo de autorização. Reforça a recomendação da seção 06 por dois motivos independentes: risco técnico e conformidade.</div></div>
+        <div class="attr"><div class="attr-k">Versão</div><div class="attr-v">O Security Profile do Open Finance Brasil está em transição de FAPI 1.0 Advanced para FAPI 2.0, que consolida PAR e sender-constrained. <strong>Confirmar a versão vigente com a área de Open Finance</strong> antes de fixar requisito em contrato — a direção não muda, o detalhe de conformidade sim.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-green" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">PCI-DSS · Recebíveis de arranjo</div>
+          <div class="card-title">Escopo PCI provavelmente nulo — mas há outra regulação em jogo</div>
+          <div class="card-sub">Antecipação de Recebíveis inclui antecipação de cartão, o que traz o ecossistema de registradoras junto.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">validar</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">O dado real</div><div class="attr-v">O portal do operador lista como finalidades de Antecipação: <strong>duplicatas, cartão e nota fiscal</strong>. Não é um produto de conta e boleto apenas.</div></div>
+        <div class="attr"><div class="attr-k">PCI-DSS</div><div class="attr-v">Antecipar recebível de cartão opera sobre a <strong>agenda de recebíveis</strong> — unidades de recebíveis, credenciadora, valores e datas de liquidação —, não sobre o PAN. O escopo PCI tende a permanecer nulo, e vale mantê-lo assim por desenho: nenhum campo de número de cartão em nenhum MFE.</div></div>
+        <div class="attr"><div class="attr-k">A lacuna real</div><div class="attr-v">A antecipação de recebíveis de arranjo de pagamento envolve <strong>registradoras de recebíveis e a trava de domicílio</strong>, com integração, contratos e obrigações próprias. Este documento não modela essa fronteira, e ela não aparece em nenhum artefato do showcase — é um <em>ponto cego</em>, não um controle pendente.</div></div>
+        <div class="attr"><div class="attr-k">Status</div><div class="attr-v"><strong>Confirmado como fase posterior do roadmap</strong> — não integra o MVP. Não bloqueia o go-live do primeiro parceiro.</div></div>
+        <div class="attr"><div class="attr-k">Gatilho</div><div class="attr-v">Quando a antecipação de cartão entrar em desenvolvimento, o modelo de ameaças precisa ser reaberto com uma fronteira nova: <strong>plataforma ⇄ registradora de recebíveis</strong>, com trava de domicílio, contratos de integração e obrigações próprias. Registrar agora como dependência de escopo evita que ela chegue como surpresa de última hora à Segurança.</div></div>
+        <div class="attr"><div class="attr-k">Princípio</div><div class="attr-v">Se um produto futuro exigir captura de cartão, o campo deve ser <strong>isolado em iframe do provedor de pagamento</strong>. Registrar isso agora custa nada; descobrir depois custa uma certificação.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">ISO 27001 · SOC 2</div>
+          <div class="card-title">Due diligence de parceiro e de fornecedor</div>
+          <div class="card-sub">A postura de segurança do outro lado da fronteira F1.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-blue">contratual</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Racional</div><div class="attr-v">A fronteira F1 é contratual, não técnica. Um parceiro com postura fraca é um risco que nenhum controle no lado do Bradesco elimina — ele autentica os usuários que recebem UCT.</div></div>
+        <div class="attr"><div class="attr-k">Onboarding mínimo</div><div class="attr-v">Certificação vigente ou questionário de segurança aprovado · declaração de responsabilidade sobre a autenticação dos próprios usuários · canal e SLA de notificação de incidente · direito de auditoria · escopo contratual explícito e limitado</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">OWASP ASVS · Top 10</div>
+          <div class="card-title">O critério objetivo de verificação</div>
+          <div class="card-sub">Referência para pentest e para o critério de aceite de cada MFE.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">adotar</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Proposta</div><div class="attr-v">Adotar <strong>ASVS nível 2</strong> como baseline da plataforma, e nível 3 para os fluxos de autenticação e contratação. Dá ao pentest um critério objetivo em vez de escopo aberto.</div></div>
+        <div class="attr"><div class="attr-k">Ganho prático</div><div class="attr-v">Transforma "pentest antes do go-live", hoje um item de roadmap, em um conjunto verificável de requisitos que cada squad consegue testar antes de chegar à Segurança.</div></div>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ INCIDENTES ═══ -->
+<div class="wrap" id="incidentes">
+  <div class="eyebrow">08 · Resposta a Incidentes</div>
+  <h2 class="sec">Três runbooks que precisam existir antes do go-live</h2>
+  <p class="sec-desc">Controle preventivo sem procedimento de resposta é metade do trabalho. Estes são os cenários específicos do modelo white label — os genéricos já estão cobertos pelo processo corporativo.</p>
+
+  <div class="cards">
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">IR-01 · Contenção em minutos</div>
+          <div class="card-title">MFE comprometido em produção</div>
+          <div class="card-sub">Falha de integridade detectada, ou comportamento anômalo reportado por telemetria.</div>
+        </div>
+        <div class="card-side"><span class="flag">crítico</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="ctrl-list">
+          <div class="ctrl"><span class="ctrl-dot gap">1</span><span><strong>Conter</strong> — kill switch do MFE no Registry. Propaga em segundos, sem pipeline. Os demais produtos seguem no ar.</span></div>
+          <div class="ctrl"><span class="ctrl-dot gap">2</span><span><strong>Revogar</strong> — invalidação em massa das sessões ativas que carregaram a versão afetada, via <span class="mono">jti</span> na blacklist</span></div>
+          <div class="ctrl"><span class="ctrl-dot gap">3</span><span><strong>Preservar</strong> — congelar o artefato, os logs de CDN e a attestation de build antes de qualquer correção</span></div>
+          <div class="ctrl"><span class="ctrl-dot gap">4</span><span><strong>Determinar alcance</strong> — quais parceiros, quantas sessões, qual janela. Só é respondível se houver telemetria de versão carregada por sessão.</span></div>
+          <div class="ctrl"><span class="ctrl-dot gap">5</span><span><strong>Comunicar</strong> — parceiros afetados, e BACEN e ANPD conforme enquadramento e prazo</span></div>
+        </div>
+        <div class="attr" style="margin-top:16px"><div class="attr-k">Pré-requisito</div><div class="attr-v">Nada disso funciona sem <strong>telemetria de qual versão de MFE cada sessão carregou</strong>. É um requisito de observabilidade que precisa entrar agora — sem ele, o passo 4 é impossível e a comunicação regulatória vira estimativa.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">IR-02 · Fronteira contratual</div>
+          <div class="card-title">Parceiro comprometido</div>
+          <div class="card-sub">O portal do parceiro é invadido, ou o PAT dele vaza.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">alto</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="ctrl-list">
+          <div class="ctrl"><span class="ctrl-dot part">1</span><span><strong>Suspender o parceiro</strong> — revogar o PAT e bloquear novos exchanges daquele <span class="mono">partner_id</span>, mantendo os demais parceiros intactos</span></div>
+          <div class="ctrl"><span class="ctrl-dot part">2</span><span><strong>Revogar em cascata</strong> — todos os UCTs com <span class="mono">exchange_chain</span> apontando para o PAT comprometido. É exatamente para isso que o claim existe.</span></div>
+          <div class="ctrl"><span class="ctrl-dot part">3</span><span><strong>Auditar retroativamente</strong> — propostas originadas por aquele parceiro na janela suspeita, com atenção a padrão anômalo de volume</span></div>
+          <div class="ctrl"><span class="ctrl-dot part">4</span><span><strong>Avaliar operações com efeito financeiro</strong> — o que foi desembolsado precisa de tratamento próprio, com Risco e Jurídico</span></div>
+        </div>
+        <div class="attr" style="margin-top:16px"><div class="attr-k">Decisão prévia</div><div class="attr-v">Quem tem autoridade para suspender um parceiro em produção, e em quanto tempo. Definir isso <strong>durante</strong> o incidente é a diferença entre minutos e horas de exposição.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">IR-03 · Criptografia</div>
+          <div class="card-title">Comprometimento de chave de assinatura</div>
+          <div class="card-sub">A chave que assina UCT ou o manifesto do Registry vaza.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">alto</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="ctrl-list">
+          <div class="ctrl"><span class="ctrl-dot part">1</span><span><strong>Rotacionar</strong> — promover a chave seguinte, já publicada no JWKS, e remover a comprometida</span></div>
+          <div class="ctrl"><span class="ctrl-dot part">2</span><span><strong>Invalidar</strong> — todo token assinado com o <span class="mono">kid</span> afetado; aceitar o logout em massa como custo</span></div>
+          <div class="ctrl"><span class="ctrl-dot part">3</span><span><strong>Reassinar</strong> — o manifesto do Registry com a nova chave; os Shells em execução aceitam por já embarcarem a chave seguinte</span></div>
+          <div class="ctrl"><span class="ctrl-dot part">4</span><span><strong>Investigar</strong> — chave em HSM não é exportável, então o vazamento indica comprometimento do <em>uso</em>, não da chave: o vetor está no controle de acesso à operação de assinatura</span></div>
+        </div>
+        <div class="attr" style="margin-top:16px"><div class="attr-k">Por que a chave seguinte importa</div><div class="attr-v">Embarcar duas chaves públicas no Shell (seção 04) é o que permite rotação de emergência <strong>sem redeploy coordenado</strong> de todos os parceiros. Sem isso, IR-03 vira uma janela de indisponibilidade.</div></div>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ DECISÃO: BUILD & DEPLOY ═══ -->
+<div class="wrap" id="deploy">
+  <div class="eyebrow">09 · Decisão Estrutural</div>
+  <h2 class="sec">Quem escreve, quem compila, quem serve</h2>
+  <p class="sec-desc">A hipótese de a Aarin desenvolver um MFE e publicá-lo na AWS dela não é uma variação menor de processo — ela redefine qual é a fronteira de confiança F2 e qual controle ainda resta ao Bradesco depois que o código está executando no browser do cliente.</p>
+
+  <div class="callout">
+    <div class="callout-t">A distinção que organiza a decisão</div>
+    <p>“Quem desenvolve o MFE” é a pergunta errada. São <strong>três eixos independentes</strong>: quem <em>escreve</em> o código, quem <em>compila</em> o artefato e quem <em>serve</em> o arquivo em runtime. O risco de segurança está concentrado nos dois últimos.</p>
+    <p>Código escrito por terceiro e compilado no pipeline do Bradesco é auditável, escaneável e reproduzível. Código compilado e servido por terceiro é <strong>confiança operacional em tempo real</strong>: o que executa no browser pode mudar a qualquer momento, sem release, sem aviso e sem rastro do lado do Bradesco.</p>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-t">Atenção — isso talvez já seja o desenho atual</div>
+    <p>O documento de decisão estratégica descreve o modelo híbrido como <strong>“AWS (Aarin) e Azure (Bradesco)”</strong>. Se o CloudFront e o S3 que hospedam os MFEs já vivem na conta AWS da Aarin, então a fronteira F2 <strong>já atravessa uma organização distinta hoje</strong> — e o cenário D abaixo não é hipótese futura, é o estado corrente sem os controles correspondentes.</p>
+    <p>Confirmar a titularidade da conta AWS onde os artefatos são publicados é o primeiro passo desta decisão, antes de qualquer discussão sobre modelo alvo.</p>
+  </div>
+
+  <h3 class="sub">Quatro cenários e o que muda em cada um</h3>
+  <div class="matrix five">
+    <div class="mx-row head">
+      <div class="mx-c">Critério</div>
+      <div class="mx-c">A · Bradesco integral</div>
+      <div class="mx-c">B · Aarin escreve<br>Bradesco compila e serve</div>
+      <div class="mx-c">C · Aarin escreve e compila<br>Bradesco serve</div>
+      <div class="mx-c">D · Aarin integral<br>serve na AWS dela</div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Controle do que executa no browser</div>
+      <div class="mx-c"><span class="mx-v yes">✓ total</span></div>
+      <div class="mx-c"><span class="mx-v yes">✓ total</span><span class="mx-note">O gate de publicação é do Bradesco</span></div>
+      <div class="mx-c"><span class="mx-v part">~ no release</span><span class="mx-note">Controla o que publica, não o que foi compilado</span></div>
+      <div class="mx-c"><span class="mx-v no">✕ nenhum</span><span class="mx-note">O bundle pode ser trocado sem release do Bradesco</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Integridade verificável (seção 04)</div>
+      <div class="mx-c"><span class="mx-v yes">✓ nativa</span></div>
+      <div class="mx-c"><span class="mx-v yes">✓ nativa</span></div>
+      <div class="mx-c"><span class="mx-v yes">✓ viável</span><span class="mx-note">Hash calculado na ingestão do artefato</span></div>
+      <div class="mx-c"><span class="mx-v part">~ condicionada</span><span class="mx-note">Só funciona se a Aarin registrar o artefato antes de publicar</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Superfície de CSP</div>
+      <div class="mx-c"><span class="mx-v yes">1 domínio</span></div>
+      <div class="mx-c"><span class="mx-v yes">1 domínio</span></div>
+      <div class="mx-c"><span class="mx-v yes">1 domínio</span></div>
+      <div class="mx-c"><span class="mx-v no">+1 domínio de terceiro</span><span class="mx-note">script-src passa a autorizar host fora do controle do Bradesco</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Disponibilidade do produto</div>
+      <div class="mx-c"><span class="mx-v yes">✓ própria</span></div>
+      <div class="mx-c"><span class="mx-v yes">✓ própria</span></div>
+      <div class="mx-c"><span class="mx-v yes">✓ própria</span></div>
+      <div class="mx-c"><span class="mx-v no">✕ dependente</span><span class="mx-note">Incidente na AWS da Aarin derruba o crédito de todos os parceiros</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Rollback e forense</div>
+      <div class="mx-c"><span class="mx-v yes">✓ imediato</span></div>
+      <div class="mx-c"><span class="mx-v yes">✓ imediato</span></div>
+      <div class="mx-c"><span class="mx-v yes">✓ imediato</span></div>
+      <div class="mx-c"><span class="mx-v no">✕ negociado</span><span class="mx-note">Versão anterior e logs de CDN dependem da retenção da Aarin</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Enquadramento BACEN 4.893</div>
+      <div class="mx-c"><span class="mx-v yes">interno</span></div>
+      <div class="mx-c"><span class="mx-v part">fornecedor de desenvolvimento</span></div>
+      <div class="mx-c"><span class="mx-v part">fornecedor de desenvolvimento</span></div>
+      <div class="mx-c"><span class="mx-v no">prestador relevante</span><span class="mx-note">Serviço em nuvem relevante — avaliação prévia, auditoria, continuidade</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Veredito</div>
+      <div class="mx-c"><span class="mx-v yes">Baseline</span></div>
+      <div class="mx-c"><span class="mx-v yes">Recomendado</span><span class="mx-note">Captura a velocidade da Aarin sem abrir mão do controle</span></div>
+      <div class="mx-c"><span class="mx-v part">Aceitável com controles</span><span class="mx-note">Exige SBOM, attestation e scan bloqueante na ingestão</span></div>
+      <div class="mx-c"><span class="mx-v no">Só com iframe</span><span class="mx-note">Ou com registro prévio de artefato — que anula a vantagem de hospedar lá</span></div>
+    </div>
+  </div>
+
+  <h3 class="sub">Por que o cenário D é qualitativamente diferente</h3>
+  <div class="cards two">
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Consequência 1</div>
+          <div class="card-title">A confiança deixa de ser contratual e passa a ser contínua</div>
+          <div class="card-sub">Nos cenários A a C, o Bradesco confia num artefato que aprovou. No D, confia numa organização a cada request.</div>
+        </div>
+        <div class="card-side"><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">O ponto</div><div class="attr-v">Um artefato aprovado é um fato verificável. Um endpoint de terceiro é uma promessa renovada a cada carregamento — inclusive nos fins de semana, durante incidentes, e sob qualquer credencial comprometida do lado de lá.</div></div>
+        <div class="attr"><div class="attr-k">Não é desconfiança da Aarin</div><div class="attr-v">O risco não pressupõe má-fé: uma credencial de CI vazada na Aarin produz exatamente o mesmo efeito que uma no Bradesco — com a diferença de que o Bradesco <strong>não veria</strong>, não teria log e não conseguiria conter sem cooperação externa.</div></div>
+        <div class="attr"><div class="attr-k">Mitigação parcial</div><div class="attr-v">O manifesto assinado da seção 04 <em>funciona</em> aqui: se a Aarin publicar bundle diferente do registrado, a verificação falha e o MFE não carrega. Mas isso exige que a Aarin submeta o artefato ao Bradesco <strong>antes</strong> de publicar — momento em que hospedar do lado dela deixa de trazer vantagem operacional.</div></div>
+      </div></div>
+    </div>
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Consequência 2</div>
+          <div class="card-title">O realm compartilhado transforma escopo em acesso total</div>
+          <div class="card-sub">Um MFE hospedado por terceiro tem o mesmo poder que um MFE interno — porque o browser não distingue os dois.</div>
+        </div>
+        <div class="card-side"><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">O ponto</div><div class="attr-v">Pela seção 05, todo MFE alcança o UCT, o DOM e o <span class="mono">fetch</span> do Shell. Um MFE de Antecipação servido pela Aarin não fica restrito a Antecipação: ele tem, tecnicamente, o mesmo alcance de qualquer outro produto na sessão.</div></div>
+        <div class="attr"><div class="attr-k">Consequência de desenho</div><div class="attr-v">É exatamente o gatilho que a matriz da seção 05 define para <strong>iframe de origem distinta</strong>. Se o cenário D for a decisão, ele deixa de ser opcional — e o custo de UX correspondente entra no planejamento da Squad 4, não como imprevisto.</div></div>
+        <div class="attr"><div class="attr-k">Efeito colateral na CSP</div><div class="attr-v">Autorizar o domínio da Aarin em <span class="mono">script-src</span> vale para <strong>qualquer arquivo</strong> naquele host. Se o MFE também chamar APIs da Aarin, <span class="mono">connect-src</span> cresce junto — e cada domínio adicional é um destino a mais para exfiltração em caso de XSS.</div></div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="callout neutral">
+    <div class="callout-t">Recomendação</div>
+    <p><strong>Cenário B como modelo alvo</strong> — a Aarin escreve, o Bradesco compila a partir do código-fonte e publica na infra que controla. Captura a velocidade de entrega que motiva envolver a Aarin, sem transferir o controle de runtime. O código-fonte no pipeline do Bradesco também endereça a dimensão de propriedade intelectual levantada no documento de decisão estratégica.</p>
+    <p><strong>Cenário C como transição aceitável</strong>, se a Aarin precisar manter o próprio build: exige SBOM, attestation de build, scan bloqueante na ingestão e build reproduzível o suficiente para o Bradesco reconstruir e comparar o hash por amostragem.</p>
+    <p><strong>Cenário D apenas com iframe de origem distinta</strong>, e com a Aarin formalmente enquadrada como prestador de serviço relevante sob a Res. 4.893 — avaliação prévia, direito de auditoria, plano de continuidade, retenção de logs de CDN contratada e SLA de notificação de incidente.</p>
+  </div>
+</div>
+
+<!-- ═══ DECISÃO: LGPD ═══ -->
+<div class="wrap" id="lgpd">
+  <div class="eyebrow">10 · Decisão Estrutural</div>
+  <h2 class="sec">Papéis LGPD — os três cenários e o que cada um custa</h2>
+  <p class="sec-desc">Insumo para a decisão do Jurídico, não parecer. O objetivo aqui é mostrar o que <em>muda na engenharia e na operação</em> conforme a qualificação escolhida — porque a decisão jurídica tem consequência técnica imediata, e a arquitetura atual já favorece um dos cenários.</p>
+
+  <div class="cards">
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Cenário 1</div>
+          <div class="card-title">Bradesco controlador · parceiro operador</div>
+          <div class="card-sub">O parceiro trata dados apenas sob instrução documentada do Bradesco, sem finalidade própria.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">frágil na prática</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Como opera</div><div class="attr-v">Bradesco define finalidade, base legal e retenção; atende ao titular; conduz o RIPD. O parceiro segue instruções e não usa o dado para nada seu.</div></div>
+        <div class="attr"><div class="attr-k">Vantagem</div><div class="attr-v">Simples e centralizado. Um único ponto de contato para o titular e uma única política de retenção.</div></div>
+        <div class="attr"><div class="attr-k">Por que costuma não se sustentar</div><div class="attr-v">Basta o parceiro usar a informação para <strong>finalidade própria</strong> — saber que o franqueado buscou crédito e agir comercialmente sobre isso — para ele deixar de ser operador e virar controlador de fato. A qualificação não decorre do contrato, e sim da conduta.</div></div>
+        <div class="attr"><div class="attr-k">Quando cabe</div><div class="attr-v">Integrações puramente de canal, em que o parceiro apenas hospeda a jornada e não retém nem reaproveita nada — mais próximo do B2C que do B2B2B.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-green" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Cenário 2</div>
+          <div class="card-title">Controladores independentes em cadeia</div>
+          <div class="card-sub">Cada lado é controlador do próprio tratamento; a passagem de identidade é uma transferência entre controladores.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-green">mais aderente</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Como opera</div><div class="attr-v">O parceiro é controlador da base de relacionamento dele e da decisão de <em>ofertar</em>. O Bradesco passa a ser controlador quando recebe o pedido, com finalidade e base legal próprias para a operação de crédito.</div></div>
+        <div class="attr"><div class="attr-k">Por que a arquitetura já favorece</div><div class="attr-v">O <span class="mono">sub</span> é anonimizado na fronteira, o PAT nunca chega ao browser e o parceiro não recebe dado de decisão. <strong>Não há base compartilhada</strong> — cada lado detém o seu conjunto. Isso é precisamente o desenho que sustenta controladorias independentes.</div></div>
+        <div class="attr"><div class="attr-k">Custo</div><div class="attr-v">Exige transparência ao titular sobre a transferência e base legal declarada de cada lado. Direitos do titular são atendidos por quem detém o dado — o que exige um roteiro claro de encaminhamento quando o pedido chega pela porta errada.</div></div>
+        <div class="attr"><div class="attr-k">Consequência técnica</div><div class="attr-v">Reforça manter o <span class="mono">sub</span> anonimizado e <strong>não</strong> enriquecer o UCT com dado pessoal do parceiro. Qualquer claim adicional com dado identificável enfraquece a tese de bases separadas.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Cenário 3</div>
+          <div class="card-title">Controladoria conjunta na originação</div>
+          <div class="card-sub">Parceiro e Bradesco decidem em conjunto finalidades da etapa de oferta e originação.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-blue">para casos B2B2B</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Quando é o retrato correto</div><div class="attr-v">Quando o parceiro <strong>co-decide o critério de oferta</strong> — por exemplo, escolhendo quais franqueados veem a proposta com base em dados de faturamento que só ele tem. Aí a finalidade é definida a quatro mãos, e chamar isso de operador não descreve a realidade.</div></div>
+        <div class="attr"><div class="attr-k">Custo</div><div class="attr-v">Exige acordo formal repartindo responsabilidades, e o titular pode exercer direitos contra qualquer um dos dois. Operacionalmente é o cenário mais pesado: dois controladores, um titular, uma jornada só.</div></div>
+        <div class="attr"><div class="attr-k">Consequência técnica</div><div class="attr-v">Exige trilha de auditoria que registre <strong>de quem partiu cada decisão</strong> na originação. O claim <span class="mono">exchange_chain</span> já dá parte disso; faltaria registrar o critério de elegibilidade aplicado pelo parceiro.</div></div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-t">O ponto de decisão que a engenharia não pode adiar — o payload do webhook</div>
+    <p>Independentemente do cenário escolhido, há uma decisão técnica com efeito jurídico direto e imediato: <strong>o que exatamente a plataforma devolve ao parceiro na notificação de status</strong>.</p>
+    <p>“Reprovado”, “valor aprovado” e “taxa” são dados sobre a situação creditícia do titular saindo do Bradesco para outra organização. Quanto mais rico o payload, mais o desenho se aproxima de compartilhamento entre controladores — com base legal e transparência próprias — e mais difícil fica sustentar qualquer cenário de separação.</p>
+    <p><strong>Recomendação de engenharia:</strong> minimizar o payload ao mínimo operacional. O parceiro precisa saber que a operação foi concluída e se pode liberar o que depende dela; raramente precisa saber o motivo da recusa. Devolver <span class="mono">status</span> sem motivo, e oferecer o detalhe apenas ao próprio titular na jornada, mantém as três opções jurídicas abertas em vez de fechar a questão por acidente de implementação.</p>
+  </div>
+
+  <div class="callout neutral">
+    <div class="callout-t">Recomendação para levar ao Jurídico</div>
+    <p><strong>Cenário 2 como padrão contratual</strong>, com o Cenário 3 acionado por exceção nos parceiros que co-decidem critério de oferta — tipicamente os B2B2B como Cacau Show. A arquitetura já foi construída de um jeito que sustenta o Cenário 2; mudá-la depois para acomodar outra qualificação é retrabalho evitável.</p>
+    <p>Três perguntas objetivas para o fórum jurídico, que destravam o desenho: <strong>(i)</strong> o parceiro pode usar para finalidade própria o fato de o cliente ter solicitado crédito? <strong>(ii)</strong> quem responde ao titular quando o pedido chega pelo parceiro? <strong>(iii)</strong> o motivo da recusa pode ser compartilhado com o parceiro?</p>
+  </div>
+</div>
+
+<!-- ═══ GO-LIVE ═══ -->
+<div class="wrap" id="golive">
+  <div class="eyebrow">11 · Critério de Aceite</div>
+  <h2 class="sec">Checklist de go-live do primeiro parceiro</h2>
+  <p class="sec-desc">O que precisa estar pronto antes de um cliente real contratar crédito pela plataforma. Marque para acompanhar — o estado é local, apenas para uso em discussão.</p>
+
+  <div class="check" id="chk">
+    <div class="chk" onclick="toggleChk(this)"><div class="chk-box">✓</div><div class="chk-main"><div class="chk-t">Manifesto do Registry assinado e verificado no boot do Shell</div><div class="chk-d">Sem isso, a fronteira F2 permanece sem controle criptográfico algum</div></div><div class="chk-owner">SQUAD 1+4</div></div>
+    <div class="chk" onclick="toggleChk(this)"><div class="chk-box">✓</div><div class="chk-main"><div class="chk-t">Alias mutável proibido em produção — versão exata no Registry</div><div class="chk-d">Validação de schema rejeitando qualquer valor não semântico</div></div><div class="chk-owner">SQUAD 4</div></div>
+    <div class="chk" onclick="toggleChk(this)"><div class="chk-box">✓</div><div class="chk-main"><div class="chk-t">CSP completa aplicada, com <span class="mono">frame-ancestors</span> por parceiro</div><div class="chk-d">Inclui resolver os conflitos de <span class="mono">eval</span> e CSS-in-JS no build de produção</div></div><div class="chk-owner">SQUAD 4</div></div>
+    <div class="chk" onclick="toggleChk(this)"><div class="chk-box">✓</div><div class="chk-main"><div class="chk-t">Telemetria de versão de MFE por sessão</div><div class="chk-d">Pré-requisito de IR-01 — sem ela não há como determinar o alcance de um incidente</div></div><div class="chk-owner">SQUAD 4</div></div>
+    <div class="chk" onclick="toggleChk(this)"><div class="chk-box">✓</div><div class="chk-main"><div class="chk-t">SBOM e attestation de build por MFE</div><div class="chk-d">CycloneDX publicado com o artefato, SCA bloqueante para CVE crítica</div></div><div class="chk-owner">SQUAD 2+4</div></div>
+    <div class="chk" onclick="toggleChk(this)"><div class="chk-box">✓</div><div class="chk-main"><div class="chk-t">Chaves de assinatura em HSM/KMS, com rotação ensaiada</div><div class="chk-d">Inclui a segunda chave pública embarcada no Shell</div></div><div class="chk-owner">SQUAD 1</div></div>
+    <div class="chk" onclick="toggleChk(this)"><div class="chk-box">✓</div><div class="chk-main"><div class="chk-t">Tenant derivado do Service Token, nunca de header de entrada</div><div class="chk-d">Com row-level security como segunda camada — ameaça A-16</div></div><div class="chk-owner">SQUAD 1</div></div>
+    <div class="chk" onclick="toggleChk(this)"><div class="chk-box">✓</div><div class="chk-main"><div class="chk-t">Validação de <span class="mono">event.origin</span> no postMessage, com allowlist por parceiro</div><div class="chk-d">Mais validação de assinatura do UCT recebido — origem sozinha não basta</div></div><div class="chk-owner">SQUAD 4</div></div>
+    <div class="chk" onclick="toggleChk(this)"><div class="chk-box">✓</div><div class="chk-main"><div class="chk-t">Webhook ao parceiro assinado (HMAC-SHA256) com anti-replay e allowlist de destino</div><div class="chk-d">Fronteira F5 — hoje não especificada; ameaças A-19 e A-20</div></div><div class="chk-owner">SQUAD 1+3</div></div>
+    <div class="chk" onclick="toggleChk(this)"><div class="chk-box">✓</div><div class="chk-main"><div class="chk-t"><span class="mono">Idempotency-Key</span> em toda operação com efeito financeiro</div><div class="chk-d">Ponta a ponta: Shell → BFF → Core — ameaça A-21</div></div><div class="chk-owner">SQUAD 1+3</div></div>
+    <div class="chk" onclick="toggleChk(this)"><div class="chk-box">✓</div><div class="chk-main"><div class="chk-t">Redação de dado sensível em log e telemetria, verificada</div><div class="chk-d">Ameaça A-18 — a causa mais comum de incidente reportável</div></div><div class="chk-owner">SQUAD 3</div></div>
+    <div class="chk" onclick="toggleChk(this)"><div class="chk-box">✓</div><div class="chk-main"><div class="chk-t">Pentest com escopo ASVS nível 2, achados críticos tratados</div><div class="chk-d">Critério objetivo em vez de escopo aberto</div></div><div class="chk-owner">SEGURANÇA</div></div>
+    <div class="chk" onclick="toggleChk(this)"><div class="chk-box">✓</div><div class="chk-main"><div class="chk-t">RIPD concluído e papéis LGPD definidos em contrato</div><div class="chk-d">Controlador, operador ou controladoria conjunta — validado pelo Jurídico</div></div><div class="chk-owner">JURÍDICO</div></div>
+    <div class="chk" onclick="toggleChk(this)"><div class="chk-box">✓</div><div class="chk-main"><div class="chk-t">Runbooks IR-01, IR-02 e IR-03 escritos e ensaiados</div><div class="chk-d">Com autoridade de decisão nomeada para suspender um parceiro</div></div><div class="chk-owner">SEGURANÇA</div></div>
+    <div class="chk" onclick="toggleChk(this)"><div class="chk-box">✓</div><div class="chk-main"><div class="chk-t">Due diligence do parceiro âncora aprovada</div><div class="chk-d">Certificação ou questionário, SLA de notificação de incidente, direito de auditoria</div></div><div class="chk-owner">SEGURANÇA</div></div>
+    <div class="chk" onclick="toggleChk(this)"><div class="chk-box">✓</div><div class="chk-main"><div class="chk-t">DPoP avaliado — adotar agora ou registrar como dívida com prazo</div><div class="chk-d">Exigido pelo FAPI; decidir antes que a superfície de integração cresça</div></div><div class="chk-owner">SQUAD 1</div></div>
+  </div>
+
+  <div class="chk-progress">
+    <span class="chk-count" id="chk-count">0 / 16</span>
+    <div class="chk-bar"><div class="chk-fill" id="chk-fill"></div></div>
+    <span class="chk-count" id="chk-pct" style="color:var(--red-br)">0%</span>
+  </div>
+</div>
+
+<!-- ═══ RODAPÉ ═══ -->
+<div class="foot">
+  <div class="foot-in">
+    BaaS White Label · Bradesco — Arquitetura de Segurança<br>
+    Documento técnico de prototipagem · dados, parceiros e endpoints são fictícios<br>
+    Complementa: Arquitetura Frontend · Fluxo de Tokens BFF · API Flow · MFE Registry Dinâmico
+    <div class="foot-links">
+      <a href="index.html">← Voltar ao showcase</a>
+      <a href="baas-whitelabel-frontend-arch.html">Arquitetura Frontend</a>
+      <a href="bff-token-flow.html">Fluxo de Tokens</a>
+      <a href="api-flow-tokens-registry-mfe.html">API Flow</a>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── HELPERS ──────────────────────────────────────────
+function toggleCard(el) {
+  el.classList.toggle('open');
+}
+
+function toggleChk(el) {
+  el.classList.toggle('done');
+  updateProgress();
+}
+
+function updateProgress() {
+  const all = document.querySelectorAll('#chk .chk');
+  const done = document.querySelectorAll('#chk .chk.done').length;
+  const pct = Math.round((done / all.length) * 100);
+  document.getElementById('chk-count').textContent = done + ' / ' + all.length;
+  document.getElementById('chk-fill').style.width = pct + '%';
+  document.getElementById('chk-pct').textContent = pct + '%';
+}
+
+// ── INIT ─────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  updateProgress();
+});
+</script>
+
+</body>
+</html>

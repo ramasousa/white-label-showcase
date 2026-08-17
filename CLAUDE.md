@@ -54,6 +54,7 @@ sections (`#jornadas`, `#multiproduto`, `#runtime`, `#arquitetura`,
 | `bff-token-flow.html` | Detailed BFF token flow. |
 | `mfe-registry-dinamico-arquitetura.html` | Adding/removing products with zero deploy. |
 | `baas-admin-mfe-registry-v2.html` | Admin UI for the MFE registry / portfolio management. |
+| `baas-seguranca-arquitetura.html` | Security architecture: STRIDE threat model across 6 trust boundaries (21 threats), MFE supply-chain integrity, what "MFE isolation" really means, CSP/DPoP/PAR, regulatory mapping, incident runbooks, plus two structural decision sections (who builds/hosts the MFE — the Aarin scenarios; LGPD controller roles) and a go-live checklist. Uses the **Velo design system** palette (cream/ink), not the dark BaaS one. |
 | `baas-execution-roadmap.html` | Execution roadmap: squads, phases (each with its own color tokens). |
 
 ### Strategy
@@ -162,3 +163,24 @@ check both the page itself and its entry point in `index.html`.
 - Do not open a pull request unless the user explicitly asks for one.
 - Because files are large and single-purpose, prefer **targeted edits** over
   rewriting a whole file — a full rewrite loses hand-tuned spacing and copy.
+
+### Always report delivery status (required)
+The user asked to be told this every time, unprompted. At the end of any change,
+state plainly:
+
+1. **Where the work is** — which branch, and **whether it reached `main`**. Say
+   "not on `main` yet" explicitly; never let a feature branch be mistaken for
+   something that is live. If a PR exists, give its number and its real state
+   (open / merged / closed **without** merge).
+2. **How to test it right now** — these pages are standalone HTML, so a change
+   is testable the moment it is pushed: no merge, no build, no server. Give the
+   concrete route: the file sent directly in chat, `git fetch origin <branch>`
+   then opening it over `file://`, or the file on the branch in GitHub.
+
+**GitHub Pages is live for this repository and serves `main`.** So a change on a
+feature branch is testable immediately by the routes above, but the published
+site only reflects it **after the merge** — always make that distinction
+explicit rather than letting "it's done" imply "it's online".
+
+Re-send the file in chat whenever it changed meaningfully since the last send,
+so the user is never testing a stale copy.
