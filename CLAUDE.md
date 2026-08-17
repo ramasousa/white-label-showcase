@@ -163,3 +163,21 @@ check both the page itself and its entry point in `index.html`.
 - Do not open a pull request unless the user explicitly asks for one.
 - Because files are large and single-purpose, prefer **targeted edits** over
   rewriting a whole file — a full rewrite loses hand-tuned spacing and copy.
+
+### Always report delivery status (required)
+The user asked to be told this every time, unprompted. At the end of any change,
+state plainly:
+
+1. **Where the work is** — which branch, and **whether it reached `main`**. Say
+   "not on `main` yet" explicitly; never let a feature branch be mistaken for
+   something that is live. If a PR exists, give its number and its real state
+   (open / merged / closed **without** merge).
+2. **How to test it right now** — these pages are standalone HTML, so a change
+   is testable the moment it is pushed: no merge, no build, no server. Give the
+   concrete route: the file sent directly in chat, `git fetch origin <branch>`
+   then opening it over `file://`, or the file on the branch in GitHub. If the
+   repo serves GitHub Pages from `main`, note that the published URL only
+   reflects the change after a merge.
+
+Re-send the file in chat whenever it changed meaningfully since the last send,
+so the user is never testing a stale copy.
