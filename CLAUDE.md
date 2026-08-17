@@ -54,6 +54,7 @@ sections (`#jornadas`, `#multiproduto`, `#runtime`, `#arquitetura`,
 | `bff-token-flow.html` | Detailed BFF token flow. |
 | `mfe-registry-dinamico-arquitetura.html` | Adding/removing products with zero deploy. |
 | `baas-admin-mfe-registry-v2.html` | Admin UI for the MFE registry / portfolio management. |
+| `baas-seguranca-arquitetura.html` | Security architecture: STRIDE threat model across 6 trust boundaries (21 threats), MFE supply-chain integrity, what "MFE isolation" really means, CSP/DPoP/PAR, regulatory mapping, incident runbooks, go-live checklist. Uses the **Velo design system** palette (cream/ink), not the dark BaaS one. |
 | `baas-execution-roadmap.html` | Execution roadmap: squads, phases (each with its own color tokens). |
 
 ### Strategy
