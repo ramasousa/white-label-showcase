@@ -175,9 +175,12 @@ state plainly:
 2. **How to test it right now** — these pages are standalone HTML, so a change
    is testable the moment it is pushed: no merge, no build, no server. Give the
    concrete route: the file sent directly in chat, `git fetch origin <branch>`
-   then opening it over `file://`, or the file on the branch in GitHub. If the
-   repo serves GitHub Pages from `main`, note that the published URL only
-   reflects the change after a merge.
+   then opening it over `file://`, or the file on the branch in GitHub.
+
+**GitHub Pages is live for this repository and serves `main`.** So a change on a
+feature branch is testable immediately by the routes above, but the published
+site only reflects it **after the merge** — always make that distinction
+explicit rather than letting "it's done" imply "it's online".
 
 Re-send the file in chat whenever it changed meaningfully since the last send,
 so the user is never testing a stale copy.
