@@ -249,8 +249,8 @@ h3.sub{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;letter-spaci
     <div class="tb-track">
       <div class="tb">
         <div class="tb-id">T-01</div>
-        <div><div class="tb-name">O parceiro autentica; o Bradesco autoriza</div><div class="tb-what">O parceiro nunca emite credencial de acesso a dado bancário — só apresenta identidade, que é trocada por UCT no Token Exchange</div></div>
-        <div class="tb-arrow"><span class="badge badge-green">sustentado</span></div>
+        <div><div class="tb-name">O parceiro autentica; o Bradesco autoriza <span class="mono" style="font-size:9.5px;color:var(--ink-4)">· só no modelo federado</span></div><div class="tb-what">O parceiro nunca emite credencial de acesso a dado bancário — só apresenta identidade, trocada por UCT. <strong>No modelo standalone esta tese não vale</strong>: quem autentica é o Bradesco</div></div>
+        <div class="tb-arrow"><span class="badge badge-amber">condicionado</span></div>
       </div>
       <div class="tb">
         <div class="tb-id">T-02</div>
@@ -286,6 +286,12 @@ h3.sub{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;letter-spaci
   <div class="eyebrow">02 · Modelo de Confiança</div>
   <h2 class="sec">Seis fronteiras — e o que atravessa cada uma</h2>
   <p class="sec-desc">Segurança em arquitetura distribuída se raciocina por fronteira, não por componente. Cada fronteira abaixo é um ponto onde dado ou credencial muda de domínio de controle. Quem está de cada lado, o que atravessa, e qual a premissa de confiança — clicar expande.</p>
+
+  <div class="callout warn">
+    <div class="callout-t">Escopo deste modelo — vale para o cenário federado</div>
+    <p>As fronteiras abaixo assumem que <strong>o parceiro autentica o próprio cliente</strong> e repassa identidade por Token Exchange. No modelo <strong>standalone</strong> — em que o Bradesco é o Identity Provider, para parceiros sem área de tecnologia — a fronteira F1 deixa de ser um canal de runtime e vira fronteira de provisionamento, e surgem seis ameaças que não existem aqui: credential stuffing, tomada de conta por recuperação de senha, phishing de domínio, enumeração de base, conta órfã e carga de elegíveis adulterada.</p>
+    <p>Esse cenário está modelado em <a href="baas-modelos-identidade.html" style="color:var(--red);font-weight:600">Modelos de Identidade</a>, com a matriz de responsabilidade do ciclo de vida do usuário.</p>
+  </div>
 
   <div class="cards">
 
@@ -1508,6 +1514,7 @@ h3.sub{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;letter-spaci
       <a href="baas-whitelabel-frontend-arch.html">Arquitetura Frontend</a>
       <a href="bff-token-flow.html">Fluxo de Tokens</a>
       <a href="api-flow-tokens-registry-mfe.html">API Flow</a>
+      <a href="baas-modelos-identidade.html">Modelos de Identidade</a>
     </div>
   </div>
 </div>

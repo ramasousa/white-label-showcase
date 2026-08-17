@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BaaS White Label · Modelos de Identidade — Federado, Standalone e Híbrido</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --cream:#f5f2ec;--cream-2:#ebe6dc;--cream-3:#dcd6c8;--white:#ffffff;
+  --ink:#0b1219;--ink-deep:#070c11;--ink-2:#243444;--ink-3:#5c7082;--ink-4:#98a8b6;
+
+  --red:#bf1e2d;--red-br:#ff4757;--red-soft:rgba(191,30,45,.08);--red-line:rgba(191,30,45,.22);
+
+  --green:#4fc79a;--green-d:#1d8f66;--green-s:rgba(79,199,154,.12);
+  --amber:#e0a95f;--amber-d:#b57320;--amber-s:rgba(224,169,95,.12);
+  --blue:#5b9dd9;--blue-d:#2c6ba8;--blue-s:rgba(91,157,217,.12);
+
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+html{scroll-behavior:smooth}
+body{background:var(--cream);color:var(--ink-2);font-family:'Inter',sans-serif;font-size:15px;line-height:1.68;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+
+/* ═══ BASE ═══ */
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--red);display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.eyebrow::before{content:'';display:block;width:14px;height:1px;background:var(--red)}
+.eyebrow.on-dark{color:var(--red-br)}
+.eyebrow.on-dark::before{background:var(--red-br)}
+
+.noise{position:absolute;inset:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E")}
+.glow{position:absolute;border-radius:50%;pointer-events:none;background:radial-gradient(ellipse,rgba(191,30,45,.16) 0%,transparent 70%)}
+
+.badge,.flag{display:inline-flex;align-items:center;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.badge-green{background:var(--green-s);color:var(--green-d);border:1px solid rgba(79,199,154,.3)}
+.badge-amber{background:var(--amber-s);color:var(--amber-d);border:1px solid rgba(224,169,95,.3)}
+.badge-gray{background:var(--cream-2);color:var(--ink-4);border:1px solid var(--cream-3)}
+.badge-blue{background:var(--blue-s);color:var(--blue-d);border:1px solid rgba(91,157,217,.25)}
+.flag{background:var(--red-soft);color:var(--red);border:1px solid var(--red-line)}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* ═══ NAV ═══ */
+.nav{position:sticky;top:0;z-index:600;background:rgba(11,18,25,.93);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.07);padding:11px 40px;display:flex;align-items:center;gap:26px}
+.nav-mark{font-family:'Syne',sans-serif;font-weight:800;font-size:12.5px;letter-spacing:-.02em;color:var(--cream);flex-shrink:0}
+.nav-links{display:flex;gap:19px;flex:1;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-link{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-4);white-space:nowrap;transition:color .25s var(--ease)}
+.nav-link:hover{color:var(--red-br)}
+
+/* ═══ HERO ═══ */
+.hero{background:var(--ink);position:relative;overflow:hidden;padding:76px 40px 66px}
+.hero-in{max-width:1080px;margin:0 auto;position:relative;z-index:2}
+.hero .glow{width:620px;height:620px;top:-260px;right:-160px}
+.hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(32px,5vw,54px);letter-spacing:-.045em;line-height:1.04;color:var(--cream);margin-bottom:20px;max-width:850px}
+.hero h1 em{font-style:normal;color:var(--red-br)}
+.hero-sub{font-size:16px;font-weight:300;color:var(--ink-4);line-height:1.72;max-width:680px;margin-bottom:34px}
+.hero-tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:30px}
+.hero-tags .badge{background:rgba(255,255,255,.05);color:var(--ink-4);border:1px solid rgba(255,255,255,.1)}
+.hero-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:28px;padding-top:32px;border-top:1px solid rgba(255,255,255,.09)}
+.kpi-v{font-family:'Syne',sans-serif;font-weight:800;font-size:38px;letter-spacing:-.05em;line-height:1;color:var(--cream)}
+.kpi-l{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-4);margin-top:8px}
+
+/* ═══ BANDA ESCURA ═══ */
+.band{background:var(--ink-deep);position:relative;padding:64px 40px}
+.band-in{max-width:1080px;margin:0 auto;position:relative;z-index:2}
+.band h2{font-family:'Syne',sans-serif;font-weight:800;font-size:30px;letter-spacing:-.035em;color:var(--cream);margin-bottom:12px;line-height:1.14}
+.band-desc{font-size:14.5px;font-weight:300;color:var(--ink-4);max-width:680px;line-height:1.72;margin-bottom:34px}
+.gap-track{display:flex;flex-direction:column;gap:2px}
+.gapr{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;padding:15px 18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:3px;transition:background .3s var(--ease),border-color .3s var(--ease)}
+.gapr:hover{background:rgba(255,255,255,.06);border-color:rgba(255,68,87,.3)}
+.gapr-q{font-size:13.5px;color:var(--cream);font-weight:500;margin-bottom:3px}
+.gapr-w{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-4)}
+
+/* ═══ WRAP CLARO ═══ */
+.wrap{max-width:1080px;margin:0 auto;padding:64px 40px 40px}
+.wrap:last-of-type{padding-bottom:100px}
+h2.sec{font-family:'Syne',sans-serif;font-weight:800;font-size:30px;letter-spacing:-.035em;line-height:1.14;margin-bottom:12px;max-width:780px}
+.sec-desc{font-size:14.5px;color:var(--ink-3);max-width:720px;line-height:1.72;margin-bottom:34px}
+h3.sub{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;letter-spacing:-.025em;margin:38px 0 14px}
+
+.callout{border-left:3px solid var(--red);background:var(--red-soft);padding:18px 22px;margin:26px 0;border-radius:0 3px 3px 0}
+.callout-t{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--red);margin-bottom:8px}
+.callout p{font-size:14px;line-height:1.7;color:var(--ink-2)}
+.callout p+p{margin-top:10px}
+.callout.neutral{border-left-color:var(--blue-d);background:var(--blue-s)}
+.callout.neutral .callout-t{color:var(--blue-d)}
+.callout.warn{border-left-color:var(--amber-d);background:var(--amber-s)}
+.callout.warn .callout-t{color:var(--amber-d)}
+.callout.good{border-left-color:var(--green-d);background:var(--green-s)}
+.callout.good .callout-t{color:var(--green-d)}
+
+/* ═══ CARDS ═══ */
+.cards{display:grid;gap:12px}
+.cards.two{grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+.cards.three{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.card{background:var(--white);border:1px solid var(--cream-3);border-radius:4px;cursor:pointer;overflow:hidden;position:relative;transition:transform .3s var(--ease),box-shadow .3s var(--ease)}
+.card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(11,18,25,.1)}
+.card.open{box-shadow:0 0 0 2px var(--red-br),0 16px 40px rgba(11,18,25,.12)}
+.card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--cream-3)}
+.card.acc-red::after{background:var(--red)}
+.card.acc-amber::after{background:var(--amber)}
+.card.acc-green::after{background:var(--green)}
+.card.acc-blue::after{background:var(--blue)}
+.card-head{padding:20px 22px;display:flex;align-items:flex-start;gap:16px}
+.card-head-main{flex:1;min-width:0}
+.card-kicker{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-4);margin-bottom:7px}
+.card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:16.5px;letter-spacing:-.02em;line-height:1.28;margin-bottom:6px}
+.card-sub{font-size:13px;color:var(--ink-3);line-height:1.6}
+.card-side{display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex-shrink:0}
+.card-chev{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ink-4);transition:transform .35s var(--ease)}
+.card.open .card-chev{transform:rotate(90deg)}
+.card-body{max-height:0;overflow:hidden;opacity:0;transition:max-height .5s var(--ease),opacity .35s}
+.card.open .card-body{max-height:2400px;opacity:1}
+.card-body-in{padding:2px 22px 24px;border-top:1px solid var(--cream-2)}
+.card-body-in>*:first-child{margin-top:18px}
+
+.attr{display:grid;grid-template-columns:118px 1fr;gap:14px;padding:9px 0;border-bottom:1px solid var(--cream-2);font-size:13.5px;line-height:1.62}
+.attr:last-child{border-bottom:none}
+.attr-k{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);padding-top:3px}
+.attr-v{color:var(--ink-2)}
+.attr-v strong{font-weight:600}
+
+.ctrl-list{display:flex;flex-direction:column;gap:9px;margin:16px 0}
+.ctrl{display:flex;gap:11px;font-size:13.5px;line-height:1.6;align-items:flex-start}
+.ctrl-dot{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green-d);flex-shrink:0;padding-top:2px}
+.ctrl-dot.gap{color:var(--red)}
+.ctrl-dot.part{color:var(--amber-d)}
+
+/* ═══ CÓDIGO ═══ */
+.code{background:var(--ink);border-radius:4px;overflow:hidden;margin:18px 0}
+.code-bar{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02)}
+.code-lang{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-4)}
+.code-tag{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.06em;color:var(--red-br)}
+.code pre{padding:17px 18px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.75;color:#c8d4e0}
+.c-key{color:#ff8a95}.c-str{color:#8fd6a8}.c-com{color:#4d6376;font-style:italic}.c-fn{color:#7fb8e8}.c-num{color:#e0a95f}.c-warn{color:#ff4757}
+
+/* ═══ MATRIZ DE RESPONSABILIDADE ═══ */
+.raci{display:grid;gap:2px;margin:22px 0}
+.rc-row{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:2px}
+.rc-c{background:var(--white);border:1px solid var(--cream-3);padding:13px 15px;font-size:12.5px;line-height:1.55}
+.rc-row.head .rc-c{background:var(--ink);color:var(--cream);border-color:var(--ink);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.11em;text-transform:uppercase}
+.rc-c.stage{font-weight:500;color:var(--ink-2)}
+.rc-c.stage small{display:block;font-weight:400;font-size:11.5px;color:var(--ink-3);margin-top:3px;line-height:1.5}
+.rc-who{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.04em;display:block;margin-bottom:4px}
+.rc-who.p{color:var(--blue-d)}
+.rc-who.b{color:var(--red)}
+.rc-who.both{color:var(--amber-d)}
+.rc-who.none{color:var(--ink-4)}
+.rc-note{color:var(--ink-3);font-size:11.5px;line-height:1.5}
+.rc-note strong{color:var(--ink-2);font-weight:600}
+
+/* ═══ MATRIZ COMPARATIVA GENÉRICA ═══ */
+.matrix{display:grid;gap:2px;margin:22px 0}
+.mx-row{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;gap:2px}
+.mx-c{background:var(--white);border:1px solid var(--cream-3);padding:13px 15px;font-size:12.5px;line-height:1.55}
+.mx-row.head .mx-c{background:var(--ink);color:var(--cream);border-color:var(--ink);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.11em;text-transform:uppercase}
+.mx-c.lbl{font-weight:500;color:var(--ink-2)}
+.mx-v{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.04em;display:block;margin-bottom:4px}
+.mx-v.yes{color:var(--green-d)}.mx-v.no{color:var(--red)}.mx-v.part{color:var(--amber-d)}
+.mx-note{color:var(--ink-3);font-size:11.5px;line-height:1.5}
+
+/* ═══ RODAPÉ ═══ */
+.foot{border-top:1px solid var(--cream-3);padding:34px 40px 60px;max-width:1080px;margin:0 auto}
+.foot-in{font-family:'JetBrains Mono',monospace;font-size:10.5px;line-height:1.9;color:var(--ink-4);letter-spacing:.03em}
+.foot-links{display:flex;gap:18px;flex-wrap:wrap;margin-top:16px}
+.foot-links a{color:var(--red);transition:opacity .25s var(--ease)}
+.foot-links a:hover{opacity:.6}
+
+@media (max-width:860px){
+  .nav{padding:11px 20px;gap:16px}
+  .hero{padding:52px 24px 46px}
+  .band,.wrap{padding-left:24px;padding-right:24px}
+  .wrap{padding-top:48px}
+  .cards.two,.cards.three{grid-template-columns:1fr}
+  .mx-row,.rc-row{grid-template-columns:1fr}
+  .mx-row.head,.rc-row.head{display:none}
+  .attr{grid-template-columns:1fr;gap:3px}
+  .gapr{grid-template-columns:1fr}
+  .foot{padding:30px 24px 50px}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<nav class="nav">
+  <div class="nav-mark">BaaS · Identidade</div>
+  <div class="nav-links">
+    <a class="nav-link" href="#problema">O problema</a>
+    <a class="nav-link" href="#modelos">Modelos</a>
+    <a class="nav-link" href="#dinamica">Quem faz o quê</a>
+    <a class="nav-link" href="#marca">Marca</a>
+    <a class="nav-link" href="#tecnico">O que muda</a>
+    <a class="nav-link" href="#ameacas">Ameaças novas</a>
+    <a class="nav-link" href="#responsabilidade">Fraude &amp; LGPD</a>
+    <a class="nav-link" href="#decisao">Critério</a>
+    <a class="nav-link" href="#abertas">A decidir</a>
+  </div>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<div class="hero">
+  <div class="noise"></div>
+  <div class="glow"></div>
+  <div class="hero-in">
+    <div class="eyebrow on-dark">Modelos de Identidade · Federado · Standalone · Híbrido</div>
+    <h1>Quando o login é <em>nosso</em>, quase tudo o que está documentado muda.</h1>
+    <p class="hero-sub">Toda a arquitetura do white label foi escrita assumindo que o parceiro autentica o próprio cliente. Para o parceiro sem área de tecnologia, essa premissa cai — e com ela caem o Token Exchange, a fronteira de confiança principal e boa parte da divisão de responsabilidades. Este documento descreve os dois modelos lado a lado e resolve a pergunta que trava as reuniões: quem faz o quê.</p>
+    <div class="hero-tags">
+      <span class="badge">Ciclo de vida do usuário</span>
+      <span class="badge">Matriz de responsabilidade</span>
+      <span class="badge">Marca &amp; antiphishing</span>
+      <span class="badge">Fraude · LGPD · Bacen</span>
+    </div>
+    <div class="hero-kpis">
+      <div><div class="kpi-v">3</div><div class="kpi-l">Modelos de identidade</div></div>
+      <div><div class="kpi-v">9</div><div class="kpi-l">Etapas do ciclo de vida</div></div>
+      <div><div class="kpi-v" style="color:var(--red-br)">6</div><div class="kpi-l">Ameaças só do standalone</div></div>
+      <div><div class="kpi-v">7</div><div class="kpi-l">Decisões em aberto</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ O PROBLEMA ═══ -->
+<div class="band" id="problema">
+  <div class="noise"></div>
+  <div class="band-in">
+    <div class="eyebrow on-dark">01 · Diagnóstico</div>
+    <h2>Por que a discussão trava sempre no mesmo ponto</h2>
+    <p class="band-desc">O showcase mostra a <em>tela</em> de login do modo Standalone em dois demos animados. O que ele não responde é o que qualquer pessoa pergunta trinta segundos depois de ver a tela. Nenhuma das perguntas abaixo tem resposta em qualquer artefato do repositório hoje.</p>
+
+    <div class="gap-track">
+      <div class="gapr">
+        <div><div class="gapr-q">Quem cadastra o cliente do parceiro na plataforma?</div><div class="gapr-w">A base vem de onde? O parceiro envia? O cliente se cadastra sozinho?</div></div>
+        <div><span class="flag">sem resposta</span></div>
+      </div>
+      <div class="gapr">
+        <div><div class="gapr-q">Como é o primeiro acesso?</div><div class="gapr-w">Quem define a senha, por qual canal, com qual prova de identidade</div></div>
+        <div><span class="flag">sem resposta</span></div>
+      </div>
+      <div class="gapr">
+        <div><div class="gapr-q">O cliente esqueceu a senha — ele liga para quem?</div><div class="gapr-w">O parceiro não tem acesso ao IdP; o cliente não sabe que o Bradesco existe</div></div>
+        <div><span class="flag">sem resposta</span></div>
+      </div>
+      <div class="gapr">
+        <div><div class="gapr-q">De quem é a tela, o e-mail e o domínio?</div><div class="gapr-w">O cliente digita a senha em qual endereço, e confia por quê</div></div>
+        <div><span class="flag">sem resposta</span></div>
+      </div>
+      <div class="gapr">
+        <div><div class="gapr-q">O cliente deixou de ser cliente do parceiro. E a conta?</div><div class="gapr-w">Quem avisa a plataforma — e o que acontece se ninguém avisar</div></div>
+        <div><span class="flag">sem resposta</span></div>
+      </div>
+      <div class="gapr">
+        <div><div class="gapr-q">Houve tomada de conta e saiu crédito. Quem responde?</div><div class="gapr-w">Quem autenticou foi o Bradesco, mas o cliente é do parceiro</div></div>
+        <div><span class="flag">sem resposta</span></div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:34px;border-left-color:var(--red-br);background:rgba(255,71,87,.08)">
+      <div class="callout-t" style="color:var(--red-br)">Correção necessária na documentação atual</div>
+      <p style="color:var(--cream)">O documento de arquitetura de segurança abre com a tese <strong>T-01 — “o parceiro autentica; o Bradesco autoriza”</strong>, apresentada como princípio universal da plataforma. <strong>Ela não vale no modo Standalone.</strong> Da mesma forma, a fronteira F1 (parceiro → Shell) deixa de existir em runtime, e o Token Exchange sai do fluxo do usuário.</p>
+      <p style="color:var(--ink-4)">Os documentos <span class="mono">baas-whitelabel-frontend-arch</span>, <span class="mono">bff-token-flow</span> e <span class="mono">baas-seguranca-arquitetura</span> não mencionam standalone uma única vez. Descrevem um modelo como se fosse o único — e é daí que vem a confusão.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ OS MODELOS ═══ -->
+<div class="wrap" id="modelos">
+  <div class="eyebrow">02 · Os Modelos</div>
+  <h2 class="sec">Federado, Standalone e Híbrido</h2>
+  <p class="sec-desc">A diferença entre eles não é de tecnologia de tela — é de <strong>quem guarda a credencial do cliente</strong>. Todo o resto decorre disso.</p>
+
+  <div class="cards">
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Modelo A · Federado</div>
+          <div class="card-title">O parceiro é o Identity Provider</div>
+          <div class="card-sub">O cliente já está logado no ambiente do parceiro. O Shell nunca exibe tela de login e nunca vê uma senha.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-green">menor risco</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Exige do parceiro</div><div class="attr-v">IdP próprio, capacidade de desenvolvimento para integrar OAuth2 e operar o Token Exchange server-side</div></div>
+        <div class="attr"><div class="attr-k">Quem guarda a senha</div><div class="attr-v">O parceiro. O Bradesco <strong>nunca</strong> vê credencial do cliente final.</div></div>
+        <div class="attr"><div class="attr-k">É o modelo de</div><div class="attr-v">Cacau Show (franqueado já logado no portal), e de qualquer parceiro com portal próprio maduro</div></div>
+        <div class="attr"><div class="attr-k">Ganho</div><div class="attr-v">Superfície de ataque menor, sem custo de suporte de senha, sem responsabilidade sobre credencial de terceiro. É o modelo que a documentação descreve hoje.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Modelo B · Standalone — o “white label full”</div>
+          <div class="card-title">O Bradesco é o Identity Provider</div>
+          <div class="card-sub">O parceiro não tem tecnologia. A plataforma entrega o produto inteiro, login incluído, com a marca dele.</div>
+        </div>
+        <div class="card-side"><span class="flag">maior responsabilidade</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Exige do parceiro</div><div class="attr-v">Praticamente nada de tecnologia — apenas a base de clientes elegíveis e um canal de atendimento. <strong>É esse o ponto do modelo.</strong></div></div>
+        <div class="attr"><div class="attr-k">Quem guarda a senha</div><div class="attr-v">O Bradesco. Passa a existir credencial de cliente que não é cliente do banco, sob guarda do banco.</div></div>
+        <div class="attr"><div class="attr-k">Por que importa comercialmente</div><div class="attr-v">É o modelo que abre o mercado de parceiros <strong>sem área de TI</strong> — que é a maioria. Sem ele, o white label só atende quem já tem plataforma digital, e o alcance comercial fica limitado aos grandes.</div></div>
+        <div class="attr"><div class="attr-k">O que ele custa</div><div class="attr-v">Não é custo de desenvolvimento — é custo <strong>operacional e de risco</strong>: suporte de senha, prevenção a fraude, tomada de conta, retenção de log e responsabilidade regulatória sobre identidade.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Modelo C · Híbrido</div>
+          <div class="card-title">Os dois convivendo — provavelmente a realidade</div>
+          <div class="card-sub">Parceiros diferentes em modelos diferentes, e às vezes o mesmo parceiro nos dois.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">planejar desde já</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Caso comum</div><div class="attr-v">A Vivo federa os próprios funcionários (têm SSO corporativo) e usa standalone para os clientes PJ dela, que não têm acesso ao SSO</div></div>
+        <div class="attr"><div class="attr-k">Consequência</div><div class="attr-v">O modelo de identidade é atributo <strong>do público dentro do parceiro</strong>, não do parceiro. O <span class="mono">PartnerConfig</span> precisa comportar mais de um modo por parceiro desde o início.</div></div>
+        <div class="attr"><div class="attr-k">Armadilha</div><div class="attr-v">Tratar o modelo como campo único por parceiro (<span class="mono">authMode: "federated"</span>) funciona no piloto e vira migração dolorosa no segundo ano. É barato modelar como lista agora.</div></div>
+        <div class="attr"><div class="attr-k">Caminho de evolução</div><div class="attr-v">Um parceiro que entra standalone e depois constrói o próprio IdP precisa migrar usuários sem forçar recadastro — o que exige planejar a portabilidade de identidade antes do primeiro go-live, não depois.</div></div>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DINÂMICA ═══ -->
+<div class="wrap" id="dinamica">
+  <div class="eyebrow">03 · O Núcleo</div>
+  <h2 class="sec">Quem faz o quê — o ciclo de vida do usuário</h2>
+  <p class="sec-desc">Esta é a tabela que resolve a reunião. Nove etapas, da entrada do cliente na base até a saída dele. Onde diz <strong style="color:var(--red)">Bradesco</strong>, existe custo operacional e responsabilidade que hoje não estão dimensionados em nenhum plano.</p>
+
+  <div class="raci">
+    <div class="rc-row head">
+      <div class="rc-c">Etapa</div>
+      <div class="rc-c">Federado</div>
+      <div class="rc-c">Standalone</div>
+    </div>
+
+    <div class="rc-row">
+      <div class="rc-c stage">1 · Quem pode acessar<small>A origem da lista de elegíveis</small></div>
+      <div class="rc-c"><span class="rc-who p">parceiro</span><span class="rc-note">Quem está no IdP dele acessa. A plataforma não mantém lista.</span></div>
+      <div class="rc-c"><span class="rc-who both">parceiro envia · Bradesco guarda</span><span class="rc-note"><strong>Precisa de uma fonte.</strong> Carga de base por API ou convite individual. Autocadastro aberto não cabe em crédito.</span></div>
+    </div>
+
+    <div class="rc-row">
+      <div class="rc-c stage">2 · Primeiro acesso<small>Como o usuário passa a ter senha</small></div>
+      <div class="rc-c"><span class="rc-who none">não se aplica</span><span class="rc-note">Não há senha na plataforma.</span></div>
+      <div class="rc-c"><span class="rc-who b">Bradesco</span><span class="rc-note">Link ou código de validade curta por e-mail/SMS. <strong>Depende da qualidade do contato na base do parceiro</strong> — contato desatualizado entrega a conta a quem controla o canal antigo.</span></div>
+    </div>
+
+    <div class="rc-row">
+      <div class="rc-c stage">3 · Login recorrente<small>O acesso do dia a dia</small></div>
+      <div class="rc-c"><span class="rc-who p">parceiro</span><span class="rc-note">Sessão do parceiro vira UCT por Token Exchange.</span></div>
+      <div class="rc-c"><span class="rc-who b">Bradesco</span><span class="rc-note">Senha + MFA no IdP da plataforma, sob a marca do parceiro.</span></div>
+    </div>
+
+    <div class="rc-row">
+      <div class="rc-c stage">4 · Segundo fator<small>Qual fator, e quem o opera</small></div>
+      <div class="rc-c"><span class="rc-who p">parceiro</span><span class="rc-note">A plataforma pode <em>exigir</em> nível mínimo via claim de autenticação, mas não executa o MFA.</span></div>
+      <div class="rc-c"><span class="rc-who b">Bradesco</span><span class="rc-note">Custo por SMS, base de dispositivos, suporte a troca de número. <strong>SMS sozinho é frágil</strong> para operação de crédito — SIM swap é vetor conhecido.</span></div>
+    </div>
+
+    <div class="rc-row">
+      <div class="rc-c stage">5 · Recuperação de senha<small>O vetor mais explorado de todos</small></div>
+      <div class="rc-c"><span class="rc-who p">parceiro</span><span class="rc-note">Fluxo inteiro fora da plataforma.</span></div>
+      <div class="rc-c"><span class="rc-who b">Bradesco</span><span class="rc-note">Quem envia o e-mail, de qual domínio, com qual marca — e o que fazer quando o contato mudou. <strong>Recuperação é onde a maioria das tomadas de conta acontece.</strong></span></div>
+    </div>
+
+    <div class="rc-row">
+      <div class="rc-c stage">6 · Bloqueio por tentativa<small>Proteção contra força bruta</small></div>
+      <div class="rc-c"><span class="rc-who p">parceiro</span><span class="rc-note">—</span></div>
+      <div class="rc-c"><span class="rc-who b">Bradesco</span><span class="rc-note">Rate limit por identidade e por origem, proteção contra credential stuffing, e um caminho de desbloqueio que não vire porta dos fundos.</span></div>
+    </div>
+
+    <div class="rc-row">
+      <div class="rc-c stage">7 · Suporte nível 1<small>Para quem o cliente liga</small></div>
+      <div class="rc-c"><span class="rc-who p">parceiro</span><span class="rc-note">Problema de acesso é do mundo dele; resolve sem envolver a plataforma.</span></div>
+      <div class="rc-c"><span class="rc-who both">parceiro atende · Bradesco resolve</span><span class="rc-note"><strong>O ponto mais subestimado.</strong> O cliente liga para a marca que conhece — o parceiro — que não tem como resolver nada. Sem um console de administração, cada senha esquecida vira escalonamento.</span></div>
+    </div>
+
+    <div class="rc-row">
+      <div class="rc-c stage">8 · Fim do relacionamento<small>Cliente sai do parceiro</small></div>
+      <div class="rc-c"><span class="rc-who p">parceiro</span><span class="rc-note">Automático: ele para de autenticar e o acesso morre junto.</span></div>
+      <div class="rc-c"><span class="rc-who both">parceiro avisa · Bradesco revoga</span><span class="rc-note"><strong>Não é automático.</strong> Sem evento de saída, sobra conta ativa com acesso a crédito de alguém que não é mais cliente do parceiro. Precisa de API de offboarding e de reconciliação periódica da base.</span></div>
+    </div>
+
+    <div class="rc-row">
+      <div class="rc-c stage">9 · Trilha de auditoria<small>Quem entrou, quando, de onde</small></div>
+      <div class="rc-c"><span class="rc-who both">dividida</span><span class="rc-note">Autenticação fica com o parceiro; autorização e operação, com a plataforma. Investigar exige os dois lados.</span></div>
+      <div class="rc-c"><span class="rc-who b">Bradesco</span><span class="rc-note">Trilha completa em um só lugar — vantagem real para investigação. Com retenção de logs de autenticação exigida pela regulação.</span></div>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-t">A conclusão que a tabela entrega</div>
+    <p>Das nove etapas, o modo Standalone coloca <strong>seis inteiramente no Bradesco</strong> e três em responsabilidade compartilhada. No Federado, sete são do parceiro.</p>
+    <p>O modelo Standalone não é “o mesmo produto com uma tela a mais”. É <strong>um produto operacionalmente diferente</strong>, que precisa de equipe de suporte, política de fraude, console de administração para o parceiro e cláusulas contratuais próprias. Tratá-lo como variação de configuração é a origem da dúvida — e seria a origem do problema em produção.</p>
+  </div>
+
+  <h3 class="sub">O console do parceiro — o item que falta no roadmap</h3>
+  <p style="font-size:14.5px;color:var(--ink-3);margin-bottom:6px">A etapa 7 só se resolve com uma ferramenta que hoje não existe em nenhum artefato: um painel onde o atendente do parceiro consegue agir sem depender do Bradesco.</p>
+  <div class="ctrl-list">
+    <div class="ctrl"><span class="ctrl-dot">→</span><span>Consultar se o usuário existe, se está ativo, bloqueado ou nunca fez o primeiro acesso</span></div>
+    <div class="ctrl"><span class="ctrl-dot">→</span><span>Reenviar convite de primeiro acesso e disparar recuperação de senha</span></div>
+    <div class="ctrl"><span class="ctrl-dot">→</span><span>Desbloquear após excesso de tentativas, com registro de quem desbloqueou</span></div>
+    <div class="ctrl"><span class="ctrl-dot">→</span><span>Atualizar e-mail e telefone — <strong>com verificação do novo canal</strong>, porque senão isso vira o caminho mais curto para tomada de conta</span></div>
+    <div class="ctrl"><span class="ctrl-dot gap">✕</span><span><strong>Sem</strong> acesso a dado de crédito, limite, proposta ou histórico financeiro — o atendente do parceiro resolve identidade, não vê a operação</span></div>
+  </div>
+</div>
+
+<!-- ═══ MARCA ═══ -->
+<div class="wrap" id="marca">
+  <div class="eyebrow">04 · Marca &amp; Experiência</div>
+  <h2 class="sec">De quem é a tela onde o cliente digita a senha</h2>
+  <p class="sec-desc">Parece questão de design. É questão de segurança: o cliente precisa de uma âncora estável para saber que está no lugar certo, e essa âncora é o domínio.</p>
+
+  <div class="matrix">
+    <div class="mx-row head">
+      <div class="mx-c">Critério</div>
+      <div class="mx-c">Domínio do parceiro<br><span style="text-transform:none">credito.vivo.com.br</span></div>
+      <div class="mx-c">Subdomínio padronizado<br><span style="text-transform:none">vivo.baas.bradesco.com.br</span></div>
+      <div class="mx-c">Domínio do banco<br><span style="text-transform:none">bradesco.com.br/vivo</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Percepção de white label</div>
+      <div class="mx-c"><span class="mx-v yes">✓ total</span><span class="mx-note">O cliente não percebe o banco</span></div>
+      <div class="mx-c"><span class="mx-v part">~ parcial</span><span class="mx-note">Marca do parceiro na tela, banco visível na barra de endereço</span></div>
+      <div class="mx-c"><span class="mx-v no">✕ quebrada</span><span class="mx-note">Deixa de ser white label</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Âncora antiphishing</div>
+      <div class="mx-c"><span class="mx-v no">✕ frágil</span><span class="mx-note">Domínio diferente por parceiro — nenhum padrão para o cliente reconhecer, e qualquer clone parece igualmente legítimo</span></div>
+      <div class="mx-c"><span class="mx-v yes">✓ forte</span><span class="mx-note">Sufixo estável e verificável em todos os parceiros</span></div>
+      <div class="mx-c"><span class="mx-v yes">✓ forte</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Operação de certificado e DNS</div>
+      <div class="mx-c"><span class="mx-v no">✕ do parceiro</span><span class="mx-note">Certificado expirado do lado dele derruba o login — e o parceiro é justamente quem não tem TI</span></div>
+      <div class="mx-c"><span class="mx-v yes">✓ do Bradesco</span><span class="mx-note">Emissão e renovação automatizadas</span></div>
+      <div class="mx-c"><span class="mx-v yes">✓ do Bradesco</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Transparência ao titular</div>
+      <div class="mx-c"><span class="mx-v no">✕ problemática</span><span class="mx-note">O cliente entrega credencial ao banco sem saber</span></div>
+      <div class="mx-c"><span class="mx-v yes">✓ resolvida</span><span class="mx-note">Visível no domínio e no aviso de rodapé</span></div>
+      <div class="mx-c"><span class="mx-v yes">✓ resolvida</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Veredito</div>
+      <div class="mx-c"><span class="mx-v no">Evitar</span><span class="mx-note">Melhor experiência, pior segurança e operação</span></div>
+      <div class="mx-c"><span class="mx-v yes">Recomendado</span><span class="mx-note">É o que os demos já sugerem com “autenticado por Bradesco BaaS”</span></div>
+      <div class="mx-c"><span class="mx-v part">Só sob exigência</span></div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-t">O argumento decisivo</div>
+    <p>Se cada parceiro tiver o próprio domínio de login, o banco estará <strong>treinando clientes a digitar senha em endereços que mudam a cada parceiro</strong>. É exatamente o hábito que campanhas de phishing exploram — e, num incidente, a defesa “o cliente devia ter conferido o endereço” não se sustenta quando não existia endereço padrão para conferir.</p>
+    <p>Um sufixo único e estável em todos os parceiros dá ao cliente algo verificável, e ao time de fraude um padrão para monitorar registros de domínio parecidos.</p>
+  </div>
+
+  <h3 class="sub">E-mail, SMS e os outros canais</h3>
+  <div class="cards two">
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">E-mail transacional</div>
+          <div class="card-title">Convite, recuperação e alertas</div>
+          <div class="card-sub">O e-mail de recuperação é o alvo preferido de quem quer tomar a conta.</div>
+        </div>
+        <div class="card-side"><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Recomendação</div><div class="attr-v">Enviar de domínio do Bradesco com identidade visual do parceiro e menção explícita à parceria. Enviar pelo domínio do parceiro exigiria delegação de SPF e DKIM — complexidade que o parceiro sem TI não sustenta, e que quebra silenciosamente.</div></div>
+        <div class="attr"><div class="attr-k">Não negociável</div><div class="attr-v">SPF, DKIM e DMARC configurados desde o primeiro envio. Domínio de banco sem DMARC é convite para falsificação — e o e-mail falsificado seria indistinguível do legítimo para o cliente.</div></div>
+        <div class="attr"><div class="attr-k">Detalhe que evita fraude</div><div class="attr-v">Toda alteração de e-mail ou telefone dispara aviso <strong>para o contato antigo</strong>, com caminho de contestação. É o controle mais barato contra tomada de conta silenciosa.</div></div>
+      </div></div>
+    </div>
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">SMS e segundo fator</div>
+          <div class="card-title">O canal mais caro e mais frágil</div>
+          <div class="card-sub">Custo por mensagem e exposição a SIM swap.</div>
+        </div>
+        <div class="card-side"><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Custo</div><div class="attr-v">SMS é custo variável por autenticação, multiplicado por todos os usuários de todos os parceiros. Entra no cálculo de viabilidade do modelo Standalone — no Federado ele simplesmente não existe.</div></div>
+        <div class="attr"><div class="attr-k">Risco</div><div class="attr-v">SIM swap contorna o SMS. Para operação de crédito, oferecer <strong>apenas</strong> SMS como segundo fator é fraco: o mesmo canal usado para recuperar a senha valida a operação.</div></div>
+        <div class="attr"><div class="attr-k">Alternativa</div><div class="attr-v">Aplicativo autenticador (TOTP) ou push como fator preferencial, com SMS como último recurso — e exigência de fator mais forte especificamente na etapa de contratação, não em todo login.</div></div>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TÉCNICO ═══ -->
+<div class="wrap" id="tecnico">
+  <div class="eyebrow">05 · Camada Técnica</div>
+  <h2 class="sec">O que muda no fluxo de tokens</h2>
+  <p class="sec-desc">Sem parceiro autenticando, não existe <span class="mono">subject_token</span> para trocar. O Token Exchange sai do caminho do usuário — e o que ele carregava precisa ser reposto por outro meio.</p>
+
+  <div class="code">
+    <div class="code-bar"><span class="code-lang">Federado · o fluxo documentado hoje</span><span class="code-tag">modelo A</span></div>
+<pre><span class="c-com">// o parceiro já autenticou; a plataforma apenas traduz identidade</span>
+POST /oauth2/token/exchange
+<span class="c-key">Authorization</span>: Bearer {PAT}                <span class="c-com">// M2M, server-side do parceiro</span>
+grant_type=…token-exchange
+&subject_token={partner_user_token}         <span class="c-com">// identidade vinda do parceiro</span>
+
+<span class="c-com">// → UCT com a cadeia de delegação registrada</span>
+{ <span class="c-key">"sub"</span>: <span class="c-str">"usr_h8x3k2p9"</span>, <span class="c-key">"exchange_chain"</span>: <span class="c-str">"pat_7f3c…"</span> }</pre>
+  </div>
+
+  <div class="code">
+    <div class="code-bar"><span class="code-lang">Standalone · o fluxo que falta documentar</span><span class="code-tag">modelo B</span></div>
+<pre><span class="c-com">// a plataforma autentica direto o cliente do parceiro</span>
+GET /oauth2/authorize
+  ?client_id=shell-vivo&amp;code_challenge=…    <span class="c-com">// PKCE obrigatório</span>
+  &amp;tenant=vivo-prod                          <span class="c-com">// tela sob a marca do parceiro</span>
+
+<span class="c-com">// senha + MFA no IdP da plataforma → code → token</span>
+POST /oauth2/token   (authorization_code + PKCE)
+
+<span class="c-com">// → UCT sem cadeia de delegação, com nível de autenticação</span>
+{
+  <span class="c-key">"sub"</span>: <span class="c-str">"usr_k2m9x4p1"</span>,
+  <span class="c-key">"partner_tenant"</span>: <span class="c-str">"vivo-prod"</span>,      <span class="c-com">// vem do cadastro, não do PAT</span>
+  <span class="c-key">"exchange_chain"</span>: <span class="c-warn">null</span>,             <span class="c-com">// ← não há delegação</span>
+  <span class="c-key">"amr"</span>: [<span class="c-str">"pwd"</span>, <span class="c-str">"otp"</span>],             <span class="c-com">// ← como foi autenticado</span>
+  <span class="c-key">"acr"</span>: <span class="c-str">"urn:baas:loa2"</span>,             <span class="c-com">// ← nível de garantia</span>
+  <span class="c-key">"auth_time"</span>: 1748299100                <span class="c-com">// ← permite exigir reautenticação</span>
+}</pre>
+  </div>
+
+  <div class="ctrl-list">
+    <div class="ctrl"><span class="ctrl-dot part">!</span><span><strong>A rastreabilidade muda de natureza.</strong> No Federado, <span class="mono">exchange_chain</span> amarra a operação ao PAT do parceiro — é assim que uma contratação contestada é atribuída. No Standalone esse claim não existe, e a prova passa a ser <span class="mono">amr</span>, <span class="mono">acr</span> e <span class="mono">auth_time</span>: <em>como</em> e <em>quando</em> aquela pessoa se autenticou. Sem esses claims, não há evidência de autoria.</span></div>
+    <div class="ctrl"><span class="ctrl-dot part">!</span><span><strong>A fronteira F1 muda de lugar.</strong> Deixa de ser um canal de runtime (postMessage, origem validada, token exchange) e vira uma fronteira de <em>provisionamento</em>: o parceiro envia base e eventos de ciclo de vida por API, fora da jornada do usuário. Continua sendo fronteira — só que assíncrona, e com ameaças diferentes.</span></div>
+    <div class="ctrl"><span class="ctrl-dot part">!</span><span><strong>Não há postMessage nem iframe.</strong> O Shell é a aplicação inteira, com domínio próprio. Some o risco de clickjacking por embed hostil, e some também a necessidade de <span class="mono">frame-ancestors</span> dinâmico — a CSP fica mais simples nesse modelo.</span></div>
+    <div class="ctrl"><span class="ctrl-dot">✓</span><span><strong>O que não muda:</strong> tudo depois do UCT. BFF, Service Token, mTLS, Core Platform, escopos, revogação, o MFE e a supply chain seguem idênticos. A diferença está inteiramente <em>antes</em> da emissão do UCT — o que é uma boa notícia de arquitetura.</span></div>
+  </div>
+</div>
+
+<!-- ═══ AMEAÇAS ═══ -->
+<div class="wrap" id="ameacas">
+  <div class="eyebrow">06 · Threat Model</div>
+  <h2 class="sec">Seis ameaças que só existem quando o login é nosso</h2>
+  <p class="sec-desc">Complementam as 21 do documento de arquitetura de segurança, que modelou apenas o cenário federado. Estas nascem da guarda de credencial e não têm equivalente no modelo A.</p>
+
+  <div class="cards">
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">B-01 · Spoofing</div>
+          <div class="card-title">Credential stuffing na base do parceiro</div>
+          <div class="card-sub">Listas de senha vazadas de outros serviços testadas em massa contra o login white label.</div>
+        </div>
+        <div class="card-side"><span class="flag">alto</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Por que aqui</div><div class="attr-v">Reúso de senha é a norma. Uma base de clientes de varejo tem taxa de reaproveitamento alta, e o atacante testa credenciais que já funcionam em outros lugares.</div></div>
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">Acesso a limite pré-aprovado de crédito — o alvo é dinheiro, não dado</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">Rate limit por identidade <strong>e</strong> por origem, detecção de padrão distribuído, bloqueio progressivo, verificação contra bases públicas de senhas vazadas no cadastro, e MFA obrigatório — que é o que efetivamente quebra o ataque</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">B-02 · Elevation of privilege</div>
+          <div class="card-title">Tomada de conta pela recuperação de senha</div>
+          <div class="card-sub">O caminho mais curto para a conta não é a senha — é o fluxo que a substitui.</div>
+        </div>
+        <div class="card-side"><span class="flag">crítico</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Vetores</div><div class="attr-v">Contato desatualizado na base enviada pelo parceiro · atendente do parceiro alterando e-mail sem verificação · engenharia social no canal de atendimento · token de recuperação com validade longa ou previsível</div></div>
+        <div class="attr"><div class="attr-k">Agravante do modelo</div><div class="attr-v">A base vem do parceiro, e <strong>a plataforma não controla a qualidade dela</strong>. Um cadastro com e-mail antigo entrega a conta a quem tiver acesso àquele endereço — sem nenhuma falha técnica do lado do banco.</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">Token de uso único e validade curta · alteração de contato exige verificação do canal novo <strong>e</strong> aviso ao antigo · trilha de quem alterou o quê no console do parceiro · reautenticação forte antes de contratar, para que a conta tomada não vire crédito automaticamente</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">B-03 · Spoofing</div>
+          <div class="card-title">Phishing com domínio white label</div>
+          <div class="card-sub">Clone da tela de login de um parceiro, com a marca dele.</div>
+        </div>
+        <div class="card-side"><span class="flag">alto</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Agravante</div><div class="attr-v">Se cada parceiro tem domínio próprio, o cliente não tem padrão para reconhecer — e o clone é tão plausível quanto o original</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">Sufixo de domínio único e estável (seção 04) · monitoramento de registro de domínios semelhantes · e-mail sempre do mesmo remetente com DMARC em <span class="mono">reject</span> · nunca pedir senha por link em comunicação transacional</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">B-04 · Information disclosure</div>
+          <div class="card-title">Enumeração de clientes do parceiro</div>
+          <div class="card-sub">Descobrir quem é cliente da Vivo testando CPFs na tela de login.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">médio</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Por que importa</div><div class="attr-v">A carteira de clientes do parceiro é informação comercial sensível — e vaza por diferença de mensagem, de status ou de tempo de resposta entre "usuário existe" e "não existe"</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">Resposta idêntica em conteúdo e em tempo para usuário existente e inexistente, em <strong>todos</strong> os fluxos — login, recuperação e primeiro acesso. É fácil acertar no login e esquecer na recuperação.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">B-05 · Elevation of privilege</div>
+          <div class="card-title">Conta órfã após o fim do relacionamento</div>
+          <div class="card-sub">O cliente saiu do parceiro e continua com acesso a crédito.</div>
+        </div>
+        <div class="card-side"><span class="flag">alto</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Origem</div><div class="attr-v">No Federado o corte é automático — sem IdP do parceiro, sem acesso. No Standalone a conta vive na plataforma e <strong>sobrevive ao fim do relacionamento comercial</strong>, salvo aviso explícito.</div></div>
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">Ex-franqueado contratando capital de giro com limite baseado em faturamento de uma loja que não é mais dele</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">API de offboarding com SLA contratual · reconciliação periódica da base ativa · suspensão automática por inatividade prolongada · e revalidação de elegibilidade no momento da contratação, não apenas no login</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">B-06 · Tampering</div>
+          <div class="card-title">Carga de base adulterada</div>
+          <div class="card-sub">O arquivo de elegíveis enviado pelo parceiro é a fonte da verdade sobre quem pode pedir crédito.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">médio</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Vetor</div><div class="attr-v">Quem conseguir inserir uma linha na carga cria um cliente elegível — com o e-mail que escolher. É cadastro de identidade por planilha.</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">Canal autenticado por mTLS com assinatura do lote · limite de variação por carga, com aprovação humana acima do limiar · trilha de quem enviou · e validação de que o CPF/CNPJ tem relação plausível com o tenant antes de virar elegível</div></div>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RESPONSABILIDADE ═══ -->
+<div class="wrap" id="responsabilidade">
+  <div class="eyebrow">07 · Responsabilidade</div>
+  <h2 class="sec">Fraude, LGPD e o que precisa estar em contrato</h2>
+  <p class="sec-desc">Guardar a credencial de um cliente que não é seu muda a posição jurídica do banco. Como na seção equivalente do documento de segurança, isto é leitura de arquitetura — não parecer.</p>
+
+  <div class="cards two">
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">LGPD</div>
+          <div class="card-title">O dado de autenticação é do banco</div>
+          <div class="card-sub">Senha, fator, dispositivo e histórico de acesso passam a ser tratados pelo Bradesco.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">definir</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">O que muda</div><div class="attr-v">No documento de segurança, a leitura recomendada é de <strong>controladores independentes em cadeia</strong>, sustentada por não haver base compartilhada. No Standalone o Bradesco decide finalidade e meios da autenticação — ele é claramente controlador <em>desse</em> tratamento, e a relação com o titular deixa de ser indireta.</div></div>
+        <div class="attr"><div class="attr-k">Consequência prática</div><div class="attr-v">O titular precisa saber, no momento do primeiro acesso, que a credencial fica sob guarda do Bradesco — o que reforça a recomendação de domínio visível da seção 04. Transparência aqui não é formalidade: é o que sustenta o enquadramento.</div></div>
+        <div class="attr"><div class="attr-k">A definir com o Jurídico</div><div class="attr-v">Base legal do tratamento de credencial · quem responde ao titular sobre dado de autenticação · retenção do histórico de acesso frente ao princípio da necessidade · e o que acontece com a identidade quando o contrato com o parceiro termina</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Fraude</div>
+          <div class="card-title">Tomada de conta virou crédito — quem paga</div>
+          <div class="card-sub">A pergunta que ninguém quer fazer antes do go-live, e que todo mundo faz depois do primeiro caso.</div>
+        </div>
+        <div class="card-side"><span class="flag">definir antes</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">O fato</div><div class="attr-v">Quem autenticou foi o Bradesco. O argumento de que “o cliente é do parceiro” não transfere a responsabilidade de um controle que o parceiro não opera nem consegue auditar.</div></div>
+        <div class="attr"><div class="attr-k">Zona cinzenta</div><div class="attr-v">Quando a causa raiz é <strong>a base do parceiro</strong> — contato desatualizado, elegível indevido, offboarding não comunicado — a falha é dele, mas o dano acontece na plataforma. Sem regra prévia, isso vira disputa caso a caso.</div></div>
+        <div class="attr"><div class="attr-k">Proposta</div><div class="attr-v">Responsabilidade atribuída <strong>pela origem da falha</strong>, com definição contratual antes do primeiro parceiro: falha de controle de autenticação é do Bradesco; qualidade e atualidade da base são do parceiro, com SLA de offboarding. E trilha suficiente para distinguir os dois casos — que é justamente o que <span class="mono">amr</span>, <span class="mono">acr</span> e o log do console do parceiro fornecem.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Bacen</div>
+          <div class="card-title">Retenção e gestão de incidente</div>
+          <div class="card-sub">Ser IdP amplia o escopo do que precisa ser guardado e reportado.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-blue">estruturante</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Retenção</div><div class="attr-v">Logs de autenticação passam a ser trilha regulatória, não log operacional — com retenção longa, acesso restrito e proteção contra alteração. Os demos já citam o prazo de cinco anos.</div></div>
+        <div class="attr"><div class="attr-k">Nota de atualização</div><div class="attr-v">Os demos referenciam a <span class="mono">Bacen 4.658</span>. A norma vigente sobre política de segurança cibernética é a <strong>Res. CMN 4.893/2021</strong>, que sucedeu a 4.658/2018 — vale alinhar a citação nos dois materiais.</div></div>
+        <div class="attr"><div class="attr-k">Incidente</div><div class="attr-v">Vazamento de credencial passa a ser cenário próprio de resposta, com comunicação a titulares de <strong>vários parceiros ao mesmo tempo</strong>. O runbook IR-01 do documento de segurança cobre MFE comprometido; este cenário precisa do seu.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-green" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Contrato</div>
+          <div class="card-title">O anexo de identidade</div>
+          <div class="card-sub">O que precisa estar escrito antes do primeiro parceiro standalone.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-green">acionável</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="ctrl-list">
+          <div class="ctrl"><span class="ctrl-dot">→</span><span>Como a base de elegíveis é enviada, com que frequência e qual o SLA de atualização</span></div>
+          <div class="ctrl"><span class="ctrl-dot">→</span><span>SLA de comunicação de offboarding — o prazo aceitável entre o cliente sair e a conta ser revogada</span></div>
+          <div class="ctrl"><span class="ctrl-dot">→</span><span>Divisão de responsabilidade por fraude, pela origem da falha</span></div>
+          <div class="ctrl"><span class="ctrl-dot">→</span><span>Papéis LGPD, incluindo o tratamento de credencial</span></div>
+          <div class="ctrl"><span class="ctrl-dot">→</span><span>Uso de marca: quem aparece na tela, no e-mail e no domínio</span></div>
+          <div class="ctrl"><span class="ctrl-dot">→</span><span>Fluxo de atendimento: o que o parceiro resolve no console e o que escala</span></div>
+          <div class="ctrl"><span class="ctrl-dot">→</span><span>Destino das identidades no encerramento do contrato</span></div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DECISÃO ═══ -->
+<div class="wrap" id="decisao">
+  <div class="eyebrow">08 · Critério</div>
+  <h2 class="sec">Quando cada modelo</h2>
+  <p class="sec-desc">A escolha não deveria ser negociada parceiro a parceiro na mesa comercial. Um critério objetivo evita que o modelo mais caro vire padrão por omissão.</p>
+
+  <div class="cards two">
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Preferir Federado</div>
+          <div class="card-title">Quando o parceiro tem IdP e time</div>
+          <div class="card-sub">Padrão sempre que for tecnicamente possível.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-green">default</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="ctrl-list">
+          <div class="ctrl"><span class="ctrl-dot">✓</span><span>O parceiro já autentica esses usuários em algum sistema hoje</span></div>
+          <div class="ctrl"><span class="ctrl-dot">✓</span><span>Tem equipe capaz de integrar OAuth2 e manter a integração viva</span></div>
+          <div class="ctrl"><span class="ctrl-dot">✓</span><span>Os usuários já têm o hábito de entrar no ambiente dele</span></div>
+          <div class="ctrl"><span class="ctrl-dot">✓</span><span>Volume que justifique o esforço de integração inicial</span></div>
+        </div>
+      </div></div>
+    </div>
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Aceitar Standalone</div>
+          <div class="card-title">Quando é ele ou nada</div>
+          <div class="card-sub">Habilitador de mercado — com custo que precisa estar no plano.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">com preparo</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="ctrl-list">
+          <div class="ctrl"><span class="ctrl-dot part">→</span><span>O parceiro não tem IdP nem equipe — e não terá em prazo relevante</span></div>
+          <div class="ctrl"><span class="ctrl-dot part">→</span><span>O produto de crédito é um canal novo, sem ambiente digital anterior</span></div>
+          <div class="ctrl"><span class="ctrl-dot part">→</span><span>O alcance comercial compensa o custo operacional por usuário</span></div>
+          <div class="ctrl"><span class="ctrl-dot gap">✕</span><span><strong>Não aceitar</strong> enquanto console do parceiro, política de fraude e cláusulas de identidade não existirem — sem eles o modelo entrega uma dívida operacional, não um produto</span></div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="callout good">
+    <div class="callout-t">Posição recomendada</div>
+    <p><strong>Federado como padrão; Standalone como oferta deliberada, não como concessão comercial.</strong> O Standalone é o que abre o mercado de parceiros sem tecnologia — que é a maioria — e por isso deve ser tratado como <em>produto</em>, com preço, equipe de suporte e política de risco próprios.</p>
+    <p>O erro a evitar é oferecê-lo caso a caso para fechar contrato, sem que a operação por trás exista. É assim que se acumula parceiro standalone sem console de atendimento, sem SLA de offboarding e sem regra de fraude — cada um deles um incidente esperando acontecer.</p>
+  </div>
+</div>
+
+<!-- ═══ ABERTAS ═══ -->
+<div class="wrap" id="abertas">
+  <div class="eyebrow">09 · Próximos Passos</div>
+  <h2 class="sec">Sete decisões que destravam o desenho</h2>
+  <p class="sec-desc">Cada uma tem dono provável e consequência direta em arquitetura. Nenhuma depende de tecnologia nova — dependem de escolha.</p>
+
+  <div class="cards two">
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main"><div class="card-kicker">D-01 · Produto</div><div class="card-title">Como a base de elegíveis chega</div>
+        <div class="card-sub">Carga por API, convite individual pelo parceiro, ou autocadastro validado.</div></div>
+        <div class="card-side"><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in"><div class="attr"><div class="attr-k">Consequência</div><div class="attr-v">Define a API de provisionamento, o formato do primeiro acesso e a ameaça B-06. Recomendação: carga por API com convite disparado pelo parceiro; autocadastro aberto não cabe em crédito.</div></div></div></div>
+    </div>
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main"><div class="card-kicker">D-02 · Produto + Segurança</div><div class="card-title">O console do parceiro entra no MVP?</div>
+        <div class="card-sub">Sem ele, toda senha esquecida vira escalonamento para o Bradesco.</div></div>
+        <div class="card-side"><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in"><div class="attr"><div class="attr-k">Consequência</div><div class="attr-v">É o item que decide se o modelo é operável. Não aparece em nenhum roadmap hoje — nem como épico, nem como squad responsável.</div></div></div></div>
+    </div>
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main"><div class="card-kicker">D-03 · Marketing + Segurança</div><div class="card-title">O domínio do login</div>
+        <div class="card-sub">Do parceiro, subdomínio padronizado, ou do banco.</div></div>
+        <div class="card-side"><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in"><div class="attr"><div class="attr-k">Consequência</div><div class="attr-v">Define a estratégia antiphishing e quem opera certificado. Recomendação da seção 04: subdomínio padronizado com marca do parceiro.</div></div></div></div>
+    </div>
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main"><div class="card-kicker">D-04 · Segurança</div><div class="card-title">Qual segundo fator</div>
+        <div class="card-sub">SMS, TOTP ou push — e se o fator muda na contratação.</div></div>
+        <div class="card-side"><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in"><div class="attr"><div class="attr-k">Consequência</div><div class="attr-v">Custo variável por usuário e exposição a SIM swap. Recomendação: fator forte na contratação, mesmo que o login diário aceite algo mais leve.</div></div></div></div>
+    </div>
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main"><div class="card-kicker">D-05 · Jurídico + Risco</div><div class="card-title">Responsabilidade por fraude</div>
+        <div class="card-sub">Atribuição pela origem da falha, definida antes do primeiro caso.</div></div>
+        <div class="card-side"><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in"><div class="attr"><div class="attr-k">Consequência</div><div class="attr-v">Define cláusula contratual e o nível de trilha necessário para distinguir falha de autenticação de falha de base.</div></div></div></div>
+    </div>
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main"><div class="card-kicker">D-06 · Arquitetura</div><div class="card-title">Modo de identidade por público</div>
+        <div class="card-sub">Um parceiro pode ter federado e standalone ao mesmo tempo?</div></div>
+        <div class="card-side"><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in"><div class="attr"><div class="attr-k">Consequência</div><div class="attr-v">Modelar como lista no <span class="mono">PartnerConfig</span> custa pouco agora e evita migração depois. Decidir por campo único é a escolha que parece simples e não é.</div></div></div></div>
+    </div>
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main"><div class="card-kicker">D-07 · Arquitetura</div><div class="card-title">Migração de standalone para federado</div>
+        <div class="card-sub">O parceiro cresce e constrói o próprio IdP. E os usuários?</div></div>
+        <div class="card-side"><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in"><div class="attr"><div class="attr-k">Consequência</div><div class="attr-v">Sem caminho de portabilidade, migrar significa recadastrar todo mundo — perda de base garantida. Vale desenhar a vinculação de identidade antes do primeiro go-live.</div></div></div></div>
+    </div>
+  </div>
+
+  <div class="callout neutral">
+    <div class="callout-t">Ajustes pendentes nos outros documentos</div>
+    <p>Uma vez fechadas essas decisões, três materiais precisam ser atualizados para deixar de descrever apenas o modelo federado: a tese <strong>T-01</strong> e as fronteiras do documento de arquitetura de segurança, o fluxo de autenticação em <span class="mono">baas-whitelabel-frontend-arch</span>, e a citação da norma Bacen nos demos de shell.</p>
+  </div>
+</div>
+
+<!-- ═══ RODAPÉ ═══ -->
+<div class="foot">
+  <div class="foot-in">
+    BaaS White Label · Bradesco — Modelos de Identidade<br>
+    Documento técnico de prototipagem · dados, parceiros e endpoints são fictícios<br>
+    Companion de: Arquitetura de Segurança · Shell Federado vs Standalone · Arquitetura Frontend
+    <div class="foot-links">
+      <a href="index.html">← Voltar ao showcase</a>
+      <a href="baas-seguranca-arquitetura.html">Arquitetura de Segurança</a>
+      <a href="shell-federated-vs-standalone.html">Demo Federado vs Standalone</a>
+      <a href="baas-whitelabel-frontend-arch.html">Arquitetura Frontend</a>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── HELPERS ──────────────────────────────────────────
+function toggleCard(el) {
+  el.classList.toggle('open');
+}
+</script>
+
+</body>
+</html>
