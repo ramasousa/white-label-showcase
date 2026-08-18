@@ -45,6 +45,7 @@ sections (`#jornadas`, `#multiproduto`, `#runtime`, `#arquitetura`,
 | `shell-runtime-4panel.html` | Federated vs standalone runtime, four panels. |
 | `shell-federated-vs-standalone.html` | Comparison of the two loading strategies. |
 | `design-token-import-demo.html` | Streams partner tokens (Cacau Show, O Boticário) into a live MFE via `style.setProperty`. |
+| `login-white-label-standalone.html` | **Standalone login journey** — the model where Bradesco is the IdP, for partners with no IT. Four flows (first access, login + MFA, password recovery, lockout) under three partner brands switched at runtime, with a mocked browser bar making the fixed domain suffix visible (the anti-phishing anchor). Dark Runtime panel on the right shows `exchange_chain: null` — no Token Exchange — and `amr`/`acr` taking over as proof of authorship. |
 
 ### Architecture & platform docs
 | File | What it is |
