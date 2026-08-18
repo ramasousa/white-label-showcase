@@ -33,8 +33,8 @@ sections (`#jornadas`, `#multiproduto`, `#runtime`, `#arquitetura`,
 ### Journey prototypes — the three consumption models
 | File | What it is |
 |---|---|
-| `cg-portal-completo-v4.html` | **B2B**, the most complete prototype (~2100 lines). Operator portal: MFA/SSO login, RBAC (Gerente `Ana Lima` vs Operadores `Carlos Melo` / `Fernanda Rocha`), 3 credit products, 5-step proposal wizard, mock proposal list. |
-| `cg-cliente-final-b2c.html` | **B2C** self-service mobile journey, 4 screens, consumer language, no banking jargon. |
+| `cg-portal-completo-v4.html` | **B2B**, the most complete prototype (~2400 lines). Operator portal: MFA/SSO login, RBAC (Gerente `Ana Lima` vs Operadores `Carlos Melo` / `Fernanda Rocha`), 3 credit products, 5-step proposal wizard, mock proposal list. Step 5 ends in a **handoff**: the operator never contracts — a link goes to the client, whose device (mocked as a phone beside the flow) reviews the imputed data, confirms the PIX key and signs. Carries the same dark **Runtime drawer** as the Cacau Show prototype, showing RBAC scopes with `credit:apply` struck through for every portal role. |
+| `cg-cliente-final-b2c.html` | **B2C** self-service mobile journey, 4 screens, consumer language, no banking jargon. Contracting opens a **KYC overlay** (identification → document → liveness → screening), because the client is not an accountholder — the friction sits at contracting, never before the simulation. Disbursement shows a PIX key with verified same-titularity. A discreet dark Runtime drawer sits outside the journey, so the consumer flow stays jargon-free. |
 | `cg-embedded-b2b2b-cacaushow.html` | **B2B2B** embedded MFE inside the Cacau Show franchisee portal — no chrome, no extra login. Right-hand panel has two tabs: **Runtime** (what happens under the hood — token exchange, security controls, MFE load, driven by the user's own actions) and **Design System** (the live token inspector). The panel deliberately keeps the dark `--shell-*` palette so it reads as *the platform* against the partner's branding. |
 
 ### Shell / runtime demos (animated, step-driven)
@@ -45,6 +45,7 @@ sections (`#jornadas`, `#multiproduto`, `#runtime`, `#arquitetura`,
 | `shell-runtime-4panel.html` | Federated vs standalone runtime, four panels. |
 | `shell-federated-vs-standalone.html` | Comparison of the two loading strategies. |
 | `design-token-import-demo.html` | Streams partner tokens (Cacau Show, O Boticário) into a live MFE via `style.setProperty`. |
+| `login-white-label-standalone.html` | **Standalone login journey** — the model where Bradesco is the IdP, for partners with no IT. Four flows (first access, login + MFA, password recovery, lockout) under three partner brands switched at runtime, with a mocked browser bar making the fixed domain suffix visible (the anti-phishing anchor). Dark Runtime panel on the right shows `exchange_chain: null` — no Token Exchange — and `amr`/`acr` taking over as proof of authorship. |
 
 ### Architecture & platform docs
 | File | What it is |

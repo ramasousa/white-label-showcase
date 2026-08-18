@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login White Label · Standalone — Bradesco como Identity Provider</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  /* ── chrome da plataforma (escuro) ── */
+  --shell-bg:#0a0c11;--shell-s1:#0f1219;--shell-s2:#141820;
+  --shell-border:rgba(255,255,255,.07);--shell-b2:rgba(255,255,255,.12);
+  --shell-text:#d8e0f2;--shell-muted:#5f7186;--shell-dim:#3d4a5c;
+
+  /* ── superfície da jornada (clara) ── */
+  --bg:#eef0f4;--surface:#ffffff;--surface2:#f6f7f9;--surface3:#eceef2;
+  --border:#e2e5ea;--border2:#cfd4dc;
+  --text:#101820;--text2:#3a4553;--muted:#6b7686;--dim:#9aa4b2;
+
+  /* ── tokens do parceiro · injetados em runtime ── */
+  --p-primary:#6600aa;--p-dark:#4a007a;--p-soft:rgba(102,0,170,.09);--p-line:rgba(102,0,170,.22);
+  --p-name:'Vivo';
+
+  --green:#0a8f5f;--gg:rgba(10,143,95,.1);--gb:rgba(10,143,95,.25);
+  --amber:#b57320;--ag:rgba(181,115,32,.1);
+  --red:#c62839;--rg:rgba(198,40,57,.09);--rb:rgba(198,40,57,.22);
+  --blue:#2c6ba8;--bg2:rgba(44,107,168,.09);
+
+  --radius:7px;--radius-lg:11px;
+  --shadow:0 1px 3px rgba(16,24,32,.07);
+  --shadow-lg:0 12px 34px rgba(16,24,32,.13);
+  --mono:'JetBrains Mono',monospace;--sans:'Inter',sans-serif;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+body{background:var(--shell-bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+/* ═══ TOPBAR DA DEMO ═══ */
+.demo-topbar{
+  height:47px;background:var(--shell-bg);border-bottom:1px solid var(--shell-border);
+  display:flex;align-items:center;gap:13px;padding:0 18px;position:sticky;top:0;z-index:300;
+}
+.dtb-badge{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;
+  padding:4px 10px;border-radius:4px;background:rgba(245,166,35,.13);color:#f5a623;border:1px solid rgba(245,166,35,.3);
+}
+.dtb-title{font-size:12.5px;color:var(--shell-text);font-weight:600}
+.dtb-sep{width:1px;height:16px;background:var(--shell-border)}
+.dtb-spacer{flex:1}
+.dtb-part{display:flex;gap:6px}
+.dtb-pbtn{
+  font-family:var(--mono);font-size:10px;letter-spacing:.05em;padding:5px 11px;border-radius:4px;
+  background:rgba(255,255,255,.04);color:var(--shell-muted);border:1px solid var(--shell-border);
+  cursor:pointer;transition:all .2s var(--ease);
+}
+.dtb-pbtn:hover{color:var(--shell-text);border-color:var(--shell-b2)}
+.dtb-pbtn.active{background:var(--p-soft);color:#fff;border-color:var(--p-primary)}
+
+/* ═══ LAYOUT ═══ */
+.layout{display:grid;grid-template-columns:1fr 420px;min-height:calc(100vh - 47px)}
+
+/* ═══ LADO DA JORNADA ═══ */
+.stage{background:var(--bg);padding:30px 26px;min-height:calc(100vh - 47px);display:flex;flex-direction:column;align-items:center;overflow-y:auto}
+
+/* barra de navegador — a âncora antiphishing */
+.browser{width:100%;max-width:520px;background:var(--surface);border-radius:var(--radius-lg) var(--radius-lg) 0 0;border:1px solid var(--border);border-bottom:none;padding:9px 12px;display:flex;align-items:center;gap:9px;flex-shrink:0}
+.br-dots{display:flex;gap:5px}
+.br-dot{width:9px;height:9px;border-radius:50%;background:var(--border2)}
+.br-url{
+  flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:20px;
+  padding:5px 12px;font-family:var(--mono);font-size:11px;color:var(--text2);
+  display:flex;align-items:center;gap:7px;overflow:hidden;
+}
+.br-lock{color:var(--green);font-size:10px;flex-shrink:0}
+.br-host{color:var(--muted)}
+.br-host b{color:var(--text);font-weight:600}
+.br-note{font-family:var(--mono);font-size:9.5px;color:var(--green);white-space:nowrap}
+
+/* cartão da jornada */
+.screen{
+  width:100%;max-width:520px;background:var(--surface);border:1px solid var(--border);
+  border-radius:0 0 var(--radius-lg) var(--radius-lg);box-shadow:var(--shadow-lg);
+  padding:34px 38px 30px;min-height:430px;display:flex;flex-direction:column;
+}
+.sc-brand{display:flex;align-items:center;gap:11px;margin-bottom:26px}
+.sc-mark{width:36px;height:36px;border-radius:8px;background:var(--p-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0;transition:background .45s var(--ease)}
+.sc-bname{font-size:14.5px;font-weight:700;color:var(--text);letter-spacing:-.2px}
+.sc-btag{font-size:11px;color:var(--muted)}
+.sc-h{font-size:21px;font-weight:700;color:var(--text);letter-spacing:-.4px;margin-bottom:7px;line-height:1.25}
+.sc-p{font-size:13.5px;color:var(--muted);line-height:1.65;margin-bottom:22px}
+.sc-body{flex:1}
+
+.fld{margin-bottom:15px}
+.fld-l{display:block;font-size:11.5px;font-weight:600;color:var(--text2);margin-bottom:6px}
+.fld-i{
+  width:100%;padding:11px 13px;border:1px solid var(--border2);border-radius:var(--radius);
+  font-size:14px;font-family:var(--sans);color:var(--text);background:var(--surface);transition:border-color .2s,box-shadow .2s;
+}
+.fld-i:focus{outline:none;border-color:var(--p-primary);box-shadow:0 0 0 3px var(--p-soft)}
+.fld-i.err{border-color:var(--red);box-shadow:0 0 0 3px var(--rg)}
+.fld-hint{font-size:11px;color:var(--dim);margin-top:5px}
+
+.btn{
+  width:100%;padding:12px;border:none;border-radius:var(--radius);background:var(--p-primary);color:#fff;
+  font-size:14px;font-weight:700;font-family:var(--sans);cursor:pointer;transition:filter .2s,transform .15s;
+}
+.btn:hover{filter:brightness(.92);transform:translateY(-1px)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn.ghost{background:none;color:var(--muted);font-weight:500;font-size:12.5px;padding:9px;margin-top:4px}
+.btn.ghost:hover{color:var(--text);filter:none;transform:none}
+
+/* MFA */
+.otp{display:flex;gap:8px;margin-bottom:8px}
+.otp-d{
+  flex:1;height:50px;border:1px solid var(--border2);border-radius:var(--radius);text-align:center;
+  font-family:var(--mono);font-size:19px;font-weight:600;color:var(--text);background:var(--surface);
+}
+.otp-d:focus{outline:none;border-color:var(--p-primary);box-shadow:0 0 0 3px var(--p-soft)}
+
+/* avisos */
+.note{padding:12px 14px;border-radius:var(--radius);font-size:12.5px;line-height:1.6;margin-bottom:18px}
+.note-i{background:var(--bg2);border:1px solid rgba(44,107,168,.2);color:var(--blue)}
+.note-w{background:var(--rg);border:1px solid var(--rb);color:var(--red)}
+.note-s{background:var(--gg);border:1px solid var(--gb);color:var(--green)}
+.note-a{background:var(--ag);border:1px solid rgba(181,115,32,.25);color:var(--amber)}
+.note b{font-weight:700}
+
+.sc-foot{margin-top:auto;padding-top:20px;border-top:1px solid var(--border);font-size:10.5px;color:var(--dim);line-height:1.6;font-family:var(--mono);display:flex;align-items:center;gap:7px}
+.sc-foot-lock{color:var(--green)}
+
+/* sucesso */
+.done{text-align:center;padding:14px 0}
+.done-i{font-size:46px;margin-bottom:14px}
+.limit{background:var(--p-soft);border:1px solid var(--p-line);border-radius:var(--radius-lg);padding:18px;margin:18px 0;text-align:left}
+.limit-l{font-size:10.5px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.limit-v{font-size:27px;font-weight:800;color:var(--p-primary);letter-spacing:-.8px}
+.limit-s{font-size:12px;color:var(--muted);margin-top:3px}
+
+/* controles da demo */
+.ctrls{width:100%;max-width:520px;margin-top:16px;display:flex;gap:7px;flex-wrap:wrap}
+.cbtn{
+  flex:1;min-width:112px;padding:9px 10px;border-radius:var(--radius);background:var(--surface);
+  border:1px solid var(--border);font-family:var(--mono);font-size:10px;letter-spacing:.04em;
+  color:var(--text2);cursor:pointer;transition:all .2s var(--ease);text-align:center;
+}
+.cbtn:hover{border-color:var(--p-primary);color:var(--p-primary);background:var(--p-soft)}
+
+/* ═══ PAINEL RUNTIME ═══ */
+.rt{background:var(--shell-s1);border-left:1px solid var(--shell-border);display:flex;flex-direction:column;position:sticky;top:47px;height:calc(100vh - 47px);overflow:hidden}
+.rt-head{padding:15px 17px;border-bottom:1px solid var(--shell-border);background:var(--shell-s2);flex-shrink:0}
+.rt-title{font-family:var(--mono);font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--shell-muted);margin-bottom:11px}
+.rt-sess{background:rgba(255,255,255,.03);border:1px solid var(--shell-border);border-radius:5px;padding:10px 12px}
+.rt-sess.live{background:rgba(0,212,154,.06);border-color:rgba(0,212,154,.22)}
+.rt-sess-top{display:flex;align-items:center;gap:7px;margin-bottom:9px}
+.rt-dot{width:6px;height:6px;border-radius:50%;background:var(--shell-dim);flex-shrink:0}
+.rt-sess.live .rt-dot{background:#00d49a;box-shadow:0 0 7px #00d49a;animation:rtp 2s infinite}
+@keyframes rtp{0%,100%{opacity:1}50%{opacity:.35}}
+.rt-sess-n{font-family:var(--mono);font-size:11px;color:var(--shell-muted)}
+.rt-sess.live .rt-sess-n{color:#00d49a}
+.rt-kv{display:grid;grid-template-columns:74px 1fr;gap:5px 8px;font-family:var(--mono);font-size:10px;line-height:1.5}
+.rt-k{color:var(--shell-dim)}
+.rt-v{color:var(--shell-text);word-break:break-all}
+.rt-v.null{color:var(--shell-dim);font-style:italic}
+
+.rt-body{flex:1;overflow-y:auto;padding:4px 0 22px;scrollbar-width:thin;scrollbar-color:var(--shell-border) transparent}
+.rt-empty{padding:26px 18px;text-align:center;font-family:var(--mono);font-size:10px;color:var(--shell-dim);line-height:1.7}
+.rt-phase{padding:9px 17px 5px;font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--shell-dim);border-top:1px solid var(--shell-border);margin-top:6px}
+.rt-phase:first-child{border-top:none;margin-top:0}
+.rt-ev{padding:6px 17px;display:grid;grid-template-columns:40px 1fr;gap:9px;align-items:baseline;font-family:var(--mono);font-size:10px;line-height:1.5;opacity:0;transform:translateX(-5px);transition:opacity .34s,transform .34s,background .15s}
+.rt-ev.show{opacity:1;transform:none}
+.rt-ev.has-detail{cursor:pointer}
+.rt-ev.has-detail:hover{background:rgba(255,255,255,.03)}
+.rt-tag{font-size:8.5px;letter-spacing:.04em;padding:1px 4px;border-radius:3px;text-align:center;white-space:nowrap}
+.tag-idp{background:rgba(168,124,248,.14);color:#b493f7}
+.tag-sec{background:rgba(0,212,154,.13);color:#3ddba8}
+.tag-api{background:rgba(34,212,192,.13);color:#4fd8c8}
+.tag-warn{background:rgba(240,80,110,.13);color:#f0768c}
+.tag-cfg{background:rgba(245,166,35,.13);color:#f0b256}
+.rt-msg{color:#c6d3e2}
+.rt-msg .hl{color:#f0b256}
+.rt-msg .ok{color:#3ddba8}
+.rt-msg .no{color:#f0768c}
+.rt-chev{color:var(--shell-dim);font-size:9px;margin-left:4px}
+.rt-detail{grid-column:1/-1;max-height:0;overflow:hidden;opacity:0;transition:max-height .34s,opacity .25s}
+.rt-ev.open .rt-detail{max-height:420px;opacity:1;margin-top:6px}
+.rt-detail-in{background:var(--shell-bg);border:1px solid var(--shell-border);border-left:2px solid #f0b256;border-radius:0 4px 4px 0;padding:9px 11px;font-size:9.5px;line-height:1.65;color:#8b9cb0;white-space:pre-wrap;word-break:break-word}
+.rt-detail-in .c{color:#4d6376}
+.rt-detail-in .s{color:#7fd6a0}
+.rt-detail-in .k{color:#f08a95}
+
+@media(max-width:1000px){
+  .layout{grid-template-columns:1fr}
+  .rt{position:static;height:auto;max-height:460px;border-left:none;border-top:1px solid var(--shell-border)}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ TOPBAR ═══ -->
+<div class="demo-topbar">
+  <div class="dtb-badge">Standalone · IdP Bradesco</div>
+  <div class="dtb-sep"></div>
+  <div class="dtb-title">Login White Label — o parceiro sem tecnologia</div>
+  <div class="dtb-spacer"></div>
+  <div class="dtb-part">
+    <button class="dtb-pbtn active" id="pb-vivo" onclick="setPartner('vivo')">Vivo</button>
+    <button class="dtb-pbtn" id="pb-claro" onclick="setPartner('claro')">Claro</button>
+    <button class="dtb-pbtn" id="pb-cacau" onclick="setPartner('cacau')">Cacau Show</button>
+  </div>
+  <a href="baas-modelos-identidade.html" style="font-family:monospace;font-size:9.5px;letter-spacing:.05em;color:inherit;opacity:.55;text-decoration:none;border-bottom:1px solid currentColor" title="Documento que sustenta este protótipo">Modelos de Identidade ↗</a>
+  <a href="index.html" style="font-family:monospace;font-size:9.5px;letter-spacing:.05em;color:inherit;opacity:.55;text-decoration:none;margin-left:10px">← showcase</a>
+</div>
+
+<div class="layout">
+
+  <!-- ═══ JORNADA ═══ -->
+  <div class="stage">
+    <div class="browser">
+      <div class="br-dots"><div class="br-dot"></div><div class="br-dot"></div><div class="br-dot"></div></div>
+      <div class="br-url">
+        <span class="br-lock">🔒</span>
+        <span class="br-host"><b id="urlSub">vivo</b>.credito.baas.bradesco.com.br</span>
+      </div>
+      <span class="br-note">sufixo fixo</span>
+    </div>
+
+    <div class="screen" id="screen"></div>
+
+    <div class="ctrls">
+      <button class="cbtn" onclick="goInvite()">↺ Primeiro acesso</button>
+      <button class="cbtn" onclick="goLogin()">Login</button>
+      <button class="cbtn" onclick="goForgot()">Esqueci a senha</button>
+      <button class="cbtn" onclick="goBlocked()">Bloqueio</button>
+    </div>
+  </div>
+
+  <!-- ═══ RUNTIME ═══ -->
+  <div class="rt">
+    <div class="rt-head">
+      <div class="rt-title">Runtime · o que roda por baixo</div>
+      <div class="rt-sess" id="rtSess">
+        <div class="rt-sess-top">
+          <span class="rt-dot"></span>
+          <span class="rt-sess-n" id="rtSessName">sem sessão</span>
+        </div>
+        <div class="rt-kv">
+          <span class="rt-k">idp</span><span class="rt-v" id="rtIdp">Bradesco</span>
+          <span class="rt-k">tenant</span><span class="rt-v" id="rtTenant">vivo-prod</span>
+          <span class="rt-k">exchange</span><span class="rt-v null" id="rtExch">null · sem parceiro</span>
+          <span class="rt-k">amr</span><span class="rt-v" id="rtAmr">—</span>
+          <span class="rt-k">acr</span><span class="rt-v" id="rtAcr">—</span>
+        </div>
+      </div>
+    </div>
+    <div class="rt-body" id="rtBody">
+      <div class="rt-empty" id="rtEmpty">Escolha um fluxo abaixo da tela para acompanhar.</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+// CONFIG / DATA
+// ══════════════════════════════════════════════════
+const PARTNERS = {
+  vivo:  {name:'Vivo',      tag:'Vivo Empresas · Crédito',        mark:'V', sub:'vivo',  tenant:'vivo-prod',
+          primary:'#6600aa', dark:'#4a007a', soft:'rgba(102,0,170,.09)', line:'rgba(102,0,170,.22)', limite:'80.000'},
+  claro: {name:'Claro',     tag:'Claro Negócios · Crédito',       mark:'C', sub:'claro', tenant:'claro-prod',
+          primary:'#e3001b', dark:'#a80014', soft:'rgba(227,0,27,.08)',  line:'rgba(227,0,27,.2)',  limite:'60.000'},
+  cacau: {name:'Cacau Show',tag:'Portal do Franqueado · Crédito', mark:'🍫', sub:'cacaushow', tenant:'cacau-show-prod',
+          primary:'#8b3a1a', dark:'#5f2410', soft:'rgba(139,58,26,.09)', line:'rgba(139,58,26,.22)', limite:'180.000'},
+};
+
+// ══════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════
+let partner = 'vivo';
+let timers = [];
+let tries = 0;
+
+// ══════════════════════════════════════════════════
+// HELPERS — RUNTIME
+// ══════════════════════════════════════════════════
+function rtClear() {
+  timers.forEach(clearTimeout);
+  timers = [];
+  document.getElementById('rtBody').innerHTML = '';
+}
+
+function rtPhase(label) {
+  const el = document.createElement('div');
+  el.className = 'rt-phase';
+  el.textContent = label;
+  document.getElementById('rtBody').appendChild(el);
+}
+
+function rtAdd(tag, cls, msg, detail) {
+  const body = document.getElementById('rtBody');
+  const el = document.createElement('div');
+  el.className = 'rt-ev' + (detail ? ' has-detail' : '');
+  el.innerHTML =
+    `<span class="rt-tag ${cls}">${tag}</span>` +
+    `<span class="rt-msg">${msg}${detail ? '<span class="rt-chev">▸</span>' : ''}</span>` +
+    (detail ? `<div class="rt-detail"><div class="rt-detail-in">${detail}</div></div>` : '');
+  if (detail) el.onclick = () => el.classList.toggle('open');
+  body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  body.scrollTop = body.scrollHeight;
+}
+
+function rtSeq(steps) {
+  let t = 0;
+  steps.forEach(s => {
+    t += s[0];
+    timers.push(setTimeout(() => {
+      if (s[1] === 'phase') rtPhase(s[2]);
+      else rtAdd(s[1], s[2], s[3], s[4]);
+    }, t));
+  });
+}
+
+function rtSession(on, amr, acr) {
+  const box = document.getElementById('rtSess');
+  box.classList.toggle('live', on);
+  document.getElementById('rtSessName').textContent = on ? 'UCT ativo' : 'sem sessão';
+  document.getElementById('rtAmr').textContent = on ? amr : '—';
+  document.getElementById('rtAcr').textContent = on ? acr : '—';
+}
+
+// ══════════════════════════════════════════════════
+// HELPERS — PARCEIRO
+// ══════════════════════════════════════════════════
+function setPartner(p) {
+  partner = p;
+  const c = PARTNERS[p];
+  const r = document.documentElement.style;
+  r.setProperty('--p-primary', c.primary);
+  r.setProperty('--p-dark', c.dark);
+  r.setProperty('--p-soft', c.soft);
+  r.setProperty('--p-line', c.line);
+  document.getElementById('urlSub').textContent = c.sub;
+  document.getElementById('rtTenant').textContent = c.tenant;
+  ['vivo','claro','cacau'].forEach(k =>
+    document.getElementById('pb-'+k).classList.toggle('active', k === p));
+  goLogin();
+}
+
+function brand() {
+  const c = PARTNERS[partner];
+  return `<div class="sc-brand">
+    <div class="sc-mark">${c.mark}</div>
+    <div><div class="sc-bname">${c.name}</div><div class="sc-btag">${c.tag}</div></div>
+  </div>`;
+}
+
+function foot() {
+  return `<div class="sc-foot"><span class="sc-foot-lock">🔒</span>
+    <span>Acesso operado pelo Bradesco BaaS para ${PARTNERS[partner].name}</span></div>`;
+}
+
+function set(html) { document.getElementById('screen').innerHTML = html; }
+
+// ══════════════════════════════════════════════════
+// TELAS
+// ══════════════════════════════════════════════════
+function goInvite() {
+  rtClear(); rtSession(false); tries = 0;
+  set(brand() + `
+    <div class="sc-body">
+      <div class="sc-h">Você foi convidado pela ${PARTNERS[partner].name}</div>
+      <div class="sc-p">Crie sua senha de acesso ao crédito. Levamos menos de dois minutos.</div>
+      <div class="note note-i">Convite enviado para <b>••••@empresa.com.br</b> · válido por 24 horas, uso único.</div>
+      <div class="fld">
+        <label class="fld-l">Crie uma senha</label>
+        <input class="fld-i" type="password" value="••••••••••" onfocus="this.value=''">
+        <div class="fld-hint">Mínimo 10 caracteres, com número e símbolo</div>
+      </div>
+      <div class="fld">
+        <label class="fld-l">Repita a senha</label>
+        <input class="fld-i" type="password" value="••••••••••" onfocus="this.value=''">
+      </div>
+      <button class="btn" onclick="doInvite()">Criar senha e entrar</button>
+    </div>` + foot());
+
+  rtSeq([
+    [100,'phase',null,'Primeiro acesso'],
+    [220,'cfg','tag-cfg','Convite validado · token de <span class="hl">uso único</span>',
+      '<span class="c">// o convite prova posse do canal, não identidade.</span>\n<span class="c">// a base do parceiro disse que este contato é da empresa;</span>\n<span class="c">// a identificação real acontece antes da contratação.</span>\n{ <span class="k">"jti"</span>: <span class="s">"inv_7f3c…"</span>, <span class="k">"exp"</span>: +24h, <span class="k">"one_time"</span>: <span class="s">true</span> }'],
+    [260,'sec','tag-sec','Senha verificada contra <span class="hl">bases de vazamento</span>',
+      '<span class="c">// senha reusada de outro serviço é o vetor do credential stuffing.</span>\n<span class="c">// ameaça B-01 do documento de Modelos de Identidade.</span>'],
+  ]);
+}
+
+function doInvite() {
+  rtSeq([
+    [120,'idp','tag-idp','Credencial criada no <span class="hl">IdP do Bradesco</span>',
+      '<span class="c">// a senha do cliente da ' + PARTNERS[partner].name + ' fica sob guarda do banco.</span>\n<span class="c">// é isso que muda a posição regulatória no modelo standalone.</span>'],
+    [200,'sec','tag-sec','Convite <span class="ok">invalidado</span> após uso'],
+  ]);
+  timers.push(setTimeout(() => goMfa('primeiro acesso'), 700));
+}
+
+function goLogin() {
+  rtClear(); rtSession(false); tries = 0;
+  set(brand() + `
+    <div class="sc-body">
+      <div class="sc-h">Acesse sua conta</div>
+      <div class="sc-p">Entre com o CNPJ cadastrado na ${PARTNERS[partner].name}.</div>
+      <div class="fld">
+        <label class="fld-l">CNPJ</label>
+        <input class="fld-i" id="fCnpj" value="12.345.678/0001-99">
+      </div>
+      <div class="fld">
+        <label class="fld-l">Senha</label>
+        <input class="fld-i" id="fPwd" type="password" value="••••••••••" onfocus="this.value=''">
+      </div>
+      <button class="btn" onclick="doLogin()">Entrar</button>
+      <button class="btn ghost" onclick="goForgot()">Esqueci minha senha</button>
+    </div>` + foot());
+
+  rtSeq([
+    [100,'phase',null,'Login'],
+    [200,'idp','tag-idp','Tela servida pelo <span class="hl">IdP do Bradesco</span> com marca do parceiro',
+      '<span class="c">// sufixo de domínio fixo em todos os parceiros:</span>\n<span class="c">// é a âncora que o cliente consegue verificar — e o que</span>\n<span class="c">// impede treiná-lo a digitar senha em endereço variável.</span>\nhttps://' + PARTNERS[partner].sub + '.credito.baas.bradesco.com.br'],
+    [230,'warn','tag-warn','Sem Token Exchange — <span class="no">não há parceiro autenticando</span>',
+      '<span class="c">// no modelo federado, a identidade viria do parceiro</span>\n<span class="c">// e exchange_chain registraria a delegação. Aqui não há delegação:</span>\n<span class="c">// a prova de autoria passa a ser amr + acr + auth_time.</span>\n<span class="k">"exchange_chain"</span>: <span class="s">null</span>'],
+  ]);
+}
+
+function doLogin() {
+  rtSeq([
+    [140,'sec','tag-sec','Rate limit por documento <span class="ok">e</span> por origem',
+      '<span class="c">// limitar só por IP é contornável com origem distribuída.</span>\n<span class="c">// ameaça B-01.</span>'],
+    [180,'idp','tag-idp','Credenciais conferem'],
+  ]);
+  timers.push(setTimeout(() => goMfa('login'), 620));
+}
+
+function goMfa(origem) {
+  set(brand() + `
+    <div class="sc-body">
+      <div class="sc-h">Confirme que é você</div>
+      <div class="sc-p">Enviamos um código para o celular terminado em <b>4021</b>.</div>
+      <div class="otp">
+        ${[4,8,2,1,7,3].map(n => `<input class="otp-d" value="${n}" maxlength="1">`).join('')}
+      </div>
+      <div class="fld-hint" style="margin-bottom:20px">Expira em 2:59 · <span style="color:var(--p-primary);cursor:pointer">reenviar</span></div>
+      <div class="note note-a">O segundo fator por SMS é o mais frágil da escada — <b>SIM swap</b> o contorna. Na contratação, a plataforma exige fator mais forte.</div>
+      <button class="btn" onclick="doMfa()">Confirmar</button>
+    </div>` + foot());
+
+  rtSeq([
+    [100,'phase',null,'Segundo fator · ' + origem],
+    [200,'sec','tag-sec','OTP enviado · janela curta, uso único'],
+  ]);
+}
+
+function doMfa() {
+  rtSeq([
+    [140,'idp','tag-idp','<span class="ok">UCT emitido</span> pelo IdP do Bradesco',
+      '{\n  <span class="k">"sub"</span>: <span class="s">"usr_k2m9x4p1"</span>,\n  <span class="k">"partner_tenant"</span>: <span class="s">"' + PARTNERS[partner].tenant + '"</span>,\n  <span class="k">"exchange_chain"</span>: <span class="s">null</span>,        <span class="c">// sem delegação</span>\n  <span class="k">"amr"</span>: [<span class="s">"pwd"</span>, <span class="s">"otp"</span>],       <span class="c">// como autenticou</span>\n  <span class="k">"acr"</span>: <span class="s">"urn:baas:loa2"</span>,       <span class="c">// nível de garantia</span>\n  <span class="k">"auth_time"</span>: 1748299100        <span class="c">// permite exigir reautenticação</span>\n}'],
+    [180,'sec','tag-sec','UCT em <span class="ok">memória JS</span> · refresh em cookie HttpOnly'],
+    [180,'api','tag-api','Elegibilidade conferida contra a base do parceiro',
+      '<span class="c">// a base diz que este CNPJ é cliente da ' + PARTNERS[partner].name + '.</span>\n<span class="c">// isso calibra a oferta — não substitui identificação.</span>'],
+  ]);
+  timers.push(setTimeout(() => {
+    rtSession(true, 'pwd, otp', 'loa2');
+    goIn();
+  }, 760));
+}
+
+function goIn() {
+  const c = PARTNERS[partner];
+  set(brand() + `
+    <div class="sc-body done">
+      <div class="done-i">✅</div>
+      <div class="sc-h">Tudo certo, Roberto</div>
+      <div class="sc-p">Seu limite pré-aprovado já está disponível.</div>
+      <div class="limit">
+        <div class="limit-l">Limite pré-aprovado</div>
+        <div class="limit-v">R$ ${c.limite}</div>
+        <div class="limit-s">Capital de Giro · condição exclusiva ${c.name}</div>
+      </div>
+      <button class="btn">Simular crédito</button>
+      <div class="fld-hint" style="margin-top:14px">Para contratar, pediremos documento e prova de vida — o funil completo só aparece quando há intenção.</div>
+    </div>` + foot());
+}
+
+function goForgot() {
+  rtClear(); rtSession(false);
+  set(brand() + `
+    <div class="sc-body">
+      <div class="sc-h">Recuperar acesso</div>
+      <div class="sc-p">Informe o CNPJ. Enviaremos um link para o contato cadastrado.</div>
+      <div class="fld">
+        <label class="fld-l">CNPJ</label>
+        <input class="fld-i" value="12.345.678/0001-99">
+      </div>
+      <div class="note note-i">Se houver conta para este CNPJ, o link chega em instantes. <b>A resposta é a mesma para documento existente ou não.</b></div>
+      <button class="btn" onclick="doForgot()">Enviar link</button>
+      <button class="btn ghost" onclick="goLogin()">Voltar ao login</button>
+    </div>` + foot());
+
+  rtSeq([
+    [100,'phase',null,'Recuperação de senha'],
+    [200,'sec','tag-sec','Resposta <span class="ok">uniforme</span> — conteúdo e tempo',
+      '<span class="c">// mensagem diferente para "existe" e "não existe" vaza a carteira</span>\n<span class="c">// do parceiro. O tempo de resposta também precisa ser igual.</span>\n<span class="c">// ameaça B-04.</span>'],
+    [240,'warn','tag-warn','É aqui que a maioria das <span class="no">tomadas de conta</span> acontece',
+      '<span class="c">// o contato veio da base do parceiro. Se estiver desatualizado,</span>\n<span class="c">// o link chega a quem controla o canal antigo — sem nenhuma</span>\n<span class="c">// falha técnica do lado do banco. Ameaça B-02.</span>'],
+    [240,'sec','tag-sec','Alteração de contato exige verificação <span class="hl">do canal novo</span>',
+      '<span class="c">// e aviso ao contato anterior, com caminho de contestação.</span>'],
+  ]);
+}
+
+function doForgot() {
+  rtSeq([[140,'sec','tag-sec','Link enviado · uso único, validade curta']]);
+  timers.push(setTimeout(() => {
+    set(brand() + `
+      <div class="sc-body">
+        <div class="note note-s" style="margin-top:8px">Link enviado para <b>••••@empresa.com.br</b></div>
+        <div class="sc-h" style="margin-top:16px">Confira seu e-mail</div>
+        <div class="sc-p">O link vale por 15 minutos e só pode ser usado uma vez. Não recebeu? Confirme com o atendimento da ${PARTNERS[partner].name} se o contato cadastrado está atualizado.</div>
+        <button class="btn ghost" onclick="goLogin()">Voltar ao login</button>
+      </div>` + foot());
+  }, 600));
+}
+
+function goBlocked() {
+  rtClear(); rtSession(false);
+  set(brand() + `
+    <div class="sc-body">
+      <div class="sc-h">Acesso bloqueado temporariamente</div>
+      <div class="sc-p">Detectamos várias tentativas de entrada nesta conta.</div>
+      <div class="note note-w">Por segurança, o acesso ficará bloqueado por <b>30 minutos</b>. Se não foi você, recupere a senha — ou fale com o atendimento da ${PARTNERS[partner].name}.</div>
+      <button class="btn" onclick="goForgot()">Recuperar minha senha</button>
+      <button class="btn ghost" onclick="goLogin()">Voltar ao login</button>
+    </div>` + foot());
+
+  rtSeq([
+    [100,'phase',null,'Proteção contra força bruta'],
+    [200,'warn','tag-warn','3 tentativas · bloqueio <span class="no">progressivo</span> aplicado'],
+    [240,'sec','tag-sec','Padrão distribuído monitorado por origem',
+      '<span class="c">// credential stuffing raramente insiste no mesmo documento:</span>\n<span class="c">// testa muitos documentos poucas vezes cada. Bloqueio por conta</span>\n<span class="c">// não vê esse padrão — por isso o limite também é por origem.</span>'],
+    [240,'cfg','tag-cfg','Desbloqueio pelo <span class="hl">console do parceiro</span>, com trilha',
+      '<span class="c">// o atendente da ' + PARTNERS[partner].name + ' resolve sem acionar o banco —</span>\n<span class="c">// e sem ver dado de crédito. Quem desbloqueou fica registrado.</span>'],
+  ]);
+}
+
+// ══════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  goLogin();
+});
+</script>
+
+</body>
+</html>

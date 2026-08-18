@@ -500,6 +500,103 @@ hr.div{border:none;border-top:1px solid var(--border);margin:16px 0}
 .es-icon{font-size:36px;opacity:.3;margin-bottom:12px}
 .es-title{font-size:15px;font-weight:700;color:var(--text2);margin-bottom:4px}
 .es-sub{font-size:13px;color:var(--muted)}
+/* ─── RUNTIME PANEL · o que roda por baixo ───
+   Paleta escura própria: o portal é a aplicação, este painel é a plataforma.
+   Mesma convenção do protótipo embarcado da Cacau Show. */
+.rt-fab{
+  position:fixed;right:18px;bottom:18px;z-index:400;
+  display:flex;align-items:center;gap:8px;padding:10px 15px;border-radius:22px;
+  background:#0b1219;color:#dbe4f0;border:1px solid rgba(255,255,255,.14);
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;cursor:pointer;
+  box-shadow:0 6px 22px rgba(11,18,25,.28);transition:transform .22s,box-shadow .22s;
+}
+.rt-fab:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(11,18,25,.36)}
+.rt-fab-dot{width:6px;height:6px;border-radius:50%;background:#00d49a;box-shadow:0 0 7px #00d49a;animation:rtp 2s infinite}
+@keyframes rtp{0%,100%{opacity:1}50%{opacity:.35}}
+.rt-fab-count{background:rgba(255,255,255,.1);border-radius:10px;padding:1px 7px;font-size:9.5px}
+
+.rt-drawer{
+  position:fixed;top:0;right:0;bottom:0;width:410px;z-index:401;
+  background:#0b1219;border-left:1px solid rgba(255,255,255,.09);
+  display:flex;flex-direction:column;transform:translateX(100%);
+  transition:transform .34s cubic-bezier(.22,1,.36,1);box-shadow:-14px 0 44px rgba(11,18,25,.3);
+}
+.rt-drawer.open{transform:none}
+.rt-head{padding:15px 17px;border-bottom:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.025);flex-shrink:0}
+.rt-head-top{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+.rt-title{font-family:var(--mono);font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:#7d8ea3;flex:1}
+.rt-close{background:none;border:none;color:#7d8ea3;font-size:17px;cursor:pointer;line-height:1;padding:0 3px}
+.rt-close:hover{color:#dbe4f0}
+.rt-sess{background:rgba(0,212,154,.06);border:1px solid rgba(0,212,154,.2);border-radius:5px;padding:10px 12px}
+.rt-sess-top{display:flex;align-items:center;gap:7px;margin-bottom:9px}
+.rt-sess-name{font-family:var(--mono);font-size:11px;color:#00d49a}
+.rt-sess-ttl{margin-left:auto;font-family:var(--mono);font-size:10px;color:#00d49a}
+.rt-kv{display:grid;grid-template-columns:58px 1fr;gap:5px 8px;font-family:var(--mono);font-size:10px;line-height:1.5}
+.rt-k{color:#5f7186}
+.rt-v{color:#c6d3e2;word-break:break-all}
+.rt-scopes{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.rt-scope{font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px;background:rgba(91,157,217,.14);color:#7fb3e0;border:1px solid rgba(91,157,217,.26)}
+.rt-scope.denied{background:rgba(240,80,110,.11);color:#f0768c;border-color:rgba(240,80,110,.28);text-decoration:line-through}
+
+.rt-body{flex:1;overflow-y:auto;padding:4px 0 22px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.14) transparent}
+.rt-empty{padding:26px 18px;text-align:center;font-family:var(--mono);font-size:10px;color:#5f7186;line-height:1.7}
+.rt-phase{padding:9px 17px 5px;font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#5f7186;border-top:1px solid rgba(255,255,255,.07);margin-top:6px}
+.rt-phase:first-child{border-top:none;margin-top:0}
+.rt-ev{padding:6px 17px;display:grid;grid-template-columns:40px 1fr;gap:9px;align-items:baseline;font-family:var(--mono);font-size:10px;line-height:1.5;opacity:0;transform:translateX(-5px);transition:opacity .34s,transform .34s,background .15s}
+.rt-ev.show{opacity:1;transform:none}
+.rt-ev.has-detail{cursor:pointer}
+.rt-ev.has-detail:hover{background:rgba(255,255,255,.03)}
+.rt-tag{font-size:8.5px;letter-spacing:.04em;padding:1px 4px;border-radius:3px;text-align:center;white-space:nowrap}
+.tag-auth{background:rgba(168,124,248,.14);color:#b493f7}
+.tag-rbac{background:rgba(245,166,35,.13);color:#f0b256}
+.tag-api{background:rgba(34,212,192,.13);color:#4fd8c8}
+.tag-sec{background:rgba(0,212,154,.13);color:#3ddba8}
+.tag-doc{background:rgba(91,157,217,.13);color:#7fb3e0}
+.tag-warn{background:rgba(240,80,110,.13);color:#f0768c}
+.rt-msg{color:#c6d3e2}
+.rt-msg .hl{color:#f0b256}
+.rt-msg .ok{color:#3ddba8}
+.rt-msg .no{color:#f0768c}
+.rt-prop{display:inline-block;margin-left:5px;font-size:8px;letter-spacing:.08em;text-transform:uppercase;padding:1px 5px;border-radius:3px;background:rgba(224,169,95,.14);color:#e0a95f;border:1px solid rgba(224,169,95,.3);vertical-align:1px}
+.rt-chev{color:#5f7186;font-size:9px;margin-left:4px}
+.rt-detail{grid-column:1/-1;max-height:0;overflow:hidden;opacity:0;transition:max-height .34s,opacity .25s}
+.rt-ev.open .rt-detail{max-height:420px;opacity:1;margin-top:6px}
+.rt-detail-in{background:#070c11;border:1px solid rgba(255,255,255,.08);border-left:2px solid #f0b256;border-radius:0 4px 4px 0;padding:9px 11px;font-size:9.5px;line-height:1.65;color:#8b9cb0;white-space:pre-wrap;word-break:break-word}
+.rt-detail-in .c{color:#4d6376}
+.rt-detail-in .s{color:#7fd6a0}
+.rt-detail-in .k{color:#f08a95}
+
+@media(max-width:900px){.rt-drawer{width:100%}}
+
+/* ─── HANDOFF · aguardando o cliente ─── */
+.ho-wrap{display:grid;grid-template-columns:1fr 300px;gap:24px;align-items:start}
+.ho-steps{display:flex;flex-direction:column;gap:2px}
+.ho-step{display:grid;grid-template-columns:26px 1fr;gap:13px;align-items:start;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);opacity:.45;transition:opacity .4s,border-color .4s,background .4s}
+.ho-step.done{opacity:1;border-color:rgba(5,150,105,.3);background:var(--gg)}
+.ho-step.active{opacity:1;border-color:var(--brand);background:var(--brand-l)}
+.ho-num{width:22px;height:22px;border-radius:50%;background:var(--surface3);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;font-family:var(--mono)}
+.ho-step.done .ho-num{background:var(--green);color:#fff}
+.ho-step.active .ho-num{background:var(--brand);color:#fff}
+.ho-t{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+.ho-d{font-size:11.5px;color:var(--muted);line-height:1.55}
+.ho-side{position:sticky;top:0}
+.phone{background:#0b1219;border-radius:22px;padding:10px;box-shadow:0 14px 40px rgba(11,18,25,.24)}
+.phone-notch{width:52px;height:4px;background:rgba(255,255,255,.18);border-radius:3px;margin:2px auto 8px}
+.phone-scr{background:var(--surface);border-radius:14px;padding:15px;min-height:330px;display:flex;flex-direction:column}
+.ph-brand{font-size:10px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;padding-bottom:9px;border-bottom:1px solid var(--border)}
+.ph-body{flex:1;font-size:12px}
+.ph-h{font-size:14px;font-weight:700;color:var(--text);margin-bottom:5px;line-height:1.3}
+.ph-p{font-size:11.5px;color:var(--muted);line-height:1.6;margin-bottom:12px}
+.ph-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:11.5px}
+.ph-row span:first-child{color:var(--muted)}
+.ph-row span:last-child{color:var(--text);font-weight:600}
+.ph-btn{margin-top:auto;padding:10px;border-radius:var(--radius);background:var(--brand);color:#fff;text-align:center;font-size:12px;font-weight:700}
+.ph-btn.ghost{background:var(--surface3);color:var(--muted)}
+.ph-ok{text-align:center;padding:18px 0}
+.ph-ok-i{font-size:40px;margin-bottom:10px}
+.ho-note{margin-top:14px;font-size:11px;color:var(--muted);line-height:1.6;padding:11px 13px;background:var(--surface2);border-left:2px solid var(--brand);border-radius:0 4px 4px 0}
+@media(max-width:900px){.ho-wrap{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -514,6 +611,8 @@ hr.div{border:none;border-top:1px solid var(--border);margin:16px 0}
   <button class="pb-btn" onclick="setPartner('#7C3AED','#6D28D9','CS','Cooperativa Sul',this)">Cooperativa Sul</button>
   <div class="pb-sep"></div>
   <span style="font-family:var(--mono);font-size:9px;color:rgba(255,255,255,.35)">v2.0 · RBAC · Multi-Produto</span>
+  <a href="baas-originacao-cliente-final.html" style="font-family:monospace;font-size:9.5px;letter-spacing:.05em;color:inherit;opacity:.55;text-decoration:none;border-bottom:1px solid currentColor" title="Documento que sustenta este protótipo">Originação ↗</a>
+  <a href="index.html" style="font-family:monospace;font-size:9.5px;letter-spacing:.05em;color:inherit;opacity:.55;text-decoration:none;margin-left:10px">← showcase</a>
 </div>
 
 <!-- ══════════════════
@@ -1019,6 +1118,38 @@ hr.div{border:none;border-top:1px solid var(--border);margin:16px 0}
   </div>
 </div>
 
+<!-- ─── RUNTIME PANEL ─── -->
+<button class="rt-fab" id="rtFab" onclick="rtToggle()" style="display:none">
+  <span class="rt-fab-dot"></span>
+  <span>Runtime</span>
+  <span class="rt-fab-count" id="rtCount">0</span>
+</button>
+
+<div class="rt-drawer" id="rtDrawer">
+  <div class="rt-head">
+    <div class="rt-head-top">
+      <div class="rt-title">Runtime · o que roda por baixo</div>
+      <button class="rt-close" onclick="rtToggle()">✕</button>
+    </div>
+    <div class="rt-sess" id="rtSess">
+      <div class="rt-sess-top">
+        <span class="rt-fab-dot"></span>
+        <span class="rt-sess-name" id="rtSessName">sem sessão</span>
+        <span class="rt-sess-ttl" id="rtTtl">—</span>
+      </div>
+      <div class="rt-kv">
+        <span class="rt-k">sub</span><span class="rt-v" id="rtSub">—</span>
+        <span class="rt-k">papel</span><span class="rt-v" id="rtRole">—</span>
+        <span class="rt-k">storage</span><span class="rt-v" id="rtStore">—</span>
+      </div>
+      <div class="rt-scopes" id="rtScopes"></div>
+    </div>
+  </div>
+  <div class="rt-body" id="rtBody">
+    <div class="rt-empty" id="rtEmpty">Faça login para acompanhar o runtime.</div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -1269,6 +1400,7 @@ function cancelSSO() {
 
 function enterApp() {
   currentUser = USERS[selectedProfile];
+  rtBootSession(selectedProfile);
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appShell').classList.add('show');
   setupApp();
@@ -1528,7 +1660,8 @@ const WIZ_CFG = {
 };
 
 function setProduct(p) {
-  if (!currentUser.products.includes(p)) { showToast('Sem permissão para este produto','warning'); return; }
+  if (!currentUser.products.includes(p)) { rtOnProduct(p,false); showToast('Sem permissão para este produto','warning'); return; }
+  rtOnProduct(p,true);
   currentProduct = p;
   renderProductTabs('newProdTabs', true);
   resetWizard(p);
@@ -1565,7 +1698,7 @@ function renderNovaForm(p) {
     {n:2,name:'Simulação',sub:'Valor, prazo e condições'},
     {n:3,name:'Garantias',sub:'Avalistas e colaterais'},
     {n:4,name:'Documentação',sub:'Docs obrigatórios'},
-    {n:5,name:'Revisão & Envio',sub:'Proposta para análise'},
+    {n:5,name:'Revisão & Envio',sub:'Cliente confere e assina'},
   ];
 
   el.innerHTML = `
@@ -1633,7 +1766,7 @@ function renderWizPanel(p) {
     2:{tag:'Etapa 2 de 5',title:'Simulação de Crédito',desc:`Configure as condições do ${prod.name}`,badge:`<span class="wiz-badge" style="background:${prod.color}15;color:${prod.color}">Em configuração</span>`},
     3:{tag:'Etapa 3 de 5',title:'Garantias e Avalistas',desc:'Para o valor solicitado é necessário ao menos um avalista PF',badge:''},
     4:{tag:'Etapa 4 de 5',title:'Documentação',desc:'Anexe os documentos obrigatórios (PDF, JPG, PNG · máx. 10MB)',badge:`<span class="wiz-badge" style="background:var(--ag);color:var(--amber)">${wizDocsCount} de ${wizDocsTotal} enviados</span>`},
-    5:{tag:'Etapa 5 de 5',title:'Revisão e Envio',desc:'Confirme os dados antes de enviar para análise de crédito',badge:'<span class="wiz-badge" style="background:var(--gg);color:var(--green)">✓ Pronta para envio</span>'},
+    5:{tag:'Etapa 5 de 5',title:'Revisão e Envio ao Cliente',desc:'Confira com o tomador — a contratação é concluída por ele, no dispositivo dele',badge:'<span class="wiz-badge" style="background:var(--gg);color:var(--green)">✓ Pronta para envio</span>'},
   };
   const h = hdrs[wizStep];
 
@@ -1645,7 +1778,7 @@ function renderWizPanel(p) {
   if (wizStep===5) bodyHtml = wizPanel5(p, prod, cfg);
 
   const hints = {1:'Preencha os dados do cliente e consulte o CNPJ',2:'Configure o valor e prazo da operação',3:'Adicione ao menos um avalista',4:'Envie todos os documentos obrigatórios',5:'Confirme os dados e envie para análise'};
-  const nextLabels = {1:'Continuar → Simulação',2:'Continuar → Garantias',3:'Continuar → Documentação',4:'Continuar → Revisão',5:'Enviar para Análise →'};
+  const nextLabels = {1:'Continuar → Simulação',2:'Continuar → Garantias',3:'Continuar → Documentação',4:'Continuar → Revisão',5:'Enviar ao cliente para assinar →'};
 
   area.innerHTML = `
     <div class="wiz-hdr">
@@ -1727,6 +1860,7 @@ function wizPanel1(p, prod, cfg) {
 }
 
 function wizLookupCNPJ(val, p) {
+  rtOnCnpj();
   if (val.replace(/\D/g,'').length >= 14) {
     showToast('CNPJ consultado com sucesso','success');
   }
@@ -1943,6 +2077,7 @@ function wizPanel4(p, prod, cfg) {
 }
 
 function wizUpload(btn, statusId, p) {
+  rtOnUpload();
   btn.textContent = '⟳ Enviando...';
   setTimeout(() => {
     btn.textContent = '✓ Enviado';
@@ -1968,18 +2103,18 @@ function wizPanel5(p, prod, cfg) {
     <div class="wsumm-card"><div class="wsumm-label">Taxa / CET</div><div class="wsumm-val" id="wsv_taxa_${p}" style="font-size:13px">—</div><div class="wsumm-sub">Condições finais</div></div>
   </div>
   <div class="wsumm-timeline">
-    <div class="wtl-title">Próximos passos após o envio</div>
-    <div class="wtl-item"><div class="wtl-dot brand">→</div><div><div class="wtl-name">Proposta enviada para análise</div><div class="wtl-sub">Agora · equipe de crédito notificada</div></div></div>
+    <div class="wtl-title">O que acontece a partir daqui</div>
+    <div class="wtl-item"><div class="wtl-dot brand">→</div><div><div class="wtl-name">Proposta enviada ao cliente</div><div class="wtl-sub">Agora · link de assinatura no celular dele</div></div></div>
+    <div class="wtl-item"><div class="wtl-dot pending">○</div><div><div class="wtl-name">Cliente confere e assina</div><div class="wtl-sub">No próprio dispositivo — sua sessão não conclui a contratação</div></div></div>
     <div class="wtl-item"><div class="wtl-dot pending">○</div><div><div class="wtl-name">Análise de crédito</div><div class="wtl-sub">Prazo: até 2 dias úteis</div></div></div>
-    <div class="wtl-item"><div class="wtl-dot pending">○</div><div><div class="wtl-name">Aprovação e contrato digital</div><div class="wtl-sub">Cliente assina via e-mail/WhatsApp</div></div></div>
-    <div class="wtl-item"><div class="wtl-dot pending">○</div><div><div class="wtl-name">Liberação do crédito</div><div class="wtl-sub">Em até 24h após assinatura</div></div></div>
+    <div class="wtl-item"><div class="wtl-dot pending">○</div><div><div class="wtl-name">Liberação do crédito</div><div class="wtl-sub">Na chave PIX do próprio tomador, em até 24h</div></div></div>
   </div>
   <div class="card">
     <div class="card-body">
       <div style="display:flex;gap:11px;align-items:flex-start">
         <input type="checkbox" id="wconfirmCheck_${p}" style="margin-top:2px;accent-color:${prod.color};width:14px;height:14px" onchange="wizCheckConfirm('${p}')">
         <label for="wconfirmCheck_${p}" style="font-size:12.5px;color:var(--text2);cursor:pointer;line-height:1.6">
-          Confirmo que as informações prestadas são verdadeiras e que o cliente foi informado sobre as condições da operação, conforme Resolução CMN 4.676/2018 e normas do Banco Central.
+          Declaro que <strong>conferi os dados com o tomador presente</strong> e que ele recebeu as condições da operação. A confirmação de veracidade e o aceite são feitos pelo próprio cliente na etapa seguinte, no dispositivo dele.
         </label>
       </div>
     </div>
@@ -1992,25 +2127,118 @@ function wizCheckConfirm(p) {
   if (nb) nb.style.opacity = wizConfirmChecked ? '1' : '0.5';
 }
 
-function wizShowSubmitModal(p) {
-  const prod = PRODUCTS[p];
-  showModal('Enviar Proposta para Análise', `
-    <div style="text-align:center;padding:8px 0">
-      <div style="font-size:46px;margin-bottom:11px">${prod.icon}</div>
-      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:7px">Distribuidora Paulistana Ltda.</div>
-      <div style="font-size:12.5px;color:var(--muted);margin-bottom:15px">${prod.name} · Pronta para envio</div>
-      <div style="background:var(--gg);border:1px solid var(--gb);border-radius:8px;padding:11px;text-align:left">
-        <div style="font-size:11.5px;color:var(--green);font-weight:600;margin-bottom:5px">✓ Proposta completa e pronta para análise</div>
-        <div style="font-size:11.5px;color:var(--muted)">• Dados cadastrais validados<br>• Simulação configurada<br>• Avalista aprovado<br>• ${wizDocsCount} de ${wizDocsTotal} documentos enviados</div>
-      </div>
-      <div style="font-size:11.5px;color:var(--muted);margin-top:11px">A equipe de crédito receberá notificação imediata.</div>
-    </div>`,
-    [{label:'Revisar',action:'closeModal()',secondary:true},{label:'Confirmar Envio →',action:`wizSubmitFinal('${p}')`}]);
+let hoCanal = 'SMS';
+function hoSetCanal(c, el) {
+  hoCanal = c;
+  document.querySelectorAll('.ho-canal').forEach(b => {
+    b.style.borderColor = 'var(--border)';
+    b.style.background = 'var(--surface)';
+    b.style.fontWeight = '500';
+  });
+  el.style.borderColor = 'var(--brand)';
+  el.style.background = 'var(--brand-l)';
+  el.style.fontWeight = '700';
 }
 
+function wizShowSubmitModal(p) {
+  const prod = PRODUCTS[p];
+  const btn = (c,label,sub) => `<div class="ho-canal" onclick="hoSetCanal('${c}',this)" style="flex:1;padding:10px 8px;border:1px solid ${c===hoCanal?'var(--brand)':'var(--border)'};background:${c===hoCanal?'var(--brand-l)':'var(--surface)'};border-radius:var(--radius);cursor:pointer;text-align:center;font-size:12px;font-weight:${c===hoCanal?'700':'500'}">${label}<div style="font-size:10px;color:var(--muted);font-weight:400;margin-top:2px">${sub}</div></div>`;
+  showModal('Enviar ao cliente para conferir e assinar', `
+    <div style="padding:2px 0">
+      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px">Distribuidora Paulistana Ltda.</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:16px">${prod.icon} ${prod.name} · proposta em rascunho</div>
+
+      <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Por onde enviar</div>
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        ${btn('SMS','SMS','(11) ••••-4021')}
+        ${btn('WhatsApp','WhatsApp','(11) ••••-4021')}
+        ${btn('QR Code','QR Code','na tela, agora')}
+      </div>
+
+      <div style="background:var(--bg2);border:1px solid var(--bb);border-radius:8px;padding:11px;text-align:left;margin-bottom:12px">
+        <div style="font-size:11.5px;color:var(--blue);font-weight:700;margin-bottom:5px">🔒 Por que a conclusão não acontece aqui</div>
+        <div style="font-size:11.5px;color:var(--text2);line-height:1.6">O cliente confere os dados que você preencheu, confirma a chave de recebimento e assina — <strong>no dispositivo dele</strong>. É o que separa a proposta que você montou da contratação que só ele pode fazer.</div>
+      </div>
+
+      <div style="font-size:11.5px;color:var(--muted)">Contato verificado · link válido por 15 minutos · uso único</div>
+    </div>`,
+    [{label:'Voltar',action:'closeModal()',secondary:true},{label:'Enviar ao cliente →',action:`wizSubmitFinal('${p}')`}]);
+}
+
+// ── HANDOFF: a sessão do operador termina aqui ──
+let hoTimers = [], hoValor = 0;
 function wizSubmitFinal(p) {
   closeModal();
-  setTimeout(() => showToast('🎉 Proposta enviada com sucesso — '+PRODUCTS[p].name,'success'), 250);
+  const sl = document.getElementById('wvalorSlider_' + p);
+  hoValor = sl ? parseInt(sl.value) : WIZ_CFG[p].defaultA;
+  rtOnHandoff(hoCanal, '(11) ••••-4021');
+  showToast('Enviado ao cliente por ' + hoCanal + ' — aguardando assinatura', 'success');
+  hoRender(p);
+}
+
+function hoRender(p) {
+  const prod = PRODUCTS[p];
+  const area = document.getElementById('wizMainArea');
+  if (!area) return;
+  const steps = [
+    ['Proposta enviada','Link de uso único no celular do tomador · válido por 15 min'],
+    ['Cliente autenticou','Senha e segundo fator, no próprio dispositivo'],
+    ['Conferindo os dados','Ele revisa tudo que você preencheu antes de aceitar'],
+    ['Chave de recebimento confirmada','Titularidade verificada na fonte — precisa ser do mesmo CNPJ'],
+    ['Contrato assinado','Assinatura registrada com o pacote de evidências'],
+  ];
+  area.innerHTML = `
+    <div class="ho-wrap">
+      <div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:11px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--brand);margin-bottom:6px">Aguardando o cliente</div>
+          <div style="font-size:19px;font-weight:700;color:var(--text);letter-spacing:-.3px">A contratação está com o tomador</div>
+          <div style="font-size:12.5px;color:var(--muted);margin-top:4px">Sua sessão montou a proposta. A conclusão acontece no dispositivo dele.</div>
+        </div>
+        <div class="ho-steps" id="hoSteps">
+          ${steps.map((s,i)=>`<div class="ho-step" id="hoS${i}"><div class="ho-num">${i+1}</div><div><div class="ho-t">${s[0]}</div><div class="ho-d">${s[1]}</div></div></div>`).join('')}
+        </div>
+        <div class="ho-note">Enquanto a proposta não é assinada, ela permanece como <strong>rascunho</strong>. Nenhum papel do portal — inclusive gerente — consegue efetivá-la.</div>
+      </div>
+      <div class="ho-side">
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-scr" id="phoneScr">
+            <div class="ph-brand">Bradesco BaaS · Crédito</div>
+            <div class="ph-body" id="phoneBody">
+              <div class="ph-h">Aguardando...</div>
+            </div>
+          </div>
+        </div>
+        <div style="text-align:center;margin-top:9px;font-size:10.5px;color:var(--muted);font-family:var(--mono)">dispositivo do tomador</div>
+      </div>
+    </div>`;
+  hoPlay(p, prod);
+}
+
+function hoPlay(p, prod) {
+  hoTimers.forEach(clearTimeout);
+  hoTimers = [];
+  const scr = () => document.getElementById('phoneBody');
+  const mark = (i, cls) => {
+    const el = document.getElementById('hoS'+i);
+    if (el) { el.classList.remove('active','done'); el.classList.add(cls); }
+  };
+  const screens = [
+    () => { mark(0,'active'); scr().innerHTML = `<div class="ph-h">Você tem uma proposta para revisar</div><div class="ph-p">A ${prod.name} montada com você na loja está pronta para sua conferência.</div><div class="ph-btn">Abrir proposta</div>`; },
+    () => { mark(0,'done'); mark(1,'active'); rtOnClientStep(1); scr().innerHTML = `<div class="ph-h">Confirme que é você</div><div class="ph-p">Enviamos um código para o seu celular.</div><div style="display:flex;gap:6px;margin-bottom:14px">${[4,8,2,1].map(n=>`<div style="flex:1;text-align:center;padding:9px 0;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-weight:700">${n}</div>`).join('')}</div><div class="ph-btn">Entrar</div>`; },
+    () => { mark(1,'done'); mark(2,'active'); rtOnClientStep(2); scr().innerHTML = `<div class="ph-h">Confira os dados</div><div class="ph-p">Preenchidos pelo atendente. Algo errado? Recuse.</div><div class="ph-row"><span>Empresa</span><span>Distribuidora Paulistana</span></div><div class="ph-row"><span>Valor</span><span id="phVal">—</span></div><div class="ph-row"><span>Parcela</span><span id="phPar">—</span></div><div class="ph-row"><span>Faturamento informado</span><span>R$ 380.000</span></div><div class="ph-btn" style="margin-top:14px">Está correto</div>`; hoFill(); }, 
+    () => { mark(2,'done'); mark(3,'active'); rtOnClientStep(3); scr().innerHTML = `<div class="ph-h">Onde receber</div><div class="ph-p">A conta precisa ser do mesmo CNPJ do contrato.</div><div class="ph-row"><span>Chave PIX</span><span>12.345.678/0001-99</span></div><div class="ph-row"><span>Titular</span><span style="color:var(--green)">✓ confere</span></div><div class="ph-btn" style="margin-top:14px">Confirmar chave</div>`; },
+    () => { mark(3,'done'); mark(4,'active'); rtOnClientStep(4); scr().innerHTML = `<div class="ph-h">Assinar contrato</div><div class="ph-p">Ao assinar, você aceita as condições apresentadas.</div><div class="ph-row"><span>CET anual</span><span>17,1%</span></div><div class="ph-row"><span>Destino</span><span>12.345.678/0001-99</span></div><div class="ph-btn" style="margin-top:14px">Assinar</div>`; },
+    () => { mark(4,'done'); rtOnClientStep(5); scr().innerHTML = `<div class="ph-ok"><div class="ph-ok-i">✅</div><div class="ph-h">Contrato assinado</div><div class="ph-p">Protocolo #CG-2026-00847<br>Você recebeu uma via por e-mail.</div></div>`; showToast('Cliente assinou — proposta efetivada','success'); },
+  ];
+  screens.forEach((fn, i) => hoTimers.push(setTimeout(fn, 600 + i * 1900)));
+}
+
+function hoFill() {
+  const v = document.getElementById('phVal'), pa = document.getElementById('phPar');
+  if (v) v.textContent = 'R$ ' + fmtN(hoValor);
+  if (pa) pa.textContent = 'R$ ' + fmtN(Math.round(hoValor / (wizPrazo || 12) * 1.09));
 }
 
 
@@ -2087,6 +2315,162 @@ function showModal(title, body, buttons) {
   document.getElementById('modalOverlay').classList.add('show');
 }
 function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
+
+
+// ══════════════════════════════════════════════════
+// RUNTIME PANEL — o que roda por baixo
+// ══════════════════════════════════════════════════
+
+// ── CONFIG ──
+// Escopos por papel. Nenhum papel do portal carrega credit:apply:
+// a contratação é autenticada pelo próprio cliente, no dispositivo dele.
+const RT_SCOPES = {
+  gerente: {granted:['credit:read','credit:simulate','credit:draft','team:view'], denied:['credit:apply']},
+  op1:     {granted:['credit:read','credit:simulate','credit:draft'],             denied:['credit:apply','team:view']},
+  op2:     {granted:['credit:read','credit:simulate','credit:draft'],             denied:['credit:apply','team:view']},
+};
+
+// ── STATE ──
+let rtOpen = false, rtAlive = false, rtCount = 0, rtExp = 0, rtTtlTimer = null;
+
+// ── HELPERS ──
+function rtToggle() {
+  rtOpen = !rtOpen;
+  document.getElementById('rtDrawer').classList.toggle('open', rtOpen);
+}
+
+function rtPhase(label) {
+  const el = document.createElement('div');
+  el.className = 'rt-phase';
+  el.textContent = label;
+  document.getElementById('rtBody').appendChild(el);
+}
+
+function rtAdd(tag, cls, msg, detail, prop) {
+  const body = document.getElementById('rtBody');
+  const empty = document.getElementById('rtEmpty');
+  if (empty) empty.remove();
+  const el = document.createElement('div');
+  el.className = 'rt-ev' + (detail ? ' has-detail' : '');
+  el.innerHTML =
+    `<span class="rt-tag ${cls}">${tag}</span>` +
+    `<span class="rt-msg">${msg}` +
+      (prop ? '<span class="rt-prop">proposto</span>' : '') +
+      (detail ? '<span class="rt-chev">▸</span>' : '') +
+    `</span>` +
+    (detail ? `<div class="rt-detail"><div class="rt-detail-in">${detail}</div></div>` : '');
+  if (detail) el.onclick = () => el.classList.toggle('open');
+  body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  body.scrollTop = body.scrollHeight;
+  rtCount++;
+  const c = document.getElementById('rtCount');
+  if (c) c.textContent = rtCount;
+}
+
+function rtSetSession(profile) {
+  const u = USERS[profile], sc = RT_SCOPES[profile];
+  rtAlive = true;
+  document.getElementById('rtSessName').textContent = 'UCT ativo';
+  document.getElementById('rtSub').textContent  = 'agt_' + profile;
+  document.getElementById('rtRole').textContent = u.role;
+  document.getElementById('rtStore').textContent = 'memória JS';
+  document.getElementById('rtScopes').innerHTML =
+    sc.granted.map(x => `<span class="rt-scope">${x}</span>`).join('') +
+    sc.denied.map(x => `<span class="rt-scope denied">${x}</span>`).join('');
+  rtExp = Date.now() + 15 * 60 * 1000;
+  clearInterval(rtTtlTimer);
+  rtTtlTimer = setInterval(rtTick, 1000);
+  rtTick();
+}
+
+function rtTick() {
+  const left = Math.max(0, rtExp - Date.now());
+  const m = Math.floor(left / 60000), sec = Math.floor((left % 60000) / 1000);
+  const el = document.getElementById('rtTtl');
+  if (el) el.textContent = 'expira em ' + m + ':' + String(sec).padStart(2, '0');
+}
+
+// ── SEQUÊNCIA DE LOGIN ──
+function rtBootSession(profile) {
+  const u = USERS[profile], sc = RT_SCOPES[profile];
+  document.getElementById('rtFab').style.display = 'flex';
+  rtPhase('Autenticação do operador');
+  rtAdd('auth','tag-auth','Credenciais validadas · <span class="hl">MFA</span> confirmado',
+    '<span class="c">// o portal do operador é o cenário federado:</span>\n<span class="c">// quem autentica é o diretório corporativo do parceiro.</span>\nPOST /oauth2/token/exchange\n<span class="k">subject_token</span>: {corp_sso_token}');
+  rtAdd('auth','tag-auth','<span class="ok">UCT emitido</span> · TTL 15 min · em memória');
+  rtPhase('Autorização · RBAC');
+  rtAdd('rbac','tag-rbac',`Papel <span class="hl">${u.role}</span> — produtos: ${u.products.join(', ')}`,
+    `<span class="c">// escopo derivado do papel, no servidor — nunca do que o cliente pede</span>\n<span class="k">"scope"</span>: <span class="s">"${sc.granted.join(' ')}"</span>,\n<span class="k">"products"</span>: [${u.products.map(x=>'<span class="s">"'+x+'"</span>').join(', ')}]`);
+  rtAdd('sec','tag-sec','<span class="no">credit:apply negado</span> para todo papel do portal',
+    '<span class="c">// o operador monta a proposta; a contratação é do cliente.</span>\n<span class="c">// nenhum papel do portal recebe credit:apply — nem o gerente.</span>\n<span class="c">// ameaça C-02: fraude do próprio atendente.</span>');
+  if (!u.canViewAll) {
+    rtAdd('rbac','tag-rbac','Visão restrita — filtro por <span class="hl">sub</span> aplicado no servidor',
+      '<span class="c">// o filtro da interface é conveniência, não controle.</span>\n<span class="c">// toda leitura filtra por sub + partner_tenant do UCT — ameaça A-13.</span>');
+  }
+  rtSetSession(profile);
+}
+
+// ── EVENTOS POR AÇÃO ──
+function rtOnProduct(p, allowed) {
+  if (!rtAlive) return;
+  if (allowed) rtAdd('rbac','tag-rbac',`Produto <span class="hl">${PRODUCTS[p].name}</span> autorizado`);
+  else rtAdd('warn','tag-warn',`Produto <span class="no">${PRODUCTS[p].name} negado</span> — fora do papel`,
+    '<span class="c">// verificação no servidor, não só na interface.</span>\n<span class="k">403</span> insufficient_scope');
+}
+
+function rtOnStep(n, p) {
+  if (!rtAlive) return;
+  const evs = {
+    1:()=>{ rtPhase('Nova proposta · '+PRODUCTS[p].name); },
+    2:()=>rtAdd('api','tag-api','POST <span class="hl">/v1/credit/simulate</span>',
+      'POST /v1/credit/simulate\n<span class="k">Authorization</span>: DPoP {UCT}\n<span class="k">X-Idempotency-Key</span>: {aleatório}\n\n<span class="c">// escopo credit:simulate confere</span>'),
+    3:()=>rtAdd('api','tag-api','Avalista consultado em bureau'),
+    4:()=>rtAdd('doc','tag-doc','Documentos anexados à proposta em rascunho'),
+    5:()=>rtAdd('api','tag-api','Proposta salva como <span class="hl">rascunho</span> · escopo credit:draft',
+      '<span class="c">// rascunho não é contratação. A proposta existe,</span>\n<span class="c">// mas não pode ser efetivada a partir da sessão do operador.</span>\n<span class="k">"status"</span>: <span class="s">"draft"</span>'),
+  };
+  if (evs[n]) evs[n]();
+}
+
+function rtOnCnpj() {
+  if (!rtAlive) return;
+  rtAdd('api','tag-api','GET <span class="hl">/v1/customers/{cnpj}</span> · Customer Registry',
+    '<span class="c">// elegibilidade e limite pré-aprovado vêm daqui.</span>\n<span class="c">// isto NÃO é identidade: quem está na frente do operador</span>\n<span class="c">// ainda não foi comprovado. Ver "elegibilidade ≠ identidade".</span>');
+}
+
+function rtOnUpload() {
+  if (!rtAlive) return;
+  rtAdd('doc','tag-doc','Arquivo recebido · tipo real validado, análise isolada',
+    '<span class="c">// validação por assinatura binária, não por extensão.</span>\n<span class="c">// reprocessado antes de exibir; servido por URL assinada curta.</span>\n<span class="c">// ameaça C-08.</span>');
+  rtAdd('sec','tag-sec','Sem persistência no dispositivo do operador');
+}
+
+function rtOnHandoff(canal, contato) {
+  if (!rtAlive) return;
+  rtPhase('Handoff para o cliente');
+  rtAdd('sec','tag-sec',`Link de assinatura enviado por <span class="hl">${canal}</span> · ${contato}`,
+    `<span class="c">// token de uso único, curta validade, escopo mínimo.</span>\n{\n  <span class="k">"aud"</span>: <span class="s">"sign-session"</span>,\n  <span class="k">"scope"</span>: <span class="s">"credit:review credit:apply"</span>,\n  <span class="k">"proposal"</span>: <span class="s">"CG-2026-00847"</span>,\n  <span class="k">"exp"</span>: +15min,\n  <span class="k">"assisted_by"</span>: <span class="s">"agt_${selectedProfile}"</span>\n}`);
+  rtAdd('sec','tag-sec','Contato verificado antes do envio', 
+    '<span class="c">// se o operador pudesse digitar um contato novo sem verificação,</span>\n<span class="c">// ele controlaria o canal do link — e a separação de papéis cairia.</span>');
+  rtAdd('warn','tag-warn','Sessão do operador <span class="no">não avança</span> daqui');
+}
+
+function rtOnClientStep(n) {
+  if (!rtAlive) return;
+  const evs = {
+    1:()=>rtAdd('auth','tag-auth','Cliente autenticou no <span class="hl">próprio dispositivo</span>',
+      `{\n  <span class="k">"sub"</span>: <span class="s">"usr_h8x3k2p9"</span>,      <span class="c">// o titular, não o operador</span>\n  <span class="k">"amr"</span>: [<span class="s">"pwd"</span>, <span class="s">"otp"</span>],\n  <span class="k">"assisted_by"</span>: <span class="s">"agt_${selectedProfile}"</span>\n}`),
+    2:()=>rtAdd('sec','tag-sec','Conferindo os dados <span class="hl">imputados pelo operador</span>',
+      '<span class="c">// a etapa que sustenta a operação quando o cliente alega</span>\n<span class="c">// que não foi aquilo que lhe mostraram.</span>'),
+    3:()=>rtAdd('sec','tag-sec','Titularidade da chave <span class="ok">confere</span> com o contrato',
+      '<span class="c">// verificada na fonte antes da assinatura, para que o destino</span>\n<span class="c">// já entre no documento assinado — ameaça C-10.</span>'),
+    4:()=>rtAdd('sec','tag-sec','<span class="ok">Assinatura registrada</span> com pacote de evidências', 
+      '{\n  <span class="k">"document_hash"</span>: <span class="s">"sha256-9f2a…"</span>,\n  <span class="k">"amr"</span>: [<span class="s">"pwd"</span>,<span class="s">"otp"</span>], <span class="k">"acr"</span>: <span class="s">"loa2"</span>,\n  <span class="k">"assisted_by"</span>: <span class="s">"agt_…"</span>,\n  <span class="k">"disbursement_key_hash"</span>: <span class="s">"sha256-4c1b…"</span>\n}', true),
+    5:()=>rtAdd('api','tag-api','Proposta <span class="ok">efetivada</span> pelo cliente · escopo credit:apply'),
+  };
+  if (evs[n]) evs[n]();
+}
 
 // ══════════════════════════════════════════════════
 // TOAST

@@ -287,6 +287,12 @@ strong{color:var(--text);font-weight:600}
   .hero{padding:44px 24px 40px}
   .grid2,.grid3{grid-template-columns:1fr}
 }
+
+/* ─── navegação entre peças do showcase ─── */
+.xref{padding:16px 24px 22px;border-top:1px solid rgba(128,128,128,.18);font-family:monospace;font-size:10.5px;letter-spacing:.04em;display:flex;gap:11px;flex-wrap:wrap;align-items:center;opacity:.72}
+.xref a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(128,128,128,.3)}
+.xref a:hover{opacity:1;border-bottom-color:currentColor}
+.xref i{font-style:normal;opacity:.35}
 </style>
 </head>
 <body>
@@ -1147,7 +1153,7 @@ strong{color:var(--text);font-weight:600}
       <strong>mTLS obrigatório</strong> · para qualquer chamada BFF → Core Platform ou Auth Server<br>
       <strong>Document hash</strong> · CPF/CNPJ nunca trafega raw entre serviços — apenas SHA-256<br>
       <strong>Idempotency Key</strong> · obrigatório em todos os endpoints de escrita<br>
-      <strong>Audit log</strong> · toda operação de crédito armazenada por mínimo 5 anos (Bacen Res. 4.658)
+      <strong>Audit log</strong> · toda operação de crédito armazenada por mínimo 5 anos (Bacen Res. 4.893/2021)
     </p>
   </div>
 </div>
@@ -1176,5 +1182,7 @@ function copyCode(btn) {
   });
 }
 </script>
+<div class="xref"><a href="index.html">← Showcase</a><i>·</i><a href="baas-originacao-cliente-final.html">Originação</a><i>·</i><a href="baas-seguranca-arquitetura.html">Segurança</a></div>
+
 </body>
 </html>

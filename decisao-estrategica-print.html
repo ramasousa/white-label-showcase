@@ -525,7 +525,7 @@ tr { break-inside: avoid; }
     <div class="dim-card">
       <div class="dim-card-num">D-03 · Crítica</div>
       <div class="dim-card-title">Controle Regulatório</div>
-      <div class="dim-card-body">Dados de clientes, logs de autenticação retidos por 5 anos (Bacen 4.658), certificados mTLS, perímetro de compliance. Independente de onde o código é desenvolvido, a produção deve estar sob o perímetro do Bradesco.</div>
+      <div class="dim-card-body">Dados de clientes, logs de autenticação retidos por 5 anos (Bacen 4.893/2021), certificados mTLS, perímetro de compliance. Independente de onde o código é desenvolvido, a produção deve estar sob o perímetro do Bradesco.</div>
       <div class="dim-card-q">Se a Aarin desenvolver, a arquitetura garante que zero dado de cliente final trafega ou fica armazenado fora do perímetro regulatório do Bradesco?</div>
     </div>
     <div class="dim-card">
@@ -833,6 +833,8 @@ tr { break-inside: avoid; }
           <td class="td-aa lose">Risco · salto inter-cloud sem SLA<br><small>80–140ms p50 · jitter em pico</small></td>
           <td class="td-hi neutral">Gerenciável com link dedicado<br><small>60–100ms p50 · Direct Connect + ExpressRoute</small></td>
         </tr>
+        <tr>
+          <td>Custo de desenvolvimento</td>
           <td class="td-bra lose">Alto · overhead estrutural bancário</td>
           <td class="td-aa win">Menor · estrutura mais leve</td>
           <td class="td-hi neutral">Moderado · SLA intragrupo com custo</td>
@@ -920,7 +922,7 @@ tr { break-inside: avoid; }
         <div class="risk-card-left"><span class="risk-tag rt-h">ALTO</span></div>
         <div>
           <div class="risk-card-title">Dados de clientes fora do perímetro</div>
-          <div class="risk-card-desc">Ambientes de desenvolvimento da Aarin não devem jamais tocar dados de clientes reais. Se essa separação não for arquitetada desde o início, há risco de violação de LGPD e Bacen 4.658.</div>
+          <div class="risk-card-desc">Ambientes de desenvolvimento da Aarin não devem jamais tocar dados de clientes reais. Se essa separação não for arquitetada desde o início, há risco de violação de LGPD e Bacen 4.893/2021.</div>
           <div class="risk-card-mit">Mitigação: dados sintéticos em todos os ambientes da Aarin. Produção exclusivamente no perímetro Bradesco/Azure. Auditoria semestral. — Arquitetura já definida neste projeto.</div>
         </div>
       </div>
@@ -1175,7 +1177,10 @@ tr { break-inside: avoid; }
 
     <div class="cl-group">
       <div class="cl-group-title">Estratégia e mercado</div>
-      <div class="cl-items"> Um atraso de 6 meses no go-live muda materialmente a posição competitiva do BaaS?</span>
+      <div class="cl-items">
+        <div class="cl-item">
+          <div class="cl-check" onclick="this.classList.toggle('checked');this.textContent=this.classList.contains('checked')?'✓':''"></div>
+          <span class="cl-text">Qual é a janela de mercado estimada? Um atraso de 6 meses no go-live muda materialmente a posição competitiva do BaaS?</span>
         </div>
         <div class="cl-item">
           <div class="cl-check" onclick="this.classList.toggle('checked');this.textContent=this.classList.contains('checked')?'✓':''"></div>

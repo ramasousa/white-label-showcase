@@ -277,6 +277,12 @@ h1{font-family:var(--disp);font-size:clamp(26px,3.8vw,50px);font-weight:800;
 @media(max-width:560px){
   .grid4,.log-grid,.insight{grid-template-columns:1fr}
 }
+
+/* ─── navegação entre peças do showcase ─── */
+.xref{padding:16px 24px 22px;border-top:1px solid rgba(128,128,128,.18);font-family:monospace;font-size:10.5px;letter-spacing:.04em;display:flex;gap:11px;flex-wrap:wrap;align-items:center;opacity:.72}
+.xref a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(128,128,128,.3)}
+.xref a:hover{opacity:1;border-bottom-color:currentColor}
+.xref i{font-style:normal;opacity:.35}
 </style>
 </head>
 <body>
@@ -333,7 +339,7 @@ h1{font-family:var(--disp);font-size:clamp(26px,3.8vw,50px);font-weight:800;
       <div class="ins-item"><span class="ins-bullet" style="color:var(--blue)">→</span>Login + senha + MFA obrigatório no portal</div>
       <div class="ins-item"><span class="ins-bullet" style="color:var(--amber)">⚠</span>Bradesco se torna guardião da identidade</div>
       <div class="ins-item"><span class="ins-bullet" style="color:var(--amber)">⚠</span>Rate limit + anti-credential-stuffing ativos</div>
-      <div class="ins-item"><span class="ins-bullet" style="color:var(--amber)">⚠</span>Logs de auth retidos 5 anos (Bacen 4.658)</div>
+      <div class="ins-item"><span class="ins-bullet" style="color:var(--amber)">⚠</span>Logs de auth retidos 5 anos (Bacen 4.893/2021)</div>
       <div class="ins-item"><span class="ins-bullet" style="color:var(--green)">✓</span>Ideal para parceiros sem infra de Token Exchange</div>
     </div>
   </div>
@@ -775,5 +781,7 @@ function resetAll() {
 document.getElementById('playBtn').addEventListener('click', startAll);
 document.getElementById('resetBtn').addEventListener('click', resetAll);
 </script>
+<div class="xref"><a href="index.html">← Showcase</a><i>·</i><a href="baas-modelos-identidade.html">Modelos de Identidade</a></div>
+
 </body>
 </html>

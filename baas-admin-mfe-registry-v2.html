@@ -212,6 +212,12 @@ input:checked + .slider-switch::before{transform:translateX(17px);background:var
 .toast.warning{background:var(--amber);color:#3d2a00}
 
 hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
+
+/* ─── navegação entre peças do showcase ─── */
+.xref{padding:16px 24px 22px;border-top:1px solid rgba(128,128,128,.18);font-family:monospace;font-size:10.5px;letter-spacing:.04em;display:flex;gap:11px;flex-wrap:wrap;align-items:center;opacity:.72}
+.xref a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(128,128,128,.3)}
+.xref a:hover{opacity:1;border-bottom-color:currentColor}
+.xref i{font-style:normal;opacity:.35}
 </style>
 </head>
 <body>
@@ -879,5 +885,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderRegistryTable();
 });
 </script>
+<div class="xref"><a href="index.html">← Showcase</a><i>·</i><a href="baas-seguranca-arquitetura.html">Segurança · supply chain do MFE</a></div>
+
 </body>
 </html>
