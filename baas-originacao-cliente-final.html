@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BaaS White Label · Originação do Cliente Final — Base, KYC e Canais</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --cream:#f5f2ec;--cream-2:#ebe6dc;--cream-3:#dcd6c8;--white:#ffffff;
+  --ink:#0b1219;--ink-deep:#070c11;--ink-2:#243444;--ink-3:#5c7082;--ink-4:#98a8b6;
+  --red:#bf1e2d;--red-br:#ff4757;--red-soft:rgba(191,30,45,.08);--red-line:rgba(191,30,45,.22);
+  --green:#4fc79a;--green-d:#1d8f66;--green-s:rgba(79,199,154,.12);
+  --amber:#e0a95f;--amber-d:#b57320;--amber-s:rgba(224,169,95,.12);
+  --blue:#5b9dd9;--blue-d:#2c6ba8;--blue-s:rgba(91,157,217,.12);
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+html{scroll-behavior:smooth}
+body{background:var(--cream);color:var(--ink-2);font-family:'Inter',sans-serif;font-size:15px;line-height:1.68;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--red);display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.eyebrow::before{content:'';display:block;width:14px;height:1px;background:var(--red)}
+.eyebrow.on-dark{color:var(--red-br)}
+.eyebrow.on-dark::before{background:var(--red-br)}
+
+.noise{position:absolute;inset:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E")}
+.glow{position:absolute;border-radius:50%;pointer-events:none;background:radial-gradient(ellipse,rgba(191,30,45,.16) 0%,transparent 70%)}
+
+.badge,.flag{display:inline-flex;align-items:center;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.badge-green{background:var(--green-s);color:var(--green-d);border:1px solid rgba(79,199,154,.3)}
+.badge-amber{background:var(--amber-s);color:var(--amber-d);border:1px solid rgba(224,169,95,.3)}
+.badge-gray{background:var(--cream-2);color:var(--ink-4);border:1px solid var(--cream-3)}
+.badge-blue{background:var(--blue-s);color:var(--blue-d);border:1px solid rgba(91,157,217,.25)}
+.flag{background:var(--red-soft);color:var(--red);border:1px solid var(--red-line)}
+.mono{font-family:'JetBrains Mono',monospace}
+
+.nav{position:sticky;top:0;z-index:600;background:rgba(11,18,25,.93);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.07);padding:11px 40px;display:flex;align-items:center;gap:26px}
+.nav-mark{font-family:'Syne',sans-serif;font-weight:800;font-size:12.5px;letter-spacing:-.02em;color:var(--cream);flex-shrink:0}
+.nav-links{display:flex;gap:19px;flex:1;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-link{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-4);white-space:nowrap;transition:color .25s var(--ease)}
+.nav-link:hover{color:var(--red-br)}
+
+.hero{background:var(--ink);position:relative;overflow:hidden;padding:76px 40px 66px}
+.hero-in{max-width:1080px;margin:0 auto;position:relative;z-index:2}
+.hero .glow{width:620px;height:620px;top:-260px;right:-160px}
+.hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(32px,5vw,54px);letter-spacing:-.045em;line-height:1.04;color:var(--cream);margin-bottom:20px;max-width:860px}
+.hero h1 em{font-style:normal;color:var(--red-br)}
+.hero-sub{font-size:16px;font-weight:300;color:var(--ink-4);line-height:1.72;max-width:690px;margin-bottom:34px}
+.hero-tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:30px}
+.hero-tags .badge{background:rgba(255,255,255,.05);color:var(--ink-4);border:1px solid rgba(255,255,255,.1)}
+.hero-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:28px;padding-top:32px;border-top:1px solid rgba(255,255,255,.09)}
+.kpi-v{font-family:'Syne',sans-serif;font-weight:800;font-size:38px;letter-spacing:-.05em;line-height:1;color:var(--cream)}
+.kpi-l{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-4);margin-top:8px}
+
+.band{background:var(--ink-deep);position:relative;padding:64px 40px}
+.band-in{max-width:1080px;margin:0 auto;position:relative;z-index:2}
+.band h2{font-family:'Syne',sans-serif;font-weight:800;font-size:30px;letter-spacing:-.035em;color:var(--cream);margin-bottom:12px;line-height:1.14}
+.band-desc{font-size:14.5px;font-weight:300;color:var(--ink-4);max-width:690px;line-height:1.72;margin-bottom:34px}
+.q-track{display:flex;flex-direction:column;gap:2px}
+.qr{display:grid;grid-template-columns:38px 1fr;gap:16px;align-items:start;padding:16px 18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:3px;transition:background .3s var(--ease),border-color .3s var(--ease)}
+.qr:hover{background:rgba(255,255,255,.06);border-color:rgba(255,68,87,.3)}
+.qr-n{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red-br)}
+.qr-q{font-size:13.5px;color:var(--cream);font-weight:500;margin-bottom:5px;line-height:1.5}
+.qr-a{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-4);line-height:1.6}
+
+.wrap{max-width:1080px;margin:0 auto;padding:64px 40px 40px}
+.wrap:last-of-type{padding-bottom:100px}
+h2.sec{font-family:'Syne',sans-serif;font-weight:800;font-size:30px;letter-spacing:-.035em;line-height:1.14;margin-bottom:12px;max-width:800px}
+.sec-desc{font-size:14.5px;color:var(--ink-3);max-width:730px;line-height:1.72;margin-bottom:34px}
+h3.sub{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;letter-spacing:-.025em;margin:38px 0 14px}
+
+.callout{border-left:3px solid var(--red);background:var(--red-soft);padding:18px 22px;margin:26px 0;border-radius:0 3px 3px 0}
+.callout-t{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--red);margin-bottom:8px}
+.callout p{font-size:14px;line-height:1.7;color:var(--ink-2)}
+.callout p+p{margin-top:10px}
+.callout.neutral{border-left-color:var(--blue-d);background:var(--blue-s)}
+.callout.neutral .callout-t{color:var(--blue-d)}
+.callout.warn{border-left-color:var(--amber-d);background:var(--amber-s)}
+.callout.warn .callout-t{color:var(--amber-d)}
+.callout.good{border-left-color:var(--green-d);background:var(--green-s)}
+.callout.good .callout-t{color:var(--green-d)}
+
+.cards{display:grid;gap:12px}
+.cards.two{grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+.card{background:var(--white);border:1px solid var(--cream-3);border-radius:4px;cursor:pointer;overflow:hidden;position:relative;transition:transform .3s var(--ease),box-shadow .3s var(--ease)}
+.card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(11,18,25,.1)}
+.card.open{box-shadow:0 0 0 2px var(--red-br),0 16px 40px rgba(11,18,25,.12)}
+.card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--cream-3)}
+.card.acc-red::after{background:var(--red)}
+.card.acc-amber::after{background:var(--amber)}
+.card.acc-green::after{background:var(--green)}
+.card.acc-blue::after{background:var(--blue)}
+.card-head{padding:20px 22px;display:flex;align-items:flex-start;gap:16px}
+.card-head-main{flex:1;min-width:0}
+.card-kicker{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-4);margin-bottom:7px}
+.card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:16.5px;letter-spacing:-.02em;line-height:1.28;margin-bottom:6px}
+.card-sub{font-size:13px;color:var(--ink-3);line-height:1.6}
+.card-side{display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex-shrink:0}
+.card-chev{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ink-4);transition:transform .35s var(--ease)}
+.card.open .card-chev{transform:rotate(90deg)}
+.card-body{max-height:0;overflow:hidden;opacity:0;transition:max-height .5s var(--ease),opacity .35s}
+.card.open .card-body{max-height:2400px;opacity:1}
+.card-body-in{padding:2px 22px 24px;border-top:1px solid var(--cream-2)}
+.card-body-in>*:first-child{margin-top:18px}
+
+.attr{display:grid;grid-template-columns:118px 1fr;gap:14px;padding:9px 0;border-bottom:1px solid var(--cream-2);font-size:13.5px;line-height:1.62}
+.attr:last-child{border-bottom:none}
+.attr-k{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);padding-top:3px}
+.attr-v{color:var(--ink-2)}
+.attr-v strong{font-weight:600}
+
+.ctrl-list{display:flex;flex-direction:column;gap:9px;margin:16px 0}
+.ctrl{display:flex;gap:11px;font-size:13.5px;line-height:1.6;align-items:flex-start}
+.ctrl-dot{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green-d);flex-shrink:0;padding-top:2px}
+.ctrl-dot.gap{color:var(--red)}
+.ctrl-dot.part{color:var(--amber-d)}
+
+/* ═══ ESCADA DE CANAIS ═══ */
+.ladder{display:flex;flex-direction:column;gap:2px;margin:24px 0}
+.lad{display:grid;grid-template-columns:44px 1.5fr 1fr 108px;gap:16px;align-items:center;padding:15px 18px;background:var(--white);border:1px solid var(--cream-3);border-radius:3px;transition:transform .25s var(--ease),box-shadow .25s var(--ease)}
+.lad:hover{transform:translateX(3px);box-shadow:0 6px 20px rgba(11,18,25,.07)}
+.lad-id{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--red);font-weight:500}
+.lad-name{font-size:13.5px;font-weight:500;color:var(--ink-2);margin-bottom:3px}
+.lad-how{font-size:12px;color:var(--ink-3);line-height:1.5}
+.lad-req{font-family:'JetBrains Mono',monospace;font-size:10.5px;line-height:1.5}
+.lad-req.zero{color:var(--green-d)}
+.lad-req.low{color:var(--amber-d)}
+.lad-req.high{color:var(--red)}
+.lad-loa{text-align:right}
+.loa{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.06em;padding:3px 8px;border-radius:3px;white-space:nowrap}
+.loa-1{background:var(--red-soft);color:var(--red);border:1px solid var(--red-line)}
+.loa-2{background:var(--amber-s);color:var(--amber-d);border:1px solid rgba(224,169,95,.3)}
+.loa-3{background:var(--green-s);color:var(--green-d);border:1px solid rgba(79,199,154,.3)}
+
+/* ═══ FUNIL ═══ */
+.funnel{display:flex;flex-direction:column;gap:2px;margin:24px 0}
+.fs{display:grid;grid-template-columns:30px 1fr 130px;gap:16px;align-items:start;padding:15px 18px;background:var(--white);border:1px solid var(--cream-3);border-radius:3px}
+.fs-n{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:var(--cream-3);line-height:1}
+.fs-t{font-size:13.5px;font-weight:500;color:var(--ink-2);margin-bottom:4px}
+.fs-d{font-size:12.5px;color:var(--ink-3);line-height:1.55}
+.fs-who{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.05em;text-align:right;line-height:1.5}
+.fs-who.p{color:var(--blue-d)}
+.fs-who.b{color:var(--red)}
+
+/* ═══ MATRIZ ═══ */
+.matrix{display:grid;gap:2px;margin:22px 0}
+.mx-row{display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr;gap:2px}
+.mx-c{background:var(--white);border:1px solid var(--cream-3);padding:13px 15px;font-size:12.5px;line-height:1.55}
+.mx-row.head .mx-c{background:var(--ink);color:var(--cream);border-color:var(--ink);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.11em;text-transform:uppercase}
+.mx-c.lbl{font-weight:500;color:var(--ink-2)}
+.mx-v{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.04em;display:block;margin-bottom:4px}
+.mx-v.yes{color:var(--green-d)}.mx-v.no{color:var(--red)}.mx-v.part{color:var(--amber-d)}
+.mx-note{color:var(--ink-3);font-size:11.5px;line-height:1.5}
+
+.code{background:var(--ink);border-radius:4px;overflow:hidden;margin:18px 0}
+.code-bar{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02)}
+.code-lang{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-4)}
+.code-tag{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.06em;color:var(--red-br)}
+.code pre{padding:17px 18px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.75;color:#c8d4e0}
+.c-key{color:#ff8a95}.c-str{color:#8fd6a8}.c-com{color:#4d6376;font-style:italic}.c-warn{color:#ff4757}
+
+.foot{border-top:1px solid var(--cream-3);padding:34px 40px 60px;max-width:1080px;margin:0 auto}
+.foot-in{font-family:'JetBrains Mono',monospace;font-size:10.5px;line-height:1.9;color:var(--ink-4);letter-spacing:.03em}
+.foot-links{display:flex;gap:18px;flex-wrap:wrap;margin-top:16px}
+.foot-links a{color:var(--red);transition:opacity .25s var(--ease)}
+.foot-links a:hover{opacity:.6}
+
+@media (max-width:860px){
+  .nav{padding:11px 20px;gap:16px}
+  .hero{padding:52px 24px 46px}
+  .band,.wrap{padding-left:24px;padding-right:24px}
+  .wrap{padding-top:48px}
+  .cards.two{grid-template-columns:1fr}
+  .mx-row{grid-template-columns:1fr}
+  .mx-row.head{display:none}
+  .lad{grid-template-columns:34px 1fr;gap:10px}
+  .lad-req,.lad-loa{grid-column:2;text-align:left}
+  .fs{grid-template-columns:26px 1fr}
+  .fs-who{grid-column:2;text-align:left}
+  .attr{grid-template-columns:1fr;gap:3px}
+  .qr{grid-template-columns:28px 1fr}
+  .foot{padding:30px 24px 50px}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-mark">BaaS · Originação</div>
+  <div class="nav-links">
+    <a class="nav-link" href="#no">O nó</a>
+    <a class="nav-link" href="#conceito">Elegibilidade ≠ identidade</a>
+    <a class="nav-link" href="#base">Como a base chega</a>
+    <a class="nav-link" href="#kyc">KYC do não-correntista</a>
+    <a class="nav-link" href="#desembolso">Desembolso</a>
+    <a class="nav-link" href="#canais">Canais</a>
+    <a class="nav-link" href="#assistida">Operação assistida</a>
+    <a class="nav-link" href="#fluxo">Fluxo ponta a ponta</a>
+    <a class="nav-link" href="#ameacas">Ameaças</a>
+    <a class="nav-link" href="#decisoes">A decidir</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="noise"></div>
+  <div class="glow"></div>
+  <div class="hero-in">
+    <div class="eyebrow on-dark">Originação · Base · KYC · Canais de distribuição</div>
+    <h1>O cliente do parceiro <em>não é nosso cliente</em> — e a base dele não prova quem ele é.</h1>
+    <p class="hero-sub">Três perguntas em aberto travam o white label full: como receber a base de um parceiro que não tem tecnologia, como conhecer um cliente que não é correntista, e como garantir identidade e segurança quando a mesma experiência é distribuída em web, mobile, embarcado e atendimento assistido. Este documento responde às três a partir de um único conceito.</p>
+    <div class="hero-tags">
+      <span class="badge">Escada de provisionamento</span>
+      <span class="badge">KYC · PLD · liveness</span>
+      <span class="badge">Titularidade do desembolso</span>
+      <span class="badge">Correspondente no País</span>
+    </div>
+    <div class="hero-kpis">
+      <div><div class="kpi-v">6</div><div class="kpi-l">Canais de base</div></div>
+      <div><div class="kpi-v">7</div><div class="kpi-l">Etapas de qualificação</div></div>
+      <div><div class="kpi-v">4</div><div class="kpi-l">Canais de distribuição</div></div>
+      <div><div class="kpi-v" style="color:var(--red-br)">10</div><div class="kpi-l">Ameaças novas</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ O NÓ ═══ -->
+<div class="band" id="no">
+  <div class="noise"></div>
+  <div class="band-in">
+    <div class="eyebrow on-dark">01 · O nó</div>
+    <h2>Três perguntas — e uma contradição no que já escrevemos</h2>
+    <p class="band-desc">O documento de Modelos de Identidade recomendou receber a base de elegíveis “por API”. Para o parceiro que, por definição do modelo, não tem área de tecnologia, essa recomendação não fecha. Corrigir isso obriga a responder mais duas perguntas que estavam escondidas atrás dela.</p>
+
+    <div class="q-track">
+      <div class="qr">
+        <div class="qr-n">Q1</div>
+        <div>
+          <div class="qr-q">Se o parceiro não tem tecnologia, como ele nos manda a base de clientes?</div>
+          <div class="qr-a">Recomendar API a quem não tem quem a integre é empurrar o problema. → seção 03</div>
+        </div>
+      </div>
+      <div class="qr">
+        <div class="qr-n">Q2</div>
+        <div>
+          <div class="qr-q">Os clientes do parceiro não são correntistas do Bradesco. Como conhecê-los?</div>
+          <div class="qr-a">Não há base cadastral, histórico nem relacionamento prévio para apoiar a decisão. → seções 02, 04 e 05</div>
+        </div>
+      </div>
+      <div class="qr">
+        <div class="qr-n">Q3</div>
+        <div>
+          <div class="qr-q">A mesma experiência vai em web, mobile, embarcada e atendimento assistido. Como garantir identidade e segurança em cada uma?</div>
+          <div class="qr-a">Cada canal conhece o cliente de um jeito diferente — e o assistido muda o enquadramento regulatório. → seções 06 e 07</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:34px;border-left-color:var(--red-br);background:rgba(255,71,87,.08)">
+      <div class="callout-t" style="color:var(--red-br)">O que não existe hoje no showcase</div>
+      <p style="color:var(--cream)">Busca no repositório: <strong>zero ocorrências</strong> de KYC, PLD, prova de vida, liveness, não-correntista, abertura de conta, chave PIX, correspondente bancário e operação assistida.</p>
+      <p style="color:var(--ink-4)">O <span class="mono">Customer Registry</span> existente <em>consulta</em> CPF/CNPJ para trazer limite e rating — ou seja, pressupõe um cliente já conhecido. Todo o material assume que alguém, em algum lugar, já sabe quem é essa pessoa. No white label full, ninguém sabe.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CONCEITO ═══ -->
+<div class="wrap" id="conceito">
+  <div class="eyebrow">02 · O conceito que organiza tudo</div>
+  <h2 class="sec">Elegibilidade não é identidade</h2>
+  <p class="sec-desc">Esta distinção resolve as três perguntas. Sem ela, a discussão fica circular — porque “ter a base do parceiro” parece resolver o problema de identidade, e não resolve.</p>
+
+  <div class="cards two">
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">O que o parceiro afirma</div>
+          <div class="card-title">Elegibilidade</div>
+          <div class="card-sub">“Esta pessoa tem relação comercial comigo e faz sentido oferecer crédito a ela.”</div>
+        </div>
+        <div class="card-side"><span class="badge badge-blue">do parceiro</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">É</div><div class="attr-v">Uma afirmação comercial: o CNPJ está na rede de franquias, o CPF é assinante ativo, o faturamento médio é X</div></div>
+        <div class="attr"><div class="attr-k">Não é</div><div class="attr-v">Prova de que a pessoa na tela é aquela pessoa. É uma <strong>lista</strong>, não uma credencial.</div></div>
+        <div class="attr"><div class="attr-k">Serve para</div><div class="attr-v">Definir quem pode ser abordado, qual oferta apresentar e qual limite pré-qualificado calcular</div></div>
+        <div class="attr"><div class="attr-k">Quem responde</div><div class="attr-v">O parceiro — pela veracidade e pela atualidade da informação comercial</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">O que o banco precisa provar</div>
+          <div class="card-title">Identidade</div>
+          <div class="card-sub">“Quem está nesta sessão é, comprovadamente, o titular daquele CPF ou CNPJ.”</div>
+        </div>
+        <div class="card-side"><span class="flag">do Bradesco</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">É</div><div class="attr-v">Prova de identidade com evidência: documento verificado, prova de vida, validação em fontes oficiais, vínculo com dispositivo</div></div>
+        <div class="attr"><div class="attr-k">Por que é nossa</div><div class="attr-v">É o banco que concede crédito e responde pela operação. <strong>Nenhum contrato transfere essa responsabilidade</strong> — e o parceiro não tem como executá-la.</div></div>
+        <div class="attr"><div class="attr-k">O erro a evitar</div><div class="attr-v">Tratar “está na base da Vivo” como autenticação. Um impostor que conheça um CPF elegível passaria por cliente legítimo — com <em>a base certa</em> e o crédito indo para a pessoa errada.</div></div>
+        <div class="attr"><div class="attr-k">Consequência</div><div class="attr-v">A qualidade da base do parceiro reduz risco de crédito, mas <strong>não substitui um único passo</strong> do funil de identificação da seção 04</div></div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="callout good">
+    <div class="callout-t">A regra prática</div>
+    <p>A base do parceiro entra como <strong>insumo de risco e de oferta</strong>. A identidade é construída do zero pelo banco, sempre, independentemente da qualidade da base. Elas se encontram no fim do funil — quando um titular comprovado é reconciliado com um registro de elegibilidade.</p>
+    <p>Quando o canal de entrada não traz elegibilidade nenhuma (um link público, por exemplo), o funil de identidade é o mesmo — o que muda é a oferta e o limite, não o rigor da identificação.</p>
+  </div>
+</div>
+
+<!-- ═══ BASE ═══ -->
+<div class="wrap" id="base">
+  <div class="eyebrow">03 · Provisionamento</div>
+  <h2 class="sec">Como a base chega de quem não tem tecnologia</h2>
+  <p class="sec-desc">Uma escada de seis canais, ordenada pela capacidade técnica exigida do parceiro. Os dois primeiros não pedem nada além de um navegador; o último é a API que só serve a quem já tem time. A coluna da direita é o que o canal permite afirmar sobre a elegibilidade.</p>
+
+  <div class="ladder">
+    <div class="lad">
+      <div class="lad-id">P1</div>
+      <div><div class="lad-name">Sem base — entrada por link ou QR do parceiro</div><div class="lad-how">O parceiro divulga um link com seu identificador. Quem chega se qualifica do zero.</div></div>
+      <div class="lad-req zero">exige: nada</div>
+      <div class="lad-loa"><span class="loa loa-1">garantia baixa</span></div>
+    </div>
+    <div class="lad">
+      <div class="lad-id">P2</div>
+      <div><div class="lad-name">Convite individual pelo atendente</div><div class="lad-how">No console, o atendente cadastra um cliente por vez e dispara o convite.</div></div>
+      <div class="lad-req zero">exige: usar uma tela</div>
+      <div class="lad-loa"><span class="loa loa-2">garantia média</span></div>
+    </div>
+    <div class="lad">
+      <div class="lad-id">P3</div>
+      <div><div class="lad-name">Upload de planilha no console</div><div class="lad-how">Template em Excel/CSV, validação com prévia e relatório de erros antes de confirmar.</div></div>
+      <div class="lad-req zero">exige: saber usar Excel</div>
+      <div class="lad-loa"><span class="loa loa-2">garantia média</span></div>
+    </div>
+    <div class="lad">
+      <div class="lad-id">P4</div>
+      <div><div class="lad-name">Arquivo agendado por SFTP</div><div class="lad-how">Layout fixo, envio recorrente. É o que sistemas legados e contabilidades já sabem fazer.</div></div>
+      <div class="lad-req low">exige: TI terceirizada ou contador</div>
+      <div class="lad-loa"><span class="loa loa-3">garantia alta</span></div>
+    </div>
+    <div class="lad">
+      <div class="lad-id">P5</div>
+      <div><div class="lad-name">Conector de ERP de mercado</div><div class="lad-how">O parceiro autoriza a conexão dentro do ERP que já usa; a plataforma lê a base de clientes.</div></div>
+      <div class="lad-req zero">exige: autorizar no ERP</div>
+      <div class="lad-loa"><span class="loa loa-3">garantia alta</span></div>
+    </div>
+    <div class="lad">
+      <div class="lad-id">P6</div>
+      <div><div class="lad-name">API REST</div><div class="lad-how">Integração sob medida, em tempo real, com eventos de ciclo de vida.</div></div>
+      <div class="lad-req high">exige: time de desenvolvimento</div>
+      <div class="lad-loa"><span class="loa loa-3">garantia alta</span></div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-t">Onde estava o erro da recomendação anterior</div>
+    <p>O documento de Modelos de Identidade recomendou <strong>P6</strong> como padrão. Para o público-alvo do white label full, o padrão precisa ser <strong>P3</strong> — upload de planilha — com <strong>P5</strong> como o caminho que escala sem exigir nada do parceiro, já que a autorização acontece dentro de um ERP que ele já opera.</p>
+    <p>Planilha não é gambiarra: é a integração real da economia brasileira para empresas sem TI. O que a torna aceitável é o tratamento — template versionado, validação com prévia, limite de variação por lote, aprovação humana acima do limiar e trilha de quem enviou.</p>
+  </div>
+
+  <h3 class="sub">O que muda conforme a garantia do canal</h3>
+  <p style="font-size:14.5px;color:var(--ink-3);margin-bottom:6px">A garantia da elegibilidade não bloqueia o acesso — ela calibra oferta e risco:</p>
+  <div class="ctrl-list">
+    <div class="ctrl"><span class="ctrl-dot gap">→</span><span><strong>Garantia baixa (P1):</strong> sem limite pré-aprovado. O cliente entra, passa pelo funil completo e recebe oferta calculada apenas por bureau e dados próprios. O vínculo com o parceiro serve para atribuição comercial, não para crédito.</span></div>
+    <div class="ctrl"><span class="ctrl-dot part">→</span><span><strong>Garantia média (P2, P3):</strong> limite pré-qualificado com teto conservador. Lote com responsável identificado e data de referência — base velha vale menos.</span></div>
+    <div class="ctrl"><span class="ctrl-dot">→</span><span><strong>Garantia alta (P4, P5, P6):</strong> dado recorrente e reconciliável permite limite pré-aprovado cheio, com uso de faturamento informado na régua de risco.</span></div>
+    <div class="ctrl"><span class="ctrl-dot">→</span><span><strong>Em todos os casos:</strong> o funil de identidade da seção 04 é idêntico. Garantia de elegibilidade nunca reduz exigência de identificação.</span></div>
+  </div>
+</div>
+
+<!-- ═══ KYC ═══ -->
+<div class="wrap" id="kyc">
+  <div class="eyebrow">04 · Qualificação</div>
+  <h2 class="sec">O funil do cliente que não é correntista</h2>
+  <p class="sec-desc">Sete etapas entre “apareceu alguém” e “posso conceder crédito”. Hoje o showcase começa na etapa 6 — a consulta de limite — como se as cinco anteriores já tivessem acontecido em algum lugar.</p>
+
+  <div class="funnel">
+    <div class="fs">
+      <div class="fs-n">1</div>
+      <div><div class="fs-t">Elegibilidade</div><div class="fs-d">O registro veio de um dos canais da seção 03, com nível de garantia associado. Pode não existir — no P1 o cliente chega sem lista.</div></div>
+      <div class="fs-who p">parceiro</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">2</div>
+      <div><div class="fs-t">Identificação</div><div class="fs-d">CPF/CNPJ validado em fonte oficial: situação cadastral, nome, data de nascimento; para PJ, quadro societário e poderes de representação.</div></div>
+      <div class="fs-who b">Bradesco</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">3</div>
+      <div><div class="fs-t">Prova de identidade</div><div class="fs-d">Documento capturado e verificado, com <strong>prova de vida</strong> e comparação facial. É a etapa que impede que um CPF elegível conhecido seja usado por outra pessoa.</div></div>
+      <div class="fs-who b">Bradesco</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">4</div>
+      <div><div class="fs-t">Triagem regulatória</div><div class="fs-d">Listas restritivas e sancionatórias, pessoa exposta politicamente, e avaliação de risco de lavagem — obrigação do banco, não do parceiro.</div></div>
+      <div class="fs-who b">Bradesco</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">5</div>
+      <div><div class="fs-t">Vínculo com o parceiro</div><div class="fs-d">Reconciliação entre o titular comprovado e o registro de elegibilidade. Quando não bate, o cliente segue — só que sem a oferta do parceiro.</div></div>
+      <div class="fs-who b">Bradesco</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">6</div>
+      <div><div class="fs-t">Capacidade de crédito</div><div class="fs-d">Bureau, faturamento, motor de risco e política de crédito. <strong>É aqui que o showcase começa hoje</strong>, no Customer Registry e no Limit Lookup.</div></div>
+      <div class="fs-who b">Bradesco</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">7</div>
+      <div><div class="fs-t">Titularidade do recebimento</div><div class="fs-d">A conta ou chave de destino precisa ser do mesmo titular do contrato. Detalhado na seção 05.</div></div>
+      <div class="fs-who b">Bradesco</div>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-t">Duas consequências que costumam passar batido</div>
+    <p><strong>O funil tem custo por cliente.</strong> Consulta a fonte oficial, verificação documental, prova de vida e bureau são serviços cobrados por consulta. No modelo federado esse custo aparece diluído em quem já é cliente; no white label full ele incide sobre <em>cada</em> pessoa que entra pelo funil, inclusive quem não contrata nada. Isso precisa estar na conta de viabilidade do modelo.</p>
+    <p><strong>O funil é também a experiência.</strong> Cada etapa é atrito, e atrito derruba conversão. O desenho precisa decidir o que acontece <em>antes</em> da simulação e o que só é exigido na contratação — porque pedir documento e selfie para alguém que só quer ver uma taxa é a forma mais rápida de perder o cliente.</p>
+  </div>
+
+  <h3 class="sub">A recomendação de sequência</h3>
+  <div class="ctrl-list">
+    <div class="ctrl"><span class="ctrl-dot">→</span><span><strong>Antes da simulação:</strong> apenas identificação leve (etapa 2). O cliente vê taxa e limite estimado sem enviar documento.</span></div>
+    <div class="ctrl"><span class="ctrl-dot">→</span><span><strong>Antes da contratação:</strong> o funil completo — prova de vida, triagem regulatória e titularidade. O atrito acontece quando já existe intenção e valor conhecido.</span></div>
+    <div class="ctrl"><span class="ctrl-dot">→</span><span><strong>Nunca depois do desembolso:</strong> qualificação retroativa não é opção. É requisito prévio à concessão.</span></div>
+    <div class="ctrl"><span class="ctrl-dot part">→</span><span><strong>Revalidação periódica:</strong> quem se qualificou há dois anos e volta para um novo crédito precisa de reverificação — inclusive porque a elegibilidade no parceiro pode ter acabado sem aviso.</span></div>
+  </div>
+</div>
+
+<!-- ═══ DESEMBOLSO ═══ -->
+<div class="wrap" id="desembolso">
+  <div class="eyebrow">05 · Desembolso</div>
+  <h2 class="sec">Para onde vai o dinheiro de quem não tem conta aqui</h2>
+  <p class="sec-desc">No crédito a correntista, o desembolso cai na conta e a titularidade é evidente. Sem conta no banco, o destino passa a ser uma informação fornecida — e informação fornecida é superfície de fraude.</p>
+
+  <div class="callout">
+    <div class="callout-t">O controle que fecha a conta</div>
+    <p><strong>O destino do desembolso precisa ter titularidade idêntica à do contrato — verificada na fonte, não declarada.</strong> Uma chave PIX permite confirmar o titular antes da transferência; esse é o ponto em que uma tomada de conta bem-sucedida deixa de virar dinheiro na mão do fraudador.</p>
+    <p>Sem esse controle, todo o esforço do funil da seção 04 é contornável: basta o atacante chegar até a contratação e informar a própria conta.</p>
+  </div>
+
+  <div class="cards two">
+    <div class="card acc-green" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Regra base</div>
+          <div class="card-title">Mesma titularidade, sempre</div>
+          <div class="card-sub">Destino validado contra o CPF/CNPJ do contrato.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-green">inegociável</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="ctrl-list">
+          <div class="ctrl"><span class="ctrl-dot">→</span><span>Titular da chave conferido antes do desembolso, com o resultado registrado na trilha</span></div>
+          <div class="ctrl"><span class="ctrl-dot">→</span><span>Divergência de titularidade bloqueia a operação — não gera aviso, bloqueia</span></div>
+          <div class="ctrl"><span class="ctrl-dot">→</span><span>Alteração de conta de destino tratada como evento sensível: reautenticação forte e aviso ao contato anterior</span></div>
+          <div class="ctrl"><span class="ctrl-dot">→</span><span>Janela entre contratação e desembolso monitorada — troca de destino no intervalo é sinal clássico de fraude</span></div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">O caso que vai aparecer</div>
+          <div class="card-title">Quando o parceiro quer receber direto</div>
+          <div class="card-sub">Abater dívida do franqueado, pagar pedido, quitar antecipação.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">desenhar antes</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Por que aparece</div><div class="attr-v">Em capital de giro para franquia é natural que a rede queira o crédito liquidando o próprio pedido. Faz sentido comercial e vai ser pedido no primeiro contrato.</div></div>
+        <div class="attr"><div class="attr-k">Por que é diferente</div><div class="attr-v">Deixa de ser desembolso ao titular e vira <strong>pagamento a terceiro por ordem do titular</strong>. Muda o produto, a evidência necessária e o risco: o cliente assume dívida e o dinheiro nunca passa por ele.</div></div>
+        <div class="attr"><div class="attr-k">Se for oferecido</div><div class="attr-v">Exige autorização específica e destacada — não escondida no aceite geral —, valor e beneficiário explícitos na tela de contratação, evidência da obrigação que está sendo quitada, e limite de concentração por parceiro para que o produto não vire funding do fluxo de caixa dele.</div></div>
+        <div class="attr"><div class="attr-k">Risco a nomear</div><div class="attr-v">Um parceiro em dificuldade tem incentivo para empurrar crédito à própria base e receber o desembolso. É um risco de conduta que só se controla com limite e monitoramento, não com cláusula.</div></div>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CANAIS ═══ -->
+<div class="wrap" id="canais">
+  <div class="eyebrow">06 · Distribuição</div>
+  <h2 class="sec">Quatro canais, quatro formas de conhecer o cliente</h2>
+  <p class="sec-desc">O mesmo produto renderizado em contextos diferentes. O que muda em cada um não é o layout — é quem está autenticado, em qual dispositivo, e com qual prova.</p>
+
+  <div class="matrix">
+    <div class="mx-row head">
+      <div class="mx-c">Critério</div>
+      <div class="mx-c">Web app standalone</div>
+      <div class="mx-c">Mobile</div>
+      <div class="mx-c">Embarcado no parceiro</div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Quem autentica</div>
+      <div class="mx-c"><span class="mx-v part">Bradesco (IdP)</span><span class="mx-note">Senha + MFA sob a marca do parceiro</span></div>
+      <div class="mx-c"><span class="mx-v yes">Bradesco + dispositivo</span><span class="mx-note">Vínculo com o aparelho fortalece muito a prova</span></div>
+      <div class="mx-c"><span class="mx-v yes">o parceiro</span><span class="mx-note">Já logado; Token Exchange</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Força da identidade</div>
+      <div class="mx-c"><span class="mx-v part">média</span><span class="mx-note">Depende de senha e do canal de recuperação</span></div>
+      <div class="mx-c"><span class="mx-v yes">alta</span><span class="mx-note">Chave no dispositivo, biometria local, difícil de replicar remotamente</span></div>
+      <div class="mx-c"><span class="mx-v part">herdada</span><span class="mx-note">Vale o que valer o IdP do parceiro</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Exige do parceiro</div>
+      <div class="mx-c"><span class="mx-v yes">nada</span></div>
+      <div class="mx-c"><span class="mx-v yes">nada</span><span class="mx-note">App do BaaS ou PWA; SDK só se ele tiver app</span></div>
+      <div class="mx-c"><span class="mx-v no">portal e TI</span><span class="mx-note">Fora do alcance do white label full</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Riscos próprios</div>
+      <div class="mx-c"><span class="mx-v no">phishing</span><span class="mx-note">Domínio é a única âncora do cliente</span></div>
+      <div class="mx-c"><span class="mx-v part">app falso · dispositivo comprometido</span><span class="mx-note">Exige detecção de root e verificação de integridade</span></div>
+      <div class="mx-c"><span class="mx-v part">confiança no IdP alheio</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c lbl">Para o white label full</div>
+      <div class="mx-c"><span class="mx-v yes">base</span><span class="mx-note">Funciona para todo mundo, sem instalação</span></div>
+      <div class="mx-c"><span class="mx-v yes">recomendado</span><span class="mx-note">PWA primeiro — sem loja, sem publicação por parceiro</span></div>
+      <div class="mx-c"><span class="mx-v no">não se aplica</span></div>
+    </div>
+  </div>
+
+  <div class="callout neutral">
+    <div class="callout-t">Sobre o mobile — a escolha que evita multiplicar operação</div>
+    <p>Publicar um aplicativo por parceiro nas lojas significa uma conta de desenvolvedor, um processo de revisão e um ciclo de atualização <strong>para cada parceiro</strong> — exatamente o tipo de custo que o white label existe para evitar, e que recai sobre quem não tem TI.</p>
+    <p><strong>PWA instalável resolve a maior parte dos casos:</strong> mantém o domínio padronizado que serve de âncora antiphishing, permite ícone na tela inicial e notificações, e não exige loja nem publicação. O aplicativo nativo se justifica quando a operação exigir biometria do sistema, verificação de integridade do dispositivo ou uso offline — e, nesse caso, faz mais sentido um app único da plataforma com identidade aplicada por parceiro do que dezenas de apps.</p>
+  </div>
+</div>
+
+<!-- ═══ ASSISTIDA ═══ -->
+<div class="wrap" id="assistida">
+  <div class="eyebrow">07 · O quarto canal</div>
+  <h2 class="sec">Operação assistida — o canal que muda o enquadramento</h2>
+  <p class="sec-desc">O atendente do parceiro na frente do cliente, montando a proposta. É o canal mais provável para o parceiro sem tecnologia — e o único que traz uma consequência regulatória própria.</p>
+
+  <div class="callout">
+    <div class="callout-t">O ponto a levar ao Jurídico antes de desenhar a tela</div>
+    <p>Se o funcionário do parceiro apresenta o produto, esclarece condições, coleta documentos e ajuda a contratar, essa atividade tende a caracterizar <strong>correspondente no País</strong> — atividade regulada pela Res. CMN 4.935/2021, com contratação formal, responsabilidade do banco perante o cliente pelos atos do correspondente, exigência de certificação dos atendentes para produtos de crédito, regras sobre remuneração e vedação de cobrança própria.</p>
+    <p>Isso não inviabiliza nada: é modelo consolidado e usado em larga escala no mercado. Mas muda o que precisa existir antes do go-live — <strong>e é diferente de “white label”</strong>. Tratar o assistido como mais um canal de UI, sem esse enquadramento, é o tipo de decisão que reaparece como achado de auditoria.</p>
+  </div>
+
+  <h3 class="sub">A separação de papéis que sustenta a contratação</h3>
+  <p style="font-size:14.5px;color:var(--ink-3);margin-bottom:6px">Tecnicamente, o desenho precisa distinguir <em>quem operou</em> de <em>quem contratou</em>. Sem isso, não há como sustentar a assinatura em uma contestação.</p>
+
+  <div class="code">
+    <div class="code-bar"><span class="code-lang">Sessão assistida · dois sujeitos, uma operação</span><span class="code-tag">proposta</span></div>
+<pre><span class="c-com">// O atendente monta a proposta — autenticado como atendente do parceiro</span>
+{
+  <span class="c-key">"sub"</span>: <span class="c-str">"agt_v1x9k2"</span>,              <span class="c-com">// atendente, não o cliente</span>
+  <span class="c-key">"partner_tenant"</span>: <span class="c-str">"vivo-prod"</span>,
+  <span class="c-key">"act_for"</span>: <span class="c-str">"usr_h8x3k2p9"</span>,        <span class="c-com">// atua em nome de</span>
+  <span class="c-key">"scope"</span>: <span class="c-str">"credit:simulate credit:draft"</span>,  <span class="c-com">// NÃO tem credit:apply</span>
+  <span class="c-key">"session_type"</span>: <span class="c-str">"assisted"</span>
+}
+
+<span class="c-com">// A contratação é autenticada pelo CLIENTE, no dispositivo dele.</span>
+<span class="c-com">// O atendente envia um link/push; a assinatura acontece fora da tela dele.</span>
+{
+  <span class="c-key">"sub"</span>: <span class="c-str">"usr_h8x3k2p9"</span>,            <span class="c-com">// o titular</span>
+  <span class="c-key">"scope"</span>: <span class="c-str">"credit:apply"</span>,
+  <span class="c-key">"amr"</span>: [<span class="c-str">"pwd"</span>, <span class="c-str">"otp"</span>],
+  <span class="c-key">"assisted_by"</span>: <span class="c-str">"agt_v1x9k2"</span>,     <span class="c-com">// trilha de quem originou</span>
+  <span class="c-key">"auth_time"</span>: 1748299100
+}
+
+<span class="c-warn">// Regra:</span> nenhum token de atendente carrega credit:apply.
+<span class="c-warn">// A proposta pode ser montada por ele; a contratação, nunca.</span></pre>
+  </div>
+
+  <div class="ctrl-list">
+    <div class="ctrl"><span class="ctrl-dot">✓</span><span><strong>Atendente monta, cliente assina.</strong> A etapa de contratação exige autenticação do titular no dispositivo dele — link, QR ou push. É o que separa originação assistida de contratação por terceiro.</span></div>
+    <div class="ctrl"><span class="ctrl-dot">✓</span><span><strong>Trilha com os dois sujeitos.</strong> Toda proposta registra quem atendeu e quem contratou. Numa contestação, é essa dupla que responde “quem fez o quê”.</span></div>
+    <div class="ctrl"><span class="ctrl-dot gap">✕</span><span><strong>O atendente não vê o que não precisa.</strong> Sem histórico de crédito, sem outras propostas, sem dado financeiro além do necessário para a operação corrente.</span></div>
+    <div class="ctrl"><span class="ctrl-dot part">→</span><span><strong>Documento coletado pelo atendente é dado sensível em dispositivo de terceiro.</strong> Se houver captura assistida, ela precisa ir direto para a plataforma, sem persistir no aparelho do parceiro — e idealmente ser feita pelo próprio cliente, no celular dele.</span></div>
+    <div class="ctrl"><span class="ctrl-dot part">→</span><span><strong>Monitoramento de conduta.</strong> Concentração de propostas em um atendente, taxa alta de recusa após simulação e reclamações por atendente são sinais que só aparecem se forem medidos desde o início.</span></div>
+  </div>
+</div>
+
+
+<!-- ═══ FLUXO PONTA A PONTA ═══ -->
+<div class="wrap" id="fluxo">
+  <div class="eyebrow">08 · Fluxo decidido</div>
+  <h2 class="sec">A contratação assistida, passo a passo</h2>
+  <p class="sec-desc">Com a decisão tomada, o desenho precisa de precisão em três pontos que concentram o risco: o operador <strong>imputa</strong> os dados, o fluxo carrega <strong>arquivos</strong>, e o desembolso depende de <strong>assinatura digital</strong>. Cada um tem um jeito certo e um jeito que não se sustenta em contestação.</p>
+
+  <div class="funnel">
+    <div class="fs">
+      <div class="fs-n">1</div>
+      <div><div class="fs-t">Operador autentica</div><div class="fs-d">Identificação nominal, não credencial compartilhada de loja. Toda ação subsequente fica atribuída a uma pessoa.</div></div>
+      <div class="fs-who p">operador</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">2</div>
+      <div><div class="fs-t">Imputação mínima</div><div class="fs-d">O operador informa o documento do cliente. O sistema deriva o que puder de fonte oficial em vez de aceitar digitado.</div></div>
+      <div class="fs-who p">operador</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">3</div>
+      <div><div class="fs-t">Comprovação de renda ou faturamento</div><div class="fs-d">Preferir fonte autoritativa com consentimento do cliente; upload de documento é o caminho de exceção.</div></div>
+      <div class="fs-who b">plataforma</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">4</div>
+      <div><div class="fs-t">Simulação</div><div class="fs-d">Escopo <span class="mono">credit:simulate</span>. O operador ajusta valor, prazo e carência com o cliente ao lado.</div></div>
+      <div class="fs-who p">operador</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">5</div>
+      <div><div class="fs-t">Proposta em rascunho</div><div class="fs-d">Escopo <span class="mono">credit:draft</span>. A proposta existe, mas não é contratável a partir daqui.</div></div>
+      <div class="fs-who p">operador</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">6</div>
+      <div><div class="fs-t">Handoff para o cliente</div><div class="fs-d">Link, QR ou push abre a continuação <strong>no dispositivo do cliente</strong>. A sessão do operador não avança além deste ponto.</div></div>
+      <div class="fs-who b">plataforma</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">7</div>
+      <div><div class="fs-t">Cliente autentica</div><div class="fs-d">Senha e segundo fator no IdP da plataforma, com o nível de autenticação registrado no token.</div></div>
+      <div class="fs-who b">cliente</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">8</div>
+      <div><div class="fs-t">Conferência do que foi imputado</div><div class="fs-d"><strong>A etapa mais esquecida.</strong> Tudo que o operador digitou aparece para o cliente conferir antes de qualquer aceite — inclusive faturamento informado e finalidade.</div></div>
+      <div class="fs-who b">cliente</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">9</div>
+      <div><div class="fs-t">Destino do desembolso</div><div class="fs-d">O cliente informa ou confirma a chave; a titularidade é verificada na fonte <em>antes</em> da assinatura, para que o destino já entre no documento assinado.</div></div>
+      <div class="fs-who b">cliente</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">10</div>
+      <div><div class="fs-t">Assinatura digital</div><div class="fs-d">Escopo <span class="mono">credit:apply</span>, exclusivo do cliente. Gera o pacote de evidências que sustenta a operação em contestação.</div></div>
+      <div class="fs-who b">cliente</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">11</div>
+      <div><div class="fs-t">Desembolso</div><div class="fs-d">Executado apenas para o destino que consta do documento assinado. Divergência bloqueia.</div></div>
+      <div class="fs-who b">plataforma</div>
+    </div>
+  </div>
+
+  <h3 class="sub">Imputação — o operador deve digitar o mínimo possível</h3>
+  <p style="font-size:14.5px;color:var(--ink-3);margin-bottom:6px">Todo campo livre preenchido por terceiro é, ao mesmo tempo, risco de erro e superfície de fraude. O desenho deve reduzir a imputação ao essencial:</p>
+  <div class="ctrl-list">
+    <div class="ctrl"><span class="ctrl-dot">→</span><span><strong>Derivar em vez de digitar.</strong> A partir do documento, nome, situação cadastral e — para PJ — quadro societário vêm de fonte oficial. Campo que o sistema consegue preencher sozinho não deveria estar aberto ao operador.</span></div>
+    <div class="ctrl"><span class="ctrl-dot gap">!</span><span><strong>Renda e faturamento são o campo perigoso.</strong> É o dado que define aprovação e limite, e é justamente o que o operador tem incentivo para inflar — inclusive de boa-fé, para "ajudar" o cliente. Precisa de evidência independente, não de declaração digitada.</span></div>
+    <div class="ctrl"><span class="ctrl-dot">→</span><span><strong>Contato do cliente merece tratamento especial.</strong> Se o operador digita o e-mail e o celular, ele controla o canal por onde o link de assinatura chega — o que anula a separação de papéis. Contato novo exige verificação do canal antes do handoff.</span></div>
+    <div class="ctrl"><span class="ctrl-dot">→</span><span><strong>Tudo imputado é exibido na etapa 8</strong>, em linguagem que o cliente entenda, e fica registrado no pacote de evidências como parte do que ele conferiu.</span></div>
+  </div>
+
+  <h3 class="sub">Upload de arquivos — o caminho de exceção, não o padrão</h3>
+  <div class="callout">
+    <div class="callout-t">A inversão que reduz risco e fraude ao mesmo tempo</div>
+    <p>Documento enviado como arquivo é <strong>falsificável, caro de analisar e sensível de guardar</strong>. Sempre que a informação existir em fonte consultável com consentimento do cliente — dados cadastrais em base oficial, movimentação e faturamento via compartilhamento de dados —, essa fonte deve preceder o upload.</p>
+    <p>Comprovante em PDF é editável em minutos por qualquer pessoa; extrato obtido diretamente da instituição, não. Trocar documento por fonte elimina uma classe inteira de fraude em vez de tentar detectá-la.</p>
+  </div>
+  <div class="ctrl-list">
+    <div class="ctrl"><span class="ctrl-dot">→</span><span><strong>Tipo real, não extensão.</strong> Validar a assinatura binária do arquivo; recusar o que não bater com o tipo declarado</span></div>
+    <div class="ctrl"><span class="ctrl-dot">→</span><span><strong>Tratar como hostil.</strong> Antivírus e análise em ambiente isolado antes de qualquer processamento; PDF com script ativo, XML com entidade externa e arquivo compactado com expansão desproporcional são recusados na entrada</span></div>
+    <div class="ctrl"><span class="ctrl-dot">→</span><span><strong>Nunca servir de volta como veio.</strong> Reprocessar para imagem ou PDF limpo antes de exibir, e servir por URL assinada de validade curta — nunca por caminho previsível</span></div>
+    <div class="ctrl"><span class="ctrl-dot">→</span><span><strong>Detecção de adulteração</strong> em comprovantes: metadados, camadas de edição e inconsistência de fonte são sinais que valem mais que a leitura do valor</span></div>
+    <div class="ctrl"><span class="ctrl-dot gap">✕</span><span><strong>Captura pelo operador é o último recurso.</strong> Quando inevitável, envio direto sem persistir no aparelho, sem acesso à galeria e sem retenção local — o aparelho de loja é compartilhado e frequentemente sincroniza com nuvem pessoal</span></div>
+  </div>
+
+  <h3 class="sub">Assinatura digital — o que sustenta a operação depois</h3>
+  <p style="font-size:14.5px;color:var(--ink-3);margin-bottom:6px">A assinatura não vale pelo clique: vale pelo <strong>conjunto probatório</strong> que a acompanha. O que precisa existir no momento em que o cliente aceita:</p>
+
+  <div class="code">
+    <div class="code-bar"><span class="code-lang">Pacote de evidências · vinculado ao documento, não ao aceite</span><span class="code-tag">proposta</span></div>
+<pre>{
+  <span class="c-com">// 1. O QUE foi assinado — hash do documento exato exibido na tela</span>
+  <span class="c-key">"document_hash"</span>: <span class="c-str">"sha256-9f2a…"</span>,
+  <span class="c-key">"document_version"</span>: <span class="c-str">"CCB-2026-00847-v1"</span>,
+
+  <span class="c-com">// 2. QUEM assinou — e com qual força de autenticação</span>
+  <span class="c-key">"signer"</span>: <span class="c-str">"usr_h8x3k2p9"</span>,
+  <span class="c-key">"amr"</span>: [<span class="c-str">"pwd"</span>, <span class="c-str">"otp"</span>, <span class="c-str">"face"</span>],
+  <span class="c-key">"acr"</span>: <span class="c-str">"urn:baas:loa3"</span>,
+
+  <span class="c-com">// 3. QUANDO — carimbo de tempo de fonte confiável, não relógio do cliente</span>
+  <span class="c-key">"timestamp"</span>: <span class="c-str">"2026-08-18T14:07:31Z"</span>,
+
+  <span class="c-com">// 4. ONDE e COMO — contexto do ato</span>
+  <span class="c-key">"ip"</span>: <span class="c-str">"189.x.x.x"</span>, <span class="c-key">"device_id"</span>: <span class="c-str">"dev_a91f…"</span>,
+  <span class="c-key">"channel"</span>: <span class="c-str">"assisted"</span>,
+  <span class="c-key">"assisted_by"</span>: <span class="c-str">"agt_v1x9k2"</span>,   <span class="c-com">// quem originou — sempre registrado</span>
+
+  <span class="c-com">// 5. A LEITURA — evidência de que houve oportunidade real de conferir</span>
+  <span class="c-key">"presented_at"</span>: <span class="c-str">"2026-08-18T14:05:02Z"</span>,
+  <span class="c-key">"reviewed_fields"</span>: [<span class="c-str">"valor"</span>, <span class="c-str">"cet"</span>, <span class="c-str">"parcela"</span>, <span class="c-str">"destino"</span>],
+
+  <span class="c-com">// 6. O DESTINO faz parte do que é assinado — trocar depois exige reassinar</span>
+  <span class="c-key">"disbursement_key_hash"</span>: <span class="c-str">"sha256-4c1b…"</span>,
+  <span class="c-key">"key_holder_verified"</span>: <span class="c-warn">true</span>
+}</pre>
+  </div>
+
+  <div class="ctrl-list">
+    <div class="ctrl"><span class="ctrl-dot">✓</span><span><strong>O destino do desembolso entra no documento assinado.</strong> Se a conta puder ser alterada depois da assinatura, todo o conjunto perde valor: bastaria deixar o cliente assinar e trocar a chave em seguida. Alteração posterior invalida a assinatura e exige nova.</span></div>
+    <div class="ctrl"><span class="ctrl-dot">✓</span><span><strong>Assinar o documento, não o aceite.</strong> Evidência que diz apenas “o usuário clicou em concordo” não prova <em>com o quê</em> ele concordou. O vínculo com o hash do PDF exibido é o que sustenta a autoria em contestação.</span></div>
+    <div class="ctrl"><span class="ctrl-dot gap">✕</span><span><strong>Jamais no dispositivo do operador.</strong> Assinatura colhida na tela dele torna impossível distinguir cliente que assinou de operador que assinou pelo cliente — e nenhuma trilha posterior recupera essa distinção.</span></div>
+    <div class="ctrl"><span class="ctrl-dot part">→</span><span><strong>Retenção do pacote pelo prazo de exigibilidade</strong> do contrato, com integridade protegida contra alteração — inclusive pelo próprio banco. Evidência que a parte interessada pode editar não é evidência.</span></div>
+    <div class="ctrl"><span class="ctrl-dot part">→</span><span><strong>Nível de assinatura a definir</strong> com o Jurídico: eletrônica simples com evidência robusta costuma bastar para contrato de crédito privado, mas o nível exigido, o uso de certificado e a validação de arrependimento na contratação fora do estabelecimento precisam ser confirmados — ver E-07.</span></div>
+  </div>
+</div>
+
+<!-- ═══ AMEAÇAS ═══ -->
+<div class="wrap" id="ameacas">
+  <div class="eyebrow">09 · Threat Model</div>
+  <h2 class="sec">Dez ameaças da originação de não-correntista</h2>
+  <p class="sec-desc">Complementam as 21 do documento de segurança e as 6 do de identidade. Estas nascem de conceder crédito a quem o banco não conhece, por canais que o banco não controla inteiramente.</p>
+
+  <div class="cards">
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">C-01 · Spoofing</div>
+          <div class="card-title">Impostor sobre CPF elegível</div>
+          <div class="card-sub">O atacante conhece um CPF que está na base do parceiro e se apresenta como ele.</div>
+        </div>
+        <div class="card-side"><span class="flag">crítico</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Por que funciona</div><div class="attr-v">Se a elegibilidade for tratada como identidade, o sistema recebe um CPF “válido e esperado” e conclui que a pessoa é quem diz ser. A base correta vira o veículo da fraude.</div></div>
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">Crédito concedido e desembolsado em nome de terceiro — com o titular real descobrindo pela cobrança</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">Funil da seção 04 aplicado integralmente, com prova de vida antes da contratação, e titularidade do desembolso conferida na fonte</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">C-02 · Elevation of privilege</div>
+          <div class="card-title">Fraude do próprio atendente</div>
+          <div class="card-sub">Quem opera a sessão assistida contrata em nome do cliente.</div>
+        </div>
+        <div class="card-side"><span class="flag">crítico</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Cenário</div><div class="attr-v">O atendente tem os dados do cliente à mão e, se o desenho permitir, conclui a contratação sozinho — inclusive apontando o desembolso para onde escolher</div></div>
+        <div class="attr"><div class="attr-k">Agravante</div><div class="attr-v">O atendente é funcionário do parceiro, fora da governança de pessoas do banco, com rotatividade alta e sem o mesmo processo de admissão</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">Escopo do atendente sem <span class="mono">credit:apply</span> · contratação autenticada no dispositivo do cliente · titularidade do desembolso · monitoramento de concentração por atendente · certificação e identificação nominal de quem atende</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">C-03 · Tampering</div>
+          <div class="card-title">Desvio do destino do desembolso</div>
+          <div class="card-sub">A conta informada não é do titular do contrato.</div>
+        </div>
+        <div class="card-side"><span class="flag">crítico</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Por que é o alvo final</div><div class="attr-v">Toda fraude de originação converge para este ponto: o crédito só vira prejuízo quando o dinheiro sai para a conta errada. É o último gate — e o mais barato de implementar.</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">Verificação de titularidade na fonte antes de transferir · bloqueio em divergência · reautenticação forte para alterar destino · vigilância sobre troca de conta entre contratação e desembolso</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">C-04 · Spoofing</div>
+          <div class="card-title">Falsificação de prova de vida</div>
+          <div class="card-sub">Foto de foto, vídeo pré-gravado ou rosto sintético na etapa de identificação.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">alto</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Evolução do vetor</div><div class="attr-v">Ferramentas de geração de rosto e de injeção de vídeo virtual barateiam esse ataque continuamente. Um controle que funcionava há dois anos não é presumidamente suficiente hoje.</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">Prova de vida com detecção de apresentação e de injeção · captura no canal controlado, não upload de arquivo · reavaliação periódica do fornecedor contra ataques novos · sinais de dispositivo e comportamento como camada adicional</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">C-05 · Information disclosure</div>
+          <div class="card-title">Documento do cliente no dispositivo do parceiro</div>
+          <div class="card-sub">Captura assistida deixando cópia de documento em aparelho fora do controle do banco.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">alto</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">Documento de identidade é o insumo mais valioso para fraude subsequente — e um aparelho de loja é compartilhado, raramente cifrado e frequentemente com backup automático em nuvem pessoal</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">Preferir captura pelo próprio cliente no celular dele · quando assistida, envio direto sem persistência local · nunca usar a galeria do aparelho como origem · orientação e cláusula explícita no contrato de correspondente</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">C-06 · Denial of service</div>
+          <div class="card-title">Abuso do funil de qualificação</div>
+          <div class="card-sub">Link público do canal P1 usado para consumir consultas pagas em massa.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">médio</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Impacto duplo</div><div class="attr-v">Custo direto — cada consulta a fonte oficial e bureau é paga — e enumeração: descobrir quais CPFs recebem oferta revela a carteira do parceiro</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">Consulta paga só depois de um desafio no cliente · limite por origem e por documento · resposta uniforme para elegível e não elegível · orçamento de consultas por parceiro com alerta de estouro</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">C-07 · Tampering</div>
+          <div class="card-title">Renda ou faturamento inflado na imputação</div>
+          <div class="card-sub">O operador digita um valor maior para que a proposta seja aprovada.</div>
+        </div>
+        <div class="card-side"><span class="flag">crítico</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Por que acontece</div><div class="attr-v">O operador é remunerado por volume e tem o cliente na frente esperando resposta. Acontece por fraude e também <strong>de boa-fé</strong> — “arredondar para cima para ajudar” é o começo de uma carteira mal originada.</div></div>
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">Inadimplência concentrada em operadores específicos, descoberta só quando o crédito vence. É risco de crédito criado na tela de cadastro.</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">Preferir fonte autoritativa a valor declarado · exigir evidência para valores acima de faixa · exibir o valor imputado na conferência do cliente (etapa 8) · monitorar aprovação, ticket médio e inadimplência <strong>por operador</strong>, não só por parceiro</div></div>
+        <div class="attr"><div class="attr-k">Sinal a medir desde o início</div><div class="attr-v">Operador com distribuição de faturamento concentrada logo acima dos limiares de faixa é o padrão clássico — e só aparece se o dado for guardado com atribuição nominal</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">C-08 · Tampering</div>
+          <div class="card-title">Arquivo malicioso ou documento adulterado</div>
+          <div class="card-sub">O upload é uma porta de entrada de conteúdo não confiável dentro do banco.</div>
+        </div>
+        <div class="card-side"><span class="flag">alto</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Dois vetores distintos</div><div class="attr-v"><strong>Técnico:</strong> arquivo construído para explorar quem o processa — script embutido, entidade externa, expansão desproporcional, tipo real diferente da extensão. <strong>De conteúdo:</strong> comprovante legítimo em formato, mas com valores editados.</div></div>
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">O primeiro compromete a plataforma; o segundo compromete a decisão de crédito. Controles diferentes para cada um — e é comum tratar só do primeiro.</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">Validação de tipo real · análise em ambiente isolado · reprocessamento antes de exibir · URL assinada de vida curta · detecção de adulteração por metadados e camadas de edição · e, acima de tudo, <strong>preferir fonte consultável a documento enviado</strong></div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">C-09 · Repudiation</div>
+          <div class="card-title">Assinatura sem vínculo com o documento</div>
+          <div class="card-sub">Registra-se o aceite, mas não o que foi aceito.</div>
+        </div>
+        <div class="card-side"><span class="flag">crítico</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">O erro</div><div class="attr-v">Guardar “usuário X clicou em concordo às 14h07” sem o hash do documento exibido. Numa contestação, não há como provar <em>qual</em> versão de contrato estava na tela — e a defesa depende de presumir que o sistema exibiu o certo.</div></div>
+        <div class="attr"><div class="attr-k">Agravante do canal assistido</div><div class="attr-v">Como a proposta foi montada por terceiro, a alegação natural do cliente é “não foi isso que me mostraram”. Sem o vínculo hash-documento, essa alegação é difícil de refutar.</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">Pacote de evidências da seção 08 · carimbo de tempo de fonte confiável · registro do intervalo entre apresentação e aceite · armazenamento protegido contra alteração pelo próprio banco</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">C-10 · Tampering</div>
+          <div class="card-title">Troca de destino entre assinatura e desembolso</div>
+          <div class="card-sub">O contrato é assinado com uma conta e o dinheiro sai para outra.</div>
+        </div>
+        <div class="card-side"><span class="flag">crítico</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Por que é o alvo</div><div class="attr-v">É o caminho mais econômico para o fraudador: deixa o cliente legítimo passar por todo o funil, autenticar e assinar — e intervém apenas no último campo, que historicamente fica fora do que é assinado.</div></div>
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">Cliente com dívida legítima e assinada, sem ter recebido o valor. Contestação em que o banco tem assinatura válida e ainda assim errou.</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">Destino <strong>dentro</strong> do documento assinado · titularidade verificada antes da assinatura, não depois · qualquer alteração invalida a assinatura e exige nova · janela entre assinatura e desembolso monitorada, com alteração nesse intervalo tratada como evento de fraude</div></div>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DECISÕES ═══ -->
+<div class="wrap" id="decisoes">
+  <div class="eyebrow">10 · A decidir</div>
+  <h2 class="sec">O que precisa ser definido</h2>
+  <p class="sec-desc">Nenhuma depende de tecnologia nova. Dependem de escolha de produto, de política de risco e de enquadramento jurídico.</p>
+
+  <div class="cards two">
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main"><div class="card-kicker">E-01 · Jurídico + Produto</div><div class="card-title">Operação assistida — decidida</div>
+        <div class="card-sub">O operador do parceiro imputa as propostas, com upload de arquivos e assinatura digital no desembolso.</div></div>
+        <div class="card-side"><span class="badge badge-green">definido</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Status</div><div class="attr-v"><strong>Decidido:</strong> a contratação assistida faz parte do produto. A pergunta deixa de existir — o que era consequência condicional passa a ser requisito.</div></div>
+        <div class="attr"><div class="attr-k">O que isso ativa</div><div class="attr-v">Enquadramento como correspondente no País, com contratação formal, certificação de atendentes e responsabilidade do banco pelos atos deles · separação de papéis no token · fluxo detalhado da seção 08 · ameaças C-07 a C-10</div></div>
+        <div class="attr"><div class="attr-k">O que ainda depende de decisão</div><div class="attr-v">O nível de assinatura eletrônica adotado e a política de retenção do pacote de evidências — ver E-07 e E-08</div></div>
+      </div></div>
+    </div>
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main"><div class="card-kicker">E-02 · Produto</div><div class="card-title">Quais canais de base no MVP</div>
+        <div class="card-sub">A recomendação é P3 (planilha) mais P1 (link), com P5 (ERP) na sequência.</div></div>
+        <div class="card-side"><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in"><div class="attr"><div class="attr-k">Consequência</div><div class="attr-v">Define o console do parceiro e a API de provisionamento. Começar por API atende ao parceiro errado.</div></div></div></div>
+    </div>
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main"><div class="card-kicker">E-03 · Risco + Produto</div><div class="card-title">Onde entra o atrito do funil</div>
+        <div class="card-sub">O que se exige antes da simulação e o que só na contratação.</div></div>
+        <div class="card-side"><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in"><div class="attr"><div class="attr-k">Trade-off</div><div class="attr-v">Conversão contra custo de consulta e risco. Recomendação: identificação leve antes da simulação, funil completo antes de contratar.</div></div></div></div>
+    </div>
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main"><div class="card-kicker">E-04 · Risco</div><div class="card-title">Desembolso a terceiro é permitido?</div>
+        <div class="card-sub">O parceiro recebendo direto para quitar obrigação do cliente.</div></div>
+        <div class="card-side"><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in"><div class="attr"><div class="attr-k">Consequência</div><div class="attr-v">Se sim, exige autorização destacada, evidência da obrigação e limite de concentração por parceiro. Se não, precisa estar dito antes da primeira negociação comercial.</div></div></div></div>
+    </div>
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main"><div class="card-kicker">E-05 · Produto</div><div class="card-title">PWA ou aplicativo nativo</div>
+        <div class="card-sub">E, se nativo, um app por parceiro ou um app da plataforma.</div></div>
+        <div class="card-side"><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in"><div class="attr"><div class="attr-k">Recomendação</div><div class="attr-v">PWA primeiro. App por parceiro multiplica publicação e revisão de loja — custo que recai justamente sobre quem não tem TI.</div></div></div></div>
+    </div>
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main"><div class="card-kicker">E-06 · Risco + Financeiro</div><div class="card-title">Quem paga o funil</div>
+        <div class="card-sub">Consulta oficial, bureau e prova de vida custam por pessoa que entra.</div></div>
+        <div class="card-side"><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in"><div class="attr"><div class="attr-k">Consequência</div><div class="attr-v">Sem orçamento por parceiro e sem controle de abuso (C-06), o custo de qualificação de quem não contrata pode inviabilizar a operação em parceiros de baixa conversão.</div></div></div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main"><div class="card-kicker">E-07 · Jurídico</div><div class="card-title">Nível da assinatura eletrônica</div>
+        <div class="card-sub">E se a contratação na loja do parceiro configura venda fora do estabelecimento.</div></div>
+        <div class="card-side"><span class="flag">bloqueia</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in"><div class="attr"><div class="attr-k">Consequência</div><div class="attr-v">Define se basta assinatura eletrônica simples com pacote de evidências robusto ou se há exigência de certificado, e se incide direito de arrependimento com prazo próprio. Muda a tela de contratação e o desenho do desembolso — não dá para decidir depois de construído.</div></div></div></div>
+    </div>
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main"><div class="card-kicker">E-08 · Segurança + Jurídico</div><div class="card-title">Retenção do pacote de evidências</div>
+        <div class="card-sub">Por quanto tempo, com que proteção contra alteração.</div></div>
+        <div class="card-side"><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in"><div class="attr"><div class="attr-k">Consequência</div><div class="attr-v">Evidência precisa sobreviver ao prazo de exigibilidade do contrato e ser resistente a alteração inclusive pelo banco — do contrário perde valor probatório. Também precisa conciliar com o princípio da necessidade da LGPD, já que carrega dado pessoal e biométrico.</div></div></div></div>
+    </div>
+  </div>
+
+  <div class="callout neutral">
+    <div class="callout-t">Correção pendente no documento de Modelos de Identidade</div>
+    <p>A decisão <strong>D-01</strong> daquele documento recomenda “carga por API com convite disparado pelo parceiro”. Deve passar a apontar para a escada da seção 03 — com <strong>upload de planilha</strong> como padrão do white label full e API como o degrau final, não o primeiro.</p>
+  </div>
+</div>
+
+<div class="foot">
+  <div class="foot-in">
+    BaaS White Label · Bradesco — Originação do Cliente Final<br>
+    Documento técnico de prototipagem · dados, parceiros e endpoints são fictícios<br>
+    Enquadramentos regulatórios são leitura de arquitetura e dependem de validação do Jurídico e do Compliance
+    <div class="foot-links">
+      <a href="index.html">← Voltar ao showcase</a>
+      <a href="baas-modelos-identidade.html">Modelos de Identidade</a>
+      <a href="baas-seguranca-arquitetura.html">Arquitetura de Segurança</a>
+      <a href="api-flow-tokens-registry-mfe.html">API Flow</a>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── HELPERS ──────────────────────────────────────────
+function toggleCard(el) {
+  el.classList.toggle('open');
+}
+</script>
+
+</body>
+</html>
