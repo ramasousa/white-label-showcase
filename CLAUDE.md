@@ -55,6 +55,7 @@ sections (`#jornadas`, `#multiproduto`, `#runtime`, `#arquitetura`,
 | `mfe-registry-dinamico-arquitetura.html` | Adding/removing products with zero deploy. |
 | `baas-admin-mfe-registry-v2.html` | Admin UI for the MFE registry / portfolio management. |
 | `baas-seguranca-arquitetura.html` | Security architecture: STRIDE threat model across 6 trust boundaries (21 threats), MFE supply-chain integrity, what "MFE isolation" really means, CSP/DPoP/PAR, regulatory mapping, incident runbooks, plus two structural decision sections (who builds/hosts the MFE — the Aarin scenarios; LGPD controller roles) and a go-live checklist. Uses the **Velo design system** palette (cream/ink), not the dark BaaS one. |
+| `baas-modelos-identidade.html` | **Identity models**: federated (partner is the IdP) vs standalone (Bradesco is the IdP — the "white label full" for partners with no IT) vs hybrid. Carries the 9-step user-lifecycle responsibility matrix (who onboards, who resets passwords, who answers support), the login-domain/anti-phishing decision, what changes in the token flow when there is no Token Exchange, 6 standalone-only threats, and 7 open decisions. Velo palette, companion to the security doc. |
 | `baas-execution-roadmap.html` | Execution roadmap: squads, phases (each with its own color tokens). |
 
 ### Strategy
