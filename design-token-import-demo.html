@@ -331,6 +331,12 @@ pre{padding:16px;font-family:var(--mono);font-size:11px;line-height:1.85;color:#
   .grid,.inspector-wrap,.code-grid,.diff-grid{grid-template-columns:1fr}
   .page{padding:28px 20px 60px}
 }
+
+/* ─── navegação entre peças do showcase ─── */
+.xref{padding:16px 24px 22px;border-top:1px solid rgba(128,128,128,.18);font-family:monospace;font-size:10.5px;letter-spacing:.04em;display:flex;gap:11px;flex-wrap:wrap;align-items:center;opacity:.72}
+.xref a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(128,128,128,.3)}
+.xref a:hover{opacity:1;border-bottom-color:currentColor}
+.xref i{font-style:normal;opacity:.35}
 </style>
 </head>
 <body>
@@ -1038,5 +1044,7 @@ function resetAll() {
 document.getElementById('playBtn').addEventListener('click', startAll);
 document.getElementById('resetBtn').addEventListener('click', resetAll);
 </script>
+<div class="xref"><a href="index.html">← Showcase</a><i>·</i><a href="baas-whitelabel-frontend-arch.html">Arquitetura Frontend</a></div>
+
 </body>
 </html>

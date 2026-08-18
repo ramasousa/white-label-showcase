@@ -406,6 +406,12 @@ strong{color:var(--text);font-weight:600}
   .scorecard,.risk-row{grid-template-columns:1fr}
   .footer{padding:20px 24px}
 }
+
+/* ─── navegação entre peças do showcase ─── */
+.xref{padding:16px 24px 22px;border-top:1px solid rgba(128,128,128,.18);font-family:monospace;font-size:10.5px;letter-spacing:.04em;display:flex;gap:11px;flex-wrap:wrap;align-items:center;opacity:.72}
+.xref a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(128,128,128,.3)}
+.xref a:hover{opacity:1;border-bottom-color:currentColor}
+.xref i{font-style:normal;opacity:.35}
 </style>
 </head>
 <body>
@@ -497,7 +503,7 @@ strong{color:var(--text);font-weight:600}
     <div class="dim-card">
       <div class="dim-card-num">D-03 · Crítica</div>
       <div class="dim-card-title">Controle Regulatório</div>
-      <div class="dim-card-body">Dados de clientes, logs de autenticação retidos por 5 anos (Bacen 4.658), certificados mTLS, perímetro de compliance. Independente de onde o código é desenvolvido, a produção deve estar sob o perímetro do Bradesco.</div>
+      <div class="dim-card-body">Dados de clientes, logs de autenticação retidos por 5 anos (Bacen 4.893/2021), certificados mTLS, perímetro de compliance. Independente de onde o código é desenvolvido, a produção deve estar sob o perímetro do Bradesco.</div>
       <div class="dim-card-q">Se a Aarin desenvolver, a arquitetura garante que zero dado de cliente final trafega ou fica armazenado fora do perímetro regulatório do Bradesco?</div>
     </div>
     <div class="dim-card">
@@ -805,6 +811,8 @@ strong{color:var(--text);font-weight:600}
           <td class="td-aa lose">Risco · salto inter-cloud sem SLA<br><small>80–140ms p50 · jitter em pico</small></td>
           <td class="td-hi neutral">Gerenciável com link dedicado<br><small>60–100ms p50 · Direct Connect + ExpressRoute</small></td>
         </tr>
+        <tr>
+          <td>Custo de desenvolvimento</td>
           <td class="td-bra lose">Alto · overhead estrutural bancário</td>
           <td class="td-aa win">Menor · estrutura mais leve</td>
           <td class="td-hi neutral">Moderado · SLA intragrupo com custo</td>
@@ -892,7 +900,7 @@ strong{color:var(--text);font-weight:600}
         <div class="risk-card-left"><span class="risk-tag rt-h">ALTO</span></div>
         <div>
           <div class="risk-card-title">Dados de clientes fora do perímetro</div>
-          <div class="risk-card-desc">Ambientes de desenvolvimento da Aarin não devem jamais tocar dados de clientes reais. Se essa separação não for arquitetada desde o início, há risco de violação de LGPD e Bacen 4.658.</div>
+          <div class="risk-card-desc">Ambientes de desenvolvimento da Aarin não devem jamais tocar dados de clientes reais. Se essa separação não for arquitetada desde o início, há risco de violação de LGPD e Bacen 4.893/2021.</div>
           <div class="risk-card-mit">Mitigação: dados sintéticos em todos os ambientes da Aarin. Produção exclusivamente no perímetro Bradesco/Azure. Auditoria semestral. — Arquitetura já definida neste projeto.</div>
         </div>
       </div>
@@ -1188,5 +1196,7 @@ function nav(id, btn) {
   window.scrollTo({top:0,behavior:'smooth'});
 }
 </script>
+<div class="xref"><a href="index.html">← Showcase</a><i>·</i><a href="baas-seguranca-arquitetura.html">Segurança</a><i>·</i><a href="decisao-estrategica-print.html">Versão para impressão</a></div>
+
 </body>
 </html>
