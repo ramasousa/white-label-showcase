@@ -199,6 +199,7 @@ h3.sub{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;letter-spaci
     <a class="nav-link" href="#desembolso">Desembolso</a>
     <a class="nav-link" href="#canais">Canais</a>
     <a class="nav-link" href="#assistida">Operação assistida</a>
+    <a class="nav-link" href="#fluxo">Fluxo ponta a ponta</a>
     <a class="nav-link" href="#ameacas">Ameaças</a>
     <a class="nav-link" href="#decisoes">A decidir</a>
   </div>
@@ -221,7 +222,7 @@ h3.sub{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;letter-spaci
       <div><div class="kpi-v">6</div><div class="kpi-l">Canais de base</div></div>
       <div><div class="kpi-v">7</div><div class="kpi-l">Etapas de qualificação</div></div>
       <div><div class="kpi-v">4</div><div class="kpi-l">Canais de distribuição</div></div>
-      <div><div class="kpi-v" style="color:var(--red-br)">6</div><div class="kpi-l">Ameaças novas</div></div>
+      <div><div class="kpi-v" style="color:var(--red-br)">10</div><div class="kpi-l">Ameaças novas</div></div>
     </div>
   </div>
 </div>
@@ -587,10 +588,140 @@ h3.sub{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;letter-spaci
   </div>
 </div>
 
+
+<!-- ═══ FLUXO PONTA A PONTA ═══ -->
+<div class="wrap" id="fluxo">
+  <div class="eyebrow">08 · Fluxo decidido</div>
+  <h2 class="sec">A contratação assistida, passo a passo</h2>
+  <p class="sec-desc">Com a decisão tomada, o desenho precisa de precisão em três pontos que concentram o risco: o operador <strong>imputa</strong> os dados, o fluxo carrega <strong>arquivos</strong>, e o desembolso depende de <strong>assinatura digital</strong>. Cada um tem um jeito certo e um jeito que não se sustenta em contestação.</p>
+
+  <div class="funnel">
+    <div class="fs">
+      <div class="fs-n">1</div>
+      <div><div class="fs-t">Operador autentica</div><div class="fs-d">Identificação nominal, não credencial compartilhada de loja. Toda ação subsequente fica atribuída a uma pessoa.</div></div>
+      <div class="fs-who p">operador</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">2</div>
+      <div><div class="fs-t">Imputação mínima</div><div class="fs-d">O operador informa o documento do cliente. O sistema deriva o que puder de fonte oficial em vez de aceitar digitado.</div></div>
+      <div class="fs-who p">operador</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">3</div>
+      <div><div class="fs-t">Comprovação de renda ou faturamento</div><div class="fs-d">Preferir fonte autoritativa com consentimento do cliente; upload de documento é o caminho de exceção.</div></div>
+      <div class="fs-who b">plataforma</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">4</div>
+      <div><div class="fs-t">Simulação</div><div class="fs-d">Escopo <span class="mono">credit:simulate</span>. O operador ajusta valor, prazo e carência com o cliente ao lado.</div></div>
+      <div class="fs-who p">operador</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">5</div>
+      <div><div class="fs-t">Proposta em rascunho</div><div class="fs-d">Escopo <span class="mono">credit:draft</span>. A proposta existe, mas não é contratável a partir daqui.</div></div>
+      <div class="fs-who p">operador</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">6</div>
+      <div><div class="fs-t">Handoff para o cliente</div><div class="fs-d">Link, QR ou push abre a continuação <strong>no dispositivo do cliente</strong>. A sessão do operador não avança além deste ponto.</div></div>
+      <div class="fs-who b">plataforma</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">7</div>
+      <div><div class="fs-t">Cliente autentica</div><div class="fs-d">Senha e segundo fator no IdP da plataforma, com o nível de autenticação registrado no token.</div></div>
+      <div class="fs-who b">cliente</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">8</div>
+      <div><div class="fs-t">Conferência do que foi imputado</div><div class="fs-d"><strong>A etapa mais esquecida.</strong> Tudo que o operador digitou aparece para o cliente conferir antes de qualquer aceite — inclusive faturamento informado e finalidade.</div></div>
+      <div class="fs-who b">cliente</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">9</div>
+      <div><div class="fs-t">Destino do desembolso</div><div class="fs-d">O cliente informa ou confirma a chave; a titularidade é verificada na fonte <em>antes</em> da assinatura, para que o destino já entre no documento assinado.</div></div>
+      <div class="fs-who b">cliente</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">10</div>
+      <div><div class="fs-t">Assinatura digital</div><div class="fs-d">Escopo <span class="mono">credit:apply</span>, exclusivo do cliente. Gera o pacote de evidências que sustenta a operação em contestação.</div></div>
+      <div class="fs-who b">cliente</div>
+    </div>
+    <div class="fs">
+      <div class="fs-n">11</div>
+      <div><div class="fs-t">Desembolso</div><div class="fs-d">Executado apenas para o destino que consta do documento assinado. Divergência bloqueia.</div></div>
+      <div class="fs-who b">plataforma</div>
+    </div>
+  </div>
+
+  <h3 class="sub">Imputação — o operador deve digitar o mínimo possível</h3>
+  <p style="font-size:14.5px;color:var(--ink-3);margin-bottom:6px">Todo campo livre preenchido por terceiro é, ao mesmo tempo, risco de erro e superfície de fraude. O desenho deve reduzir a imputação ao essencial:</p>
+  <div class="ctrl-list">
+    <div class="ctrl"><span class="ctrl-dot">→</span><span><strong>Derivar em vez de digitar.</strong> A partir do documento, nome, situação cadastral e — para PJ — quadro societário vêm de fonte oficial. Campo que o sistema consegue preencher sozinho não deveria estar aberto ao operador.</span></div>
+    <div class="ctrl"><span class="ctrl-dot gap">!</span><span><strong>Renda e faturamento são o campo perigoso.</strong> É o dado que define aprovação e limite, e é justamente o que o operador tem incentivo para inflar — inclusive de boa-fé, para "ajudar" o cliente. Precisa de evidência independente, não de declaração digitada.</span></div>
+    <div class="ctrl"><span class="ctrl-dot">→</span><span><strong>Contato do cliente merece tratamento especial.</strong> Se o operador digita o e-mail e o celular, ele controla o canal por onde o link de assinatura chega — o que anula a separação de papéis. Contato novo exige verificação do canal antes do handoff.</span></div>
+    <div class="ctrl"><span class="ctrl-dot">→</span><span><strong>Tudo imputado é exibido na etapa 8</strong>, em linguagem que o cliente entenda, e fica registrado no pacote de evidências como parte do que ele conferiu.</span></div>
+  </div>
+
+  <h3 class="sub">Upload de arquivos — o caminho de exceção, não o padrão</h3>
+  <div class="callout">
+    <div class="callout-t">A inversão que reduz risco e fraude ao mesmo tempo</div>
+    <p>Documento enviado como arquivo é <strong>falsificável, caro de analisar e sensível de guardar</strong>. Sempre que a informação existir em fonte consultável com consentimento do cliente — dados cadastrais em base oficial, movimentação e faturamento via compartilhamento de dados —, essa fonte deve preceder o upload.</p>
+    <p>Comprovante em PDF é editável em minutos por qualquer pessoa; extrato obtido diretamente da instituição, não. Trocar documento por fonte elimina uma classe inteira de fraude em vez de tentar detectá-la.</p>
+  </div>
+  <div class="ctrl-list">
+    <div class="ctrl"><span class="ctrl-dot">→</span><span><strong>Tipo real, não extensão.</strong> Validar a assinatura binária do arquivo; recusar o que não bater com o tipo declarado</span></div>
+    <div class="ctrl"><span class="ctrl-dot">→</span><span><strong>Tratar como hostil.</strong> Antivírus e análise em ambiente isolado antes de qualquer processamento; PDF com script ativo, XML com entidade externa e arquivo compactado com expansão desproporcional são recusados na entrada</span></div>
+    <div class="ctrl"><span class="ctrl-dot">→</span><span><strong>Nunca servir de volta como veio.</strong> Reprocessar para imagem ou PDF limpo antes de exibir, e servir por URL assinada de validade curta — nunca por caminho previsível</span></div>
+    <div class="ctrl"><span class="ctrl-dot">→</span><span><strong>Detecção de adulteração</strong> em comprovantes: metadados, camadas de edição e inconsistência de fonte são sinais que valem mais que a leitura do valor</span></div>
+    <div class="ctrl"><span class="ctrl-dot gap">✕</span><span><strong>Captura pelo operador é o último recurso.</strong> Quando inevitável, envio direto sem persistir no aparelho, sem acesso à galeria e sem retenção local — o aparelho de loja é compartilhado e frequentemente sincroniza com nuvem pessoal</span></div>
+  </div>
+
+  <h3 class="sub">Assinatura digital — o que sustenta a operação depois</h3>
+  <p style="font-size:14.5px;color:var(--ink-3);margin-bottom:6px">A assinatura não vale pelo clique: vale pelo <strong>conjunto probatório</strong> que a acompanha. O que precisa existir no momento em que o cliente aceita:</p>
+
+  <div class="code">
+    <div class="code-bar"><span class="code-lang">Pacote de evidências · vinculado ao documento, não ao aceite</span><span class="code-tag">proposta</span></div>
+<pre>{
+  <span class="c-com">// 1. O QUE foi assinado — hash do documento exato exibido na tela</span>
+  <span class="c-key">"document_hash"</span>: <span class="c-str">"sha256-9f2a…"</span>,
+  <span class="c-key">"document_version"</span>: <span class="c-str">"CCB-2026-00847-v1"</span>,
+
+  <span class="c-com">// 2. QUEM assinou — e com qual força de autenticação</span>
+  <span class="c-key">"signer"</span>: <span class="c-str">"usr_h8x3k2p9"</span>,
+  <span class="c-key">"amr"</span>: [<span class="c-str">"pwd"</span>, <span class="c-str">"otp"</span>, <span class="c-str">"face"</span>],
+  <span class="c-key">"acr"</span>: <span class="c-str">"urn:baas:loa3"</span>,
+
+  <span class="c-com">// 3. QUANDO — carimbo de tempo de fonte confiável, não relógio do cliente</span>
+  <span class="c-key">"timestamp"</span>: <span class="c-str">"2026-08-18T14:07:31Z"</span>,
+
+  <span class="c-com">// 4. ONDE e COMO — contexto do ato</span>
+  <span class="c-key">"ip"</span>: <span class="c-str">"189.x.x.x"</span>, <span class="c-key">"device_id"</span>: <span class="c-str">"dev_a91f…"</span>,
+  <span class="c-key">"channel"</span>: <span class="c-str">"assisted"</span>,
+  <span class="c-key">"assisted_by"</span>: <span class="c-str">"agt_v1x9k2"</span>,   <span class="c-com">// quem originou — sempre registrado</span>
+
+  <span class="c-com">// 5. A LEITURA — evidência de que houve oportunidade real de conferir</span>
+  <span class="c-key">"presented_at"</span>: <span class="c-str">"2026-08-18T14:05:02Z"</span>,
+  <span class="c-key">"reviewed_fields"</span>: [<span class="c-str">"valor"</span>, <span class="c-str">"cet"</span>, <span class="c-str">"parcela"</span>, <span class="c-str">"destino"</span>],
+
+  <span class="c-com">// 6. O DESTINO faz parte do que é assinado — trocar depois exige reassinar</span>
+  <span class="c-key">"disbursement_key_hash"</span>: <span class="c-str">"sha256-4c1b…"</span>,
+  <span class="c-key">"key_holder_verified"</span>: <span class="c-warn">true</span>
+}</pre>
+  </div>
+
+  <div class="ctrl-list">
+    <div class="ctrl"><span class="ctrl-dot">✓</span><span><strong>O destino do desembolso entra no documento assinado.</strong> Se a conta puder ser alterada depois da assinatura, todo o conjunto perde valor: bastaria deixar o cliente assinar e trocar a chave em seguida. Alteração posterior invalida a assinatura e exige nova.</span></div>
+    <div class="ctrl"><span class="ctrl-dot">✓</span><span><strong>Assinar o documento, não o aceite.</strong> Evidência que diz apenas “o usuário clicou em concordo” não prova <em>com o quê</em> ele concordou. O vínculo com o hash do PDF exibido é o que sustenta a autoria em contestação.</span></div>
+    <div class="ctrl"><span class="ctrl-dot gap">✕</span><span><strong>Jamais no dispositivo do operador.</strong> Assinatura colhida na tela dele torna impossível distinguir cliente que assinou de operador que assinou pelo cliente — e nenhuma trilha posterior recupera essa distinção.</span></div>
+    <div class="ctrl"><span class="ctrl-dot part">→</span><span><strong>Retenção do pacote pelo prazo de exigibilidade</strong> do contrato, com integridade protegida contra alteração — inclusive pelo próprio banco. Evidência que a parte interessada pode editar não é evidência.</span></div>
+    <div class="ctrl"><span class="ctrl-dot part">→</span><span><strong>Nível de assinatura a definir</strong> com o Jurídico: eletrônica simples com evidência robusta costuma bastar para contrato de crédito privado, mas o nível exigido, o uso de certificado e a validação de arrependimento na contratação fora do estabelecimento precisam ser confirmados — ver E-07.</span></div>
+  </div>
+</div>
+
 <!-- ═══ AMEAÇAS ═══ -->
 <div class="wrap" id="ameacas">
-  <div class="eyebrow">08 · Threat Model</div>
-  <h2 class="sec">Seis ameaças da originação de não-correntista</h2>
+  <div class="eyebrow">09 · Threat Model</div>
+  <h2 class="sec">Dez ameaças da originação de não-correntista</h2>
   <p class="sec-desc">Complementam as 21 do documento de segurança e as 6 do de identidade. Estas nascem de conceder crédito a quem o banco não conhece, por canais que o banco não controla inteiramente.</p>
 
   <div class="cards">
@@ -685,23 +816,92 @@ h3.sub{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;letter-spaci
         <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">Consulta paga só depois de um desafio no cliente · limite por origem e por documento · resposta uniforme para elegível e não elegível · orçamento de consultas por parceiro com alerta de estouro</div></div>
       </div></div>
     </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">C-07 · Tampering</div>
+          <div class="card-title">Renda ou faturamento inflado na imputação</div>
+          <div class="card-sub">O operador digita um valor maior para que a proposta seja aprovada.</div>
+        </div>
+        <div class="card-side"><span class="flag">crítico</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Por que acontece</div><div class="attr-v">O operador é remunerado por volume e tem o cliente na frente esperando resposta. Acontece por fraude e também <strong>de boa-fé</strong> — “arredondar para cima para ajudar” é o começo de uma carteira mal originada.</div></div>
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">Inadimplência concentrada em operadores específicos, descoberta só quando o crédito vence. É risco de crédito criado na tela de cadastro.</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">Preferir fonte autoritativa a valor declarado · exigir evidência para valores acima de faixa · exibir o valor imputado na conferência do cliente (etapa 8) · monitorar aprovação, ticket médio e inadimplência <strong>por operador</strong>, não só por parceiro</div></div>
+        <div class="attr"><div class="attr-k">Sinal a medir desde o início</div><div class="attr-v">Operador com distribuição de faturamento concentrada logo acima dos limiares de faixa é o padrão clássico — e só aparece se o dado for guardado com atribuição nominal</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">C-08 · Tampering</div>
+          <div class="card-title">Arquivo malicioso ou documento adulterado</div>
+          <div class="card-sub">O upload é uma porta de entrada de conteúdo não confiável dentro do banco.</div>
+        </div>
+        <div class="card-side"><span class="flag">alto</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Dois vetores distintos</div><div class="attr-v"><strong>Técnico:</strong> arquivo construído para explorar quem o processa — script embutido, entidade externa, expansão desproporcional, tipo real diferente da extensão. <strong>De conteúdo:</strong> comprovante legítimo em formato, mas com valores editados.</div></div>
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">O primeiro compromete a plataforma; o segundo compromete a decisão de crédito. Controles diferentes para cada um — e é comum tratar só do primeiro.</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">Validação de tipo real · análise em ambiente isolado · reprocessamento antes de exibir · URL assinada de vida curta · detecção de adulteração por metadados e camadas de edição · e, acima de tudo, <strong>preferir fonte consultável a documento enviado</strong></div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">C-09 · Repudiation</div>
+          <div class="card-title">Assinatura sem vínculo com o documento</div>
+          <div class="card-sub">Registra-se o aceite, mas não o que foi aceito.</div>
+        </div>
+        <div class="card-side"><span class="flag">crítico</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">O erro</div><div class="attr-v">Guardar “usuário X clicou em concordo às 14h07” sem o hash do documento exibido. Numa contestação, não há como provar <em>qual</em> versão de contrato estava na tela — e a defesa depende de presumir que o sistema exibiu o certo.</div></div>
+        <div class="attr"><div class="attr-k">Agravante do canal assistido</div><div class="attr-v">Como a proposta foi montada por terceiro, a alegação natural do cliente é “não foi isso que me mostraram”. Sem o vínculo hash-documento, essa alegação é difícil de refutar.</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">Pacote de evidências da seção 08 · carimbo de tempo de fonte confiável · registro do intervalo entre apresentação e aceite · armazenamento protegido contra alteração pelo próprio banco</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">C-10 · Tampering</div>
+          <div class="card-title">Troca de destino entre assinatura e desembolso</div>
+          <div class="card-sub">O contrato é assinado com uma conta e o dinheiro sai para outra.</div>
+        </div>
+        <div class="card-side"><span class="flag">crítico</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Por que é o alvo</div><div class="attr-v">É o caminho mais econômico para o fraudador: deixa o cliente legítimo passar por todo o funil, autenticar e assinar — e intervém apenas no último campo, que historicamente fica fora do que é assinado.</div></div>
+        <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">Cliente com dívida legítima e assinada, sem ter recebido o valor. Contestação em que o banco tem assinatura válida e ainda assim errou.</div></div>
+        <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">Destino <strong>dentro</strong> do documento assinado · titularidade verificada antes da assinatura, não depois · qualquer alteração invalida a assinatura e exige nova · janela entre assinatura e desembolso monitorada, com alteração nesse intervalo tratada como evento de fraude</div></div>
+      </div></div>
+    </div>
   </div>
 </div>
 
 <!-- ═══ DECISÕES ═══ -->
 <div class="wrap" id="decisoes">
-  <div class="eyebrow">09 · A decidir</div>
+  <div class="eyebrow">10 · A decidir</div>
   <h2 class="sec">O que precisa ser definido</h2>
   <p class="sec-desc">Nenhuma depende de tecnologia nova. Dependem de escolha de produto, de política de risco e de enquadramento jurídico.</p>
 
   <div class="cards two">
     <div class="card acc-red" onclick="toggleCard(this)">
       <div class="card-head">
-        <div class="card-head-main"><div class="card-kicker">E-01 · Jurídico + Produto</div><div class="card-title">A operação assistida existe?</div>
-        <div class="card-sub">Se sim, é correspondente no País — e isso precede o desenho da tela.</div></div>
-        <div class="card-side"><span class="flag">bloqueia</span><span class="card-chev">›</span></div>
+        <div class="card-head-main"><div class="card-kicker">E-01 · Jurídico + Produto</div><div class="card-title">Operação assistida — decidida</div>
+        <div class="card-sub">O operador do parceiro imputa as propostas, com upload de arquivos e assinatura digital no desembolso.</div></div>
+        <div class="card-side"><span class="badge badge-green">definido</span><span class="card-chev">›</span></div>
       </div>
-      <div class="card-body"><div class="card-body-in"><div class="attr"><div class="attr-k">Por que primeiro</div><div class="attr-v">Define contratação do parceiro, certificação de atendentes, remuneração e responsabilidade. Descobrir depois significa refazer contrato e treinamento com parceiros já ativos.</div></div></div></div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Status</div><div class="attr-v"><strong>Decidido:</strong> a contratação assistida faz parte do produto. A pergunta deixa de existir — o que era consequência condicional passa a ser requisito.</div></div>
+        <div class="attr"><div class="attr-k">O que isso ativa</div><div class="attr-v">Enquadramento como correspondente no País, com contratação formal, certificação de atendentes e responsabilidade do banco pelos atos deles · separação de papéis no token · fluxo detalhado da seção 08 · ameaças C-07 a C-10</div></div>
+        <div class="attr"><div class="attr-k">O que ainda depende de decisão</div><div class="attr-v">O nível de assinatura eletrônica adotado e a política de retenção do pacote de evidências — ver E-07 e E-08</div></div>
+      </div></div>
     </div>
     <div class="card acc-red" onclick="toggleCard(this)">
       <div class="card-head">
@@ -742,6 +942,23 @@ h3.sub{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;letter-spaci
         <div class="card-side"><span class="card-chev">›</span></div>
       </div>
       <div class="card-body"><div class="card-body-in"><div class="attr"><div class="attr-k">Consequência</div><div class="attr-v">Sem orçamento por parceiro e sem controle de abuso (C-06), o custo de qualificação de quem não contrata pode inviabilizar a operação em parceiros de baixa conversão.</div></div></div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main"><div class="card-kicker">E-07 · Jurídico</div><div class="card-title">Nível da assinatura eletrônica</div>
+        <div class="card-sub">E se a contratação na loja do parceiro configura venda fora do estabelecimento.</div></div>
+        <div class="card-side"><span class="flag">bloqueia</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in"><div class="attr"><div class="attr-k">Consequência</div><div class="attr-v">Define se basta assinatura eletrônica simples com pacote de evidências robusto ou se há exigência de certificado, e se incide direito de arrependimento com prazo próprio. Muda a tela de contratação e o desenho do desembolso — não dá para decidir depois de construído.</div></div></div></div>
+    </div>
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main"><div class="card-kicker">E-08 · Segurança + Jurídico</div><div class="card-title">Retenção do pacote de evidências</div>
+        <div class="card-sub">Por quanto tempo, com que proteção contra alteração.</div></div>
+        <div class="card-side"><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in"><div class="attr"><div class="attr-k">Consequência</div><div class="attr-v">Evidência precisa sobreviver ao prazo de exigibilidade do contrato e ser resistente a alteração inclusive pelo banco — do contrário perde valor probatório. Também precisa conciliar com o princípio da necessidade da LGPD, já que carrega dado pessoal e biométrico.</div></div></div></div>
     </div>
   </div>
 
