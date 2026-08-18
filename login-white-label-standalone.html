@@ -112,8 +112,12 @@ body{background:var(--shell-bg);color:var(--text);font-family:var(--sans);font-s
 /* MFA */
 .otp{display:flex;gap:8px;margin-bottom:8px}
 .otp-d{
-  flex:1;height:50px;border:1px solid var(--border2);border-radius:var(--radius);text-align:center;
+  /* min-width:0 é obrigatório: input tem largura intrínseca e, sem isso,
+     não encolhe — os seis campos estouram a largura do cartão */
+  flex:1;min-width:0;width:100%;height:50px;
+  border:1px solid var(--border2);border-radius:var(--radius);text-align:center;
   font-family:var(--mono);font-size:19px;font-weight:600;color:var(--text);background:var(--surface);
+  padding:0;
 }
 .otp-d:focus{outline:none;border-color:var(--p-primary);box-shadow:0 0 0 3px var(--p-soft)}
 
