@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BaaS White Label · Confiança na Federação — KYP e Cláusulas de Parceria</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --cream:#f5f2ec;--cream-2:#ebe6dc;--cream-3:#dcd6c8;--white:#ffffff;
+  --ink:#0b1219;--ink-deep:#070c11;--ink-2:#243444;--ink-3:#5c7082;--ink-4:#98a8b6;
+
+  --red:#bf1e2d;--red-br:#ff4757;--red-soft:rgba(191,30,45,.08);--red-line:rgba(191,30,45,.22);
+
+  --green:#4fc79a;--green-d:#1d8f66;--green-s:rgba(79,199,154,.12);
+  --amber:#e0a95f;--amber-d:#b57320;--amber-s:rgba(224,169,95,.12);
+  --blue:#5b9dd9;--blue-d:#2c6ba8;--blue-s:rgba(91,157,217,.12);
+
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+html{scroll-behavior:smooth}
+body{background:var(--cream);color:var(--ink-2);font-family:'Inter',sans-serif;font-size:15px;line-height:1.68;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+
+/* ═══ BASE ═══ */
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--red);display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.eyebrow::before{content:'';display:block;width:14px;height:1px;background:var(--red)}
+.eyebrow.on-dark{color:var(--red-br)}
+.eyebrow.on-dark::before{background:var(--red-br)}
+
+.noise{position:absolute;inset:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E")}
+.glow{position:absolute;border-radius:50%;pointer-events:none;background:radial-gradient(ellipse,rgba(191,30,45,.16) 0%,transparent 70%)}
+
+.badge,.flag{display:inline-flex;align-items:center;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.badge-green{background:var(--green-s);color:var(--green-d);border:1px solid rgba(79,199,154,.3)}
+.badge-amber{background:var(--amber-s);color:var(--amber-d);border:1px solid rgba(224,169,95,.3)}
+.badge-gray{background:var(--cream-2);color:var(--ink-4);border:1px solid var(--cream-3)}
+.badge-blue{background:var(--blue-s);color:var(--blue-d);border:1px solid rgba(91,157,217,.25)}
+.flag{background:var(--red-soft);color:var(--red);border:1px solid var(--red-line)}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* ═══ NAV ═══ */
+.nav{position:sticky;top:0;z-index:600;background:rgba(11,18,25,.93);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.07);padding:11px 40px;display:flex;align-items:center;gap:26px}
+.nav-mark{font-family:'Syne',sans-serif;font-weight:800;font-size:12.5px;letter-spacing:-.02em;color:var(--cream);flex-shrink:0}
+.nav-links{display:flex;gap:19px;flex:1;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-link{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-4);white-space:nowrap;transition:color .25s var(--ease)}
+.nav-link:hover{color:var(--red-br)}
+
+/* ═══ HERO ═══ */
+.hero{background:var(--ink);position:relative;overflow:hidden;padding:76px 40px 66px}
+.hero-in{max-width:1080px;margin:0 auto;position:relative;z-index:2}
+.hero .glow{width:620px;height:620px;top:-260px;right:-160px}
+.hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(32px,5vw,54px);letter-spacing:-.045em;line-height:1.04;color:var(--cream);margin-bottom:20px;max-width:850px}
+.hero h1 em{font-style:normal;color:var(--red-br)}
+.hero-sub{font-size:16px;font-weight:300;color:var(--ink-4);line-height:1.72;max-width:680px;margin-bottom:34px}
+.hero-tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:30px}
+.hero-tags .badge{background:rgba(255,255,255,.05);color:var(--ink-4);border:1px solid rgba(255,255,255,.1)}
+.hero-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:28px;padding-top:32px;border-top:1px solid rgba(255,255,255,.09)}
+.kpi-v{font-family:'Syne',sans-serif;font-weight:800;font-size:38px;letter-spacing:-.05em;line-height:1;color:var(--cream)}
+.kpi-l{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-4);margin-top:8px}
+
+/* ═══ BANDA ESCURA ═══ */
+.band{background:var(--ink-deep);position:relative;padding:64px 40px}
+.band-in{max-width:1080px;margin:0 auto;position:relative;z-index:2}
+.band h2{font-family:'Syne',sans-serif;font-weight:800;font-size:30px;letter-spacing:-.035em;color:var(--cream);margin-bottom:12px;line-height:1.14}
+.band-desc{font-size:14.5px;font-weight:300;color:var(--ink-4);max-width:680px;line-height:1.72;margin-bottom:34px}
+.gap-track{display:flex;flex-direction:column;gap:2px}
+.gapr{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;padding:15px 18px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:3px;transition:background .3s var(--ease),border-color .3s var(--ease)}
+.gapr:hover{background:rgba(255,255,255,.06);border-color:rgba(255,68,87,.3)}
+.gapr-q{font-size:13.5px;color:var(--cream);font-weight:500;margin-bottom:3px}
+.gapr-w{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-4)}
+
+/* ═══ WRAP CLARO ═══ */
+.wrap{max-width:1080px;margin:0 auto;padding:64px 40px 40px}
+.wrap:last-of-type{padding-bottom:100px}
+h2.sec{font-family:'Syne',sans-serif;font-weight:800;font-size:30px;letter-spacing:-.035em;line-height:1.14;margin-bottom:12px;max-width:780px}
+.sec-desc{font-size:14.5px;color:var(--ink-3);max-width:720px;line-height:1.72;margin-bottom:34px}
+h3.sub{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;letter-spacing:-.025em;margin:38px 0 14px}
+
+.callout{border-left:3px solid var(--red);background:var(--red-soft);padding:18px 22px;margin:26px 0;border-radius:0 3px 3px 0}
+.callout-t{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--red);margin-bottom:8px}
+.callout p{font-size:14px;line-height:1.7;color:var(--ink-2)}
+.callout p+p{margin-top:10px}
+.callout.neutral{border-left-color:var(--blue-d);background:var(--blue-s)}
+.callout.neutral .callout-t{color:var(--blue-d)}
+.callout.warn{border-left-color:var(--amber-d);background:var(--amber-s)}
+.callout.warn .callout-t{color:var(--amber-d)}
+.callout.good{border-left-color:var(--green-d);background:var(--green-s)}
+.callout.good .callout-t{color:var(--green-d)}
+
+/* ═══ CARDS ═══ */
+.cards{display:grid;gap:12px}
+.cards.two{grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
+.cards.three{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.card{background:var(--white);border:1px solid var(--cream-3);border-radius:4px;cursor:pointer;overflow:hidden;position:relative;transition:transform .3s var(--ease),box-shadow .3s var(--ease)}
+.card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(11,18,25,.1)}
+.card.open{box-shadow:0 0 0 2px var(--red-br),0 16px 40px rgba(11,18,25,.12)}
+.card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--cream-3)}
+.card.acc-red::after{background:var(--red)}
+.card.acc-amber::after{background:var(--amber)}
+.card.acc-green::after{background:var(--green)}
+.card.acc-blue::after{background:var(--blue)}
+.card-head{padding:20px 22px;display:flex;align-items:flex-start;gap:16px}
+.card-head-main{flex:1;min-width:0}
+.card-kicker{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-4);margin-bottom:7px}
+.card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:16.5px;letter-spacing:-.02em;line-height:1.28;margin-bottom:6px}
+.card-sub{font-size:13px;color:var(--ink-3);line-height:1.6}
+.card-side{display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex-shrink:0}
+.card-chev{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ink-4);transition:transform .35s var(--ease)}
+.card.open .card-chev{transform:rotate(90deg)}
+.card-body{max-height:0;overflow:hidden;opacity:0;transition:max-height .5s var(--ease),opacity .35s}
+.card.open .card-body{max-height:2400px;opacity:1}
+.card-body-in{padding:2px 22px 24px;border-top:1px solid var(--cream-2)}
+.card-body-in>*:first-child{margin-top:18px}
+
+.attr{display:grid;grid-template-columns:118px 1fr;gap:14px;padding:9px 0;border-bottom:1px solid var(--cream-2);font-size:13.5px;line-height:1.62}
+.attr:last-child{border-bottom:none}
+.attr-k{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);padding-top:3px}
+.attr-v{color:var(--ink-2)}
+.attr-v strong{font-weight:600}
+
+.ctrl-list{display:flex;flex-direction:column;gap:9px;margin:16px 0}
+.ctrl{display:flex;gap:11px;font-size:13.5px;line-height:1.6;align-items:flex-start}
+.ctrl-dot{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green-d);flex-shrink:0;padding-top:2px}
+.ctrl-dot.gap{color:var(--red)}
+.ctrl-dot.part{color:var(--amber-d)}
+
+/* ═══ CÓDIGO ═══ */
+.code{background:var(--ink);border-radius:4px;overflow:hidden;margin:18px 0}
+.code-bar{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02)}
+.code-lang{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-4)}
+.code-tag{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.06em;color:var(--red-br)}
+.code pre{padding:17px 18px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.75;color:#c8d4e0}
+.c-key{color:#ff8a95}.c-str{color:#8fd6a8}.c-com{color:#4d6376;font-style:italic}.c-fn{color:#7fb8e8}.c-num{color:#e0a95f}.c-warn{color:#ff4757}
+
+/* ═══ MATRIZ DE RESPONSABILIDADE ═══ */
+.raci{display:grid;gap:2px;margin:22px 0}
+.rc-row{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:2px}
+.rc-c{background:var(--white);border:1px solid var(--cream-3);padding:13px 15px;font-size:12.5px;line-height:1.55}
+.rc-row.head .rc-c{background:var(--ink);color:var(--cream);border-color:var(--ink);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.11em;text-transform:uppercase}
+.rc-c.stage{font-weight:500;color:var(--ink-2)}
+.rc-c.stage small{display:block;font-weight:400;font-size:11.5px;color:var(--ink-3);margin-top:3px;line-height:1.5}
+.rc-who{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.04em;display:block;margin-bottom:4px}
+.rc-who.p{color:var(--blue-d)}
+.rc-who.b{color:var(--red)}
+.rc-who.both{color:var(--amber-d)}
+.rc-who.none{color:var(--ink-4)}
+.rc-note{color:var(--ink-3);font-size:11.5px;line-height:1.5}
+.rc-note strong{color:var(--ink-2);font-weight:600}
+
+/* ═══ MATRIZ COMPARATIVA GENÉRICA ═══ */
+.matrix{display:grid;gap:2px;margin:22px 0}
+.mx-row{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;gap:2px}
+.mx-c{background:var(--white);border:1px solid var(--cream-3);padding:13px 15px;font-size:12.5px;line-height:1.55}
+.mx-row.head .mx-c{background:var(--ink);color:var(--cream);border-color:var(--ink);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.11em;text-transform:uppercase}
+.mx-c.lbl{font-weight:500;color:var(--ink-2)}
+.mx-v{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.04em;display:block;margin-bottom:4px}
+.mx-v.yes{color:var(--green-d)}.mx-v.no{color:var(--red)}.mx-v.part{color:var(--amber-d)}
+.mx-note{color:var(--ink-3);font-size:11.5px;line-height:1.5}
+
+/* ═══ RODAPÉ ═══ */
+.foot{border-top:1px solid var(--cream-3);padding:34px 40px 60px;max-width:1080px;margin:0 auto}
+.foot-in{font-family:'JetBrains Mono',monospace;font-size:10.5px;line-height:1.9;color:var(--ink-4);letter-spacing:.03em}
+.foot-links{display:flex;gap:18px;flex-wrap:wrap;margin-top:16px}
+.foot-links a{color:var(--red);transition:opacity .25s var(--ease)}
+.foot-links a:hover{opacity:.6}
+
+@media (max-width:860px){
+  .nav{padding:11px 20px;gap:16px}
+  .hero{padding:52px 24px 46px}
+  .band,.wrap{padding-left:24px;padding-right:24px}
+  .wrap{padding-top:48px}
+  .cards.two,.cards.three{grid-template-columns:1fr}
+  .mx-row,.rc-row{grid-template-columns:1fr}
+  .mx-row.head,.rc-row.head{display:none}
+  .attr{grid-template-columns:1fr;gap:3px}
+  .gapr{grid-template-columns:1fr}
+  .foot{padding:30px 24px 50px}
+}
+
+/* ═══ MATRIZ DE ASSIMETRIA (3 colunas) ═══ */
+.matrix.tri .mx-row{grid-template-columns:1.05fr 1fr 1fr}
+.mx-c.dim{font-weight:500;color:var(--ink-2)}
+.mx-c.dim small{display:block;font-weight:400;font-size:11.5px;color:var(--ink-3);margin-top:3px;line-height:1.5}
+.mx-c.win{background:#fdfdfc;box-shadow:inset 3px 0 0 var(--green)}
+.mx-c.lose{background:#fdfdfc;box-shadow:inset 3px 0 0 var(--red)}
+.mx-c.tie{background:#fdfdfc;box-shadow:inset 3px 0 0 var(--amber)}
+
+/* ═══ VEREDITO ═══ */
+.verd{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:2px;margin:22px 0}
+.verd-c{background:var(--white);border:1px solid var(--cream-3);padding:20px 20px 22px;position:relative}
+.verd-c::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.verd-c.ok::before{background:var(--green)}
+.verd-c.no::before{background:var(--red)}
+.verd-k{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-4);margin-bottom:9px}
+.verd-t{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;letter-spacing:-.02em;line-height:1.3;margin-bottom:9px}
+.verd-d{font-size:13.5px;line-height:1.65;color:var(--ink-3)}
+.verd-d strong{color:var(--ink-2);font-weight:600}
+
+/* ═══ TIERS ═══ */
+.tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin:22px 0}
+.tier{background:var(--white);border:1px solid var(--cream-3);border-radius:4px;padding:20px;position:relative;overflow:hidden}
+.tier::after{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.tier.t1::after{background:var(--red)}
+.tier.t2::after{background:var(--amber)}
+.tier.t3::after{background:var(--blue)}
+.tier-n{font-family:'Syne',sans-serif;font-weight:800;font-size:30px;letter-spacing:-.05em;line-height:1;margin-bottom:5px}
+.tier.t1 .tier-n{color:var(--red)}
+.tier.t2 .tier-n{color:var(--amber-d)}
+.tier.t3 .tier-n{color:var(--blue-d)}
+.tier-t{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-4);margin-bottom:13px}
+.tier-l{display:flex;flex-direction:column;gap:8px;font-size:12.5px;line-height:1.55;color:var(--ink-3)}
+.tier-l b{color:var(--ink-2);font-weight:600;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:2px}
+
+/* ═══ QUESTIONÁRIO ═══ */
+.qz{display:flex;flex-direction:column;gap:2px;margin:20px 0}
+.qz-r{display:grid;grid-template-columns:26px 1fr 190px;gap:14px;align-items:start;background:var(--white);border:1px solid var(--cream-3);padding:13px 16px}
+.qz-n{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-4);padding-top:2px}
+.qz-q{font-size:13.5px;line-height:1.6;color:var(--ink-2)}
+.qz-q small{display:block;color:var(--ink-3);font-size:11.5px;margin-top:3px;line-height:1.5}
+.qz-o{font-family:'JetBrains Mono',monospace;font-size:10.5px;line-height:1.6;color:var(--red);padding-top:2px}
+
+/* ═══ CLÁUSULAS ═══ */
+.draft{background:var(--cream-2);border-left:3px solid var(--ink-3);padding:15px 18px;margin:14px 0 6px;font-size:13px;line-height:1.72;color:var(--ink-2);border-radius:0 3px 3px 0}
+.draft-t{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px}
+.draft em{font-style:italic;color:var(--ink-3)}
+
+/* ═══ REFERÊNCIAS ═══ */
+.refs{display:flex;flex-direction:column;gap:2px;margin:18px 0 30px}
+.ref{display:grid;grid-template-columns:210px 1fr;gap:16px;background:var(--white);border:1px solid var(--cream-3);padding:14px 16px;align-items:start}
+.ref-id{font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.5;color:var(--red);letter-spacing:.02em}
+.ref-id small{display:block;color:var(--ink-4);font-size:10px;letter-spacing:.06em;text-transform:uppercase;margin-top:4px}
+.ref-w{font-size:13px;line-height:1.62;color:var(--ink-3)}
+.ref-w strong{color:var(--ink-2);font-weight:600}
+
+@media (max-width:860px){
+  .matrix.tri .mx-row{grid-template-columns:1fr}
+  .qz-r{grid-template-columns:1fr;gap:6px}
+  .ref{grid-template-columns:1fr;gap:6px}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══ -->
+<nav class="nav">
+  <div class="nav-mark">BaaS · Confiança &amp; KYP</div>
+  <div class="nav-links">
+    <a class="nav-link" href="#objecao">A objeção</a>
+    <a class="nav-link" href="#assimetria">Assimetria</a>
+    <a class="nav-link" href="#real">O que é real</a>
+    <a class="nav-link" href="#controles">Controles</a>
+    <a class="nav-link" href="#ancora">A âncora</a>
+    <a class="nav-link" href="#kyp">KYP</a>
+    <a class="nav-link" href="#clausulas">Cláusulas</a>
+    <a class="nav-link" href="#referencias">Referências</a>
+    <a class="nav-link" href="#abertas">A decidir</a>
+  </div>
+</nav>
+
+<!-- ═══ HERO ═══ -->
+<div class="hero">
+  <div class="noise"></div>
+  <div class="glow"></div>
+  <div class="hero-in">
+    <div class="eyebrow on-dark">Confiança na Federação · Know Your Partner · Cláusulas</div>
+    <h1>O federado não é mais frágil. Ele é frágil em <em>outro lugar</em>.</h1>
+    <p class="hero-sub">A sensação de que delegar a autenticação ao parceiro enfraquece o modelo é legítima e aponta para algo verdadeiro — só que para uma dimensão específica, não para o conjunto. Trazer o login para dentro não reduz risco: troca risco distribuído que não controlamos por risco concentrado que controlamos, e adiciona uma operação inteira. Este documento coloca as duas colunas lado a lado, isola o que de fato é frágil no federado, e converte cada fragilidade em um controle técnico, uma pergunta de KYP e uma cláusula de contrato.</p>
+    <div class="hero-tags">
+      <span class="badge">Assimetria de risco</span>
+      <span class="badge">NIST 800-63C · FAL</span>
+      <span class="badge">Step-up RFC 9470</span>
+      <span class="badge">KYP · Circular 3.978</span>
+      <span class="badge">Minuta de cláusulas</span>
+    </div>
+    <div class="hero-kpis">
+      <div><div class="kpi-v">9</div><div class="kpi-l">Dimensões comparadas</div></div>
+      <div><div class="kpi-v" style="color:var(--red-br)">6</div><div class="kpi-l">Fragilidades reais do federado</div></div>
+      <div><div class="kpi-v">12</div><div class="kpi-l">Cláusulas propostas</div></div>
+      <div><div class="kpi-v">19</div><div class="kpi-l">Referências normativas</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ A OBJEÇÃO ═══ -->
+<div class="band" id="objecao">
+  <div class="noise"></div>
+  <div class="band-in">
+    <div class="eyebrow on-dark">01 · A objeção</div>
+    <h2>“Quando o IdP é do parceiro, isso parece mais frágil”</h2>
+    <p class="band-desc">A frase aparece em toda reunião e não é ignorância — é intuição de segurança funcionando corretamente sobre uma informação incompleta. Ela merece uma resposta que a leve a sério, e não uma que a desqualifique. O que a intuição capta é real; o que ela não capta é o outro lado da balança.</p>
+
+    <div class="gap-track">
+      <div class="gapr">
+        <div><div class="gapr-q">A força da autenticação passa a ser herdada</div><div class="gapr-w">Recebemos a afirmação “esta pessoa se autenticou” sem poder verificar <em>quão bem</em></div></div>
+        <div><span class="badge badge-amber">a intuição acerta</span></div>
+      </div>
+      <div class="gapr">
+        <div><div class="gapr-q">Dentro do próprio tenant, o parceiro pode afirmar qualquer identidade</div><div class="gapr-w">Nenhum controle nosso distingue um login real de uma asserção fabricada pelo parceiro</div></div>
+        <div><span class="badge badge-amber">a intuição acerta</span></div>
+      </div>
+      <div class="gapr">
+        <div><div class="gapr-q">A evidência de autoria depende de log que não é nosso</div><div class="gapr-w">Em contestação, parte da prova está no ambiente do parceiro</div></div>
+        <div><span class="badge badge-amber">a intuição acerta</span></div>
+      </div>
+      <div class="gapr">
+        <div><div class="gapr-q">Portanto, trazer o login para dentro reduz o risco</div><div class="gapr-w">Não reduz — muda de lugar, de natureza e de dono, e concentra o raio de explosão</div></div>
+        <div><span class="flag">a intuição erra</span></div>
+      </div>
+      <div class="gapr">
+        <div><div class="gapr-q">Se controlamos a autenticação, controlamos a tomada de conta</div><div class="gapr-w">O vetor dominante de tomada de conta não é o login — é a recuperação de senha, que passa a ser nossa</div></div>
+        <div><span class="flag">a intuição erra</span></div>
+      </div>
+      <div class="gapr">
+        <div><div class="gapr-q">O risco herdado é um risco desconhecido</div><div class="gapr-w">Só é desconhecido se não for medido: <span class="mono">acr</span>, KYP e telemetria transformam herdado em declarado e limitado</div></div>
+        <div><span class="flag">a intuição erra</span></div>
+      </div>
+    </div>
+
+    <div class="callout neutral" style="margin-top:30px;background:rgba(91,157,217,.1);border-left-color:var(--blue)">
+      <div class="callout-t" style="color:var(--blue)">A pergunta certa</div>
+      <p style="color:var(--cream)">Não é <em>“eu confio no login do parceiro?”</em> — a resposta honesta é sempre “parcialmente”. A pergunta que decide arquitetura é <strong style="color:var(--cream)">“o que eu deixei um login que não controlo conseguir fazer?”</strong>. É essa pergunta que o desenho atual já responde, e é ela que desarma a objeção — tratada na seção 05.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ASSIMETRIA ═══ -->
+<div class="wrap" id="assimetria">
+  <div class="eyebrow">02 · Assimetria</div>
+  <h2 class="sec">As duas colunas, sem torcida</h2>
+  <p class="sec-desc">Nove dimensões de risco, cada uma com o veredito real. A barra colorida à esquerda de cada célula indica qual modelo sai melhor <em>naquela linha</em> — verde melhor, vermelho pior, âmbar empate com ressalva. Nenhuma coluna vence todas: é isso que torna a discussão difícil, e é exatamente isso que precisa estar explícito antes de qualquer decisão.</p>
+
+  <div class="matrix tri">
+    <div class="mx-row head">
+      <div class="mx-c">Dimensão de risco</div>
+      <div class="mx-c">Federado — parceiro é o IdP</div>
+      <div class="mx-c">Standalone — Bradesco é o IdP</div>
+    </div>
+
+    <div class="mx-row">
+      <div class="mx-c dim">Força da autenticação<small>Quão robusto foi o ato de login que originou a sessão</small></div>
+      <div class="mx-c lose"><span class="mx-v no">herdada</span><span class="mx-note">Recebemos o resultado, não o processo. Sem <span class="mono">acr</span>/<span class="mono">amr</span> contratados, um login com senha reutilizada e um login com MFA forte chegam idênticos.</span></div>
+      <div class="mx-c win"><span class="mx-v yes">definida por nós</span><span class="mx-note">Política de senha, fator, bloqueio e reautenticação são nossos. É a única dimensão em que o standalone vence de forma limpa.</span></div>
+    </div>
+
+    <div class="mx-row">
+      <div class="mx-c dim">Raio de explosão de um comprometimento de IdP<small>O que cai junto quando o provedor de identidade é tomado</small></div>
+      <div class="mx-c win"><span class="mx-v yes">um parceiro</span><span class="mx-note">Compartimentado por desenho. O <span class="mono">partner_tenant</span> é derivado do PAT autenticado, então o dano fica contido no tenant daquele parceiro.</span></div>
+      <div class="mx-c lose"><span class="mx-v no">todos os parceiros</span><span class="mx-note">Um único IdP servindo todas as bases é ponto único de falha com dano transversal — o cenário de maior impacto reputacional do modelo.</span></div>
+    </div>
+
+    <div class="mx-row">
+      <div class="mx-c dim">Superfície de recuperação de conta<small>O vetor dominante de tomada de conta no mundo real</small></div>
+      <div class="mx-c win"><span class="mx-v yes">fora do nosso perímetro</span><span class="mx-note">Reset de senha, prova de vida por telefone e engenharia social sobre o atendimento acontecem no parceiro — e não geram fila no nosso suporte.</span></div>
+      <div class="mx-c lose"><span class="mx-v no">integralmente nossa</span><span class="mx-note">Tomada de conta raramente arromba o login; ela liga para o suporte. Assumir o IdP é assumir esse canal, com mesa de fraude, script e responsabilidade.</span></div>
+    </div>
+
+    <div class="mx-row">
+      <div class="mx-c dim">Alvo de phishing<small>Onde o atacante concentra campanha</small></div>
+      <div class="mx-c tie"><span class="mx-v part">difuso</span><span class="mx-note">Cada parceiro tem seu domínio e sua marca. Ataque não escala entre parceiros, mas também não temos visibilidade do que acontece em cada um.</span></div>
+      <div class="mx-c lose"><span class="mx-v no">concentrado e permanente</span><span class="mx-note">Um sufixo de domínio único, com marca de banco por trás, é alvo estável e de alto retorno. Exige o ancoramento antifishing já desenhado no protótipo de login.</span></div>
+    </div>
+
+    <div class="mx-row">
+      <div class="mx-c dim">Evidência de autoria em disputa<small>Quem prova quem autorizou uma contratação</small></div>
+      <div class="mx-c tie"><span class="mx-v part">compartilhada</span><span class="mx-note">O <span class="mono">exchange_chain</span> amarra a operação ao PAT do parceiro — prova que <em>ele</em> originou. Provar que o <em>cliente dele</em> estava presente depende do log do parceiro, e por isso precisa de cláusula.</span></div>
+      <div class="mx-c win"><span class="mx-v yes">integralmente nossa</span><span class="mx-note"><span class="mono">amr</span>, <span class="mono">acr</span> e <span class="mono">auth_time</span> são emitidos e guardados por nós. A cadeia probatória não depende de terceiro.</span></div>
+    </div>
+
+    <div class="mx-row">
+      <div class="mx-c dim">Propagação de revogação<small>Latência entre o desligamento e a perda de acesso</small></div>
+      <div class="mx-c lose"><span class="mx-v no">depende de aviso</span><span class="mx-note">Sem back-channel logout ou sinal contínuo, um token emitido antes do offboarding vale até expirar. É fragilidade real, e tem padrão pronto para resolver (seção 04).</span></div>
+      <div class="mx-c win"><span class="mx-v yes">imediata</span><span class="mx-note">A revogação acontece na fonte. Um desligamento no console do parceiro derruba a sessão na hora.</span></div>
+    </div>
+
+    <div class="mx-row">
+      <div class="mx-c dim">Custo operacional por usuário<small>O que precisa existir de gente e processo</small></div>
+      <div class="mx-c win"><span class="mx-v yes">próximo de zero</span><span class="mx-note">Nenhuma senha nossa para o usuário esquecer, nenhum canal de atendimento de identidade a manter.</span></div>
+      <div class="mx-c lose"><span class="mx-v no">estrutural</span><span class="mx-note">Suporte de primeiro nível, console do parceiro, política de fraude e SLA de recuperação. É produto com equipe, não configuração.</span></div>
+    </div>
+
+    <div class="mx-row">
+      <div class="mx-c dim">Papel sob a LGPD<small>Quanto dado pessoal entra no nosso escopo de controlador</small></div>
+      <div class="mx-c win"><span class="mx-v yes">minimizado</span><span class="mx-note">O parceiro guarda a credencial. Não tratamos senha, fator, nem histórico de autenticação dos clientes dele.</span></div>
+      <div class="mx-c lose"><span class="mx-v no">ampliado</span><span class="mx-note">Passamos a tratar credencial e dado biométrico de pessoas com quem não temos relação bancária — o caso mais sensível do modelo.</span></div>
+    </div>
+
+    <div class="mx-row">
+      <div class="mx-c dim">Enquadramento regulatório do arranjo<small>O que a estrutura obriga a demonstrar</small></div>
+      <div class="mx-c tie"><span class="mx-v part">terceiro relevante</span><span class="mx-note">O parceiro entra como parceiro sujeito a KYP formal (Circular BCB 3.978/2020) e, se operar assistido, como correspondente no País.</span></div>
+      <div class="mx-c tie"><span class="mx-v part">o mesmo, e mais</span><span class="mx-note">O KYP continua obrigatório — o parceiro segue originando. Somam-se as obrigações de quem opera um provedor de identidade para não-correntistas.</span></div>
+    </div>
+  </div>
+
+  <div class="verd">
+    <div class="verd-c ok">
+      <div class="verd-k">Onde a objeção está certa</div>
+      <div class="verd-t">A garantia da autenticação é herdada — e hoje não é medida</div>
+      <div class="verd-d">Em <strong>uma</strong> das nove dimensões o standalone vence de forma inequívoca. E enquanto o contrato não exigir <span class="mono">acr</span>/<span class="mono">amr</span> e o Token Exchange não recusar quem não os emite, essa dimensão está de fato aberta. Não é sensação: é lacuna com endereço, herdada de A-06 no threat model de segurança.</div>
+    </div>
+    <div class="verd-c no">
+      <div class="verd-k">Onde a conclusão não se sustenta</div>
+      <div class="verd-t">Trazer o login para dentro não reduz risco — concentra e amplia</div>
+      <div class="verd-d">Nas outras oito dimensões o standalone é <strong>igual ou pior</strong>: um raio de explosão transversal, o canal de recuperação de conta como responsabilidade nossa, um alvo de phishing permanente e uma operação de identidade inteira a sustentar. O standalone existe porque abre mercado de parceiro sem TI — <strong>não porque é mais seguro</strong>.</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-t">A frase para a reunião</div>
+    <p>O federado distribui um risco que não controlamos; o standalone concentra um risco que controlamos. <strong>Nenhum dos dois é o modelo seguro</strong> — o seguro é o que limita o que a autenticação, de qualquer origem, consegue autorizar. Por isso a resposta arquitetural não está na camada de login, e sim na de contratação.</p>
+  </div>
+</div>
+
+<!-- ═══ O QUE É REAL ═══ -->
+<div class="wrap" id="real">
+  <div class="eyebrow">03 · O risco real</div>
+  <h2 class="sec">Seis fragilidades do federado — nomeadas, sem eufemismo</h2>
+  <p class="sec-desc">Defender o modelo não é negar o que ele tem de frágil. Estas seis são reais, e três delas <strong>não têm solução técnica do nosso lado</strong> — só limitação contratual e detecção. Dizer isso em voz alta é o que dá credibilidade ao resto do argumento. Cada card declara também o que o controle <em>não</em> resolve, para que ninguém saia da sala achando que está coberto.</p>
+
+  <div class="callout neutral">
+    <div class="callout-t">Convenção de identificadores</div>
+    <p>Este documento usa <span class="mono">R-xx</span> para as fragilidades herdadas do modelo federado, <span class="mono">CL-xx</span> para as cláusulas e <span class="mono">G-xx</span> para as decisões em aberto. Não colidem com <span class="mono">A-xx</span> (ameaças STRIDE da Arquitetura de Segurança), <span class="mono">B-xx</span> (ameaças exclusivas do standalone) nem <span class="mono">C-xx</span> (ameaças de originação).</p>
+  </div>
+
+  <div class="cards">
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">R-01 · Spoofing · sem correção técnica</div>
+          <div class="card-title">Dentro do próprio tenant, o parceiro pode afirmar qualquer identidade</div>
+          <div class="card-sub">É a fragilidade estrutural do modelo — e a que mais alimenta a sensação de fragilidade.</div>
+        </div>
+        <div class="card-side"><span class="flag">estrutural</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">O fato</div><div class="attr-v">O Token Exchange valida que <em>o parceiro</em> é quem diz ser, e que o usuário pertence ao tenant dele. Não valida — nem tem como validar — que houve um <strong>ser humano real do outro lado</strong>. Um parceiro comprometido, ou um administrador desonesto dentro dele, apresenta um <span class="mono">subject_token</span> para um CPF qualquer da própria base e recebe um UCT legítimo.</div></div>
+        <div class="attr"><div class="attr-k">Já registrado</div><div class="attr-v">Esta é a lacuna declarada em <strong>A-06</strong> na Arquitetura de Segurança: <em>“o parceiro pode inventar identidades dentro do próprio tenant, o que é aceitável, mas o limite precisa estar documentado no contrato”</em>. A objeção já estava respondida no material — o que faltava era tratá-lo como tese, e não como nota de rodapé.</div></div>
+        <div class="attr"><div class="attr-k">O que não resolve</div><div class="attr-v">Nenhum controle criptográfico. Assinatura, mTLS, DPoP e pinagem de JWKS provam <strong>origem</strong>, nunca <strong>presença humana</strong>. Quem aceita federação aceita isto — em qualquer implementação, de qualquer fornecedor.</div></div>
+        <div class="attr"><div class="attr-k">O que limita</div><div class="attr-v">Três camadas, nesta ordem: <strong>(1)</strong> o escopo do UCT não inclui contratação — nenhum papel do parceiro tem <span class="mono">credit:apply</span>; <strong>(2)</strong> a contratação exige um ato atestado pelo Bradesco no dispositivo do cliente (seção 05); <strong>(3)</strong> telemetria por parceiro detecta o padrão — pico de identidades novas, dispersão anômala de CPF, exchange fora de horário.</div></div>
+        <div class="attr"><div class="attr-k">Cláusula</div><div class="attr-v"><span class="mono">CL-01</span> responsabilidade pela autenticação · <span class="mono">CL-04</span> veracidade do vínculo · <span class="mono">CL-09</span> suspensão cautelar</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">R-02 · Repudiation · corrigível</div>
+          <div class="card-title">A força da autenticação chega invisível</div>
+          <div class="card-sub">Sem <span class="mono">acr</span> e <span class="mono">amr</span>, senha reutilizada e MFA forte são indistinguíveis na entrada.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">aberto hoje</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">O fato</div><div class="attr-v">A asserção do parceiro diz <em>“esta pessoa se autenticou”</em>. Ela não diz <em>como</em>, nem <em>há quanto tempo</em>. Sem isso, a plataforma não consegue aplicar política diferenciada por valor, por produto ou por risco — trata todo login como equivalente.</div></div>
+        <div class="attr"><div class="attr-k">A referência</div><div class="attr-v">É exatamente o que o <strong>NIST SP 800-63C-4</strong> chama de <em>Federation Assurance Level</em>. O framework existe justamente porque a parte confiante herda a garantia do provedor: sem declarar o nível, não há como raciocinar sobre ele. O vocabulário técnico correspondente no OIDC é <span class="mono">acr</span> (nível) e <span class="mono">amr</span> (fatores usados).</div></div>
+        <div class="attr"><div class="attr-k">Correção</div><div class="attr-v"><strong>Piso de <span class="mono">acr</span> por parceiro, aplicado no Token Exchange e derivado do KYP.</strong> Asserção sem <span class="mono">acr</span>, ou com <span class="mono">acr</span> abaixo do contratado, recebe erro explícito — nunca UCT com escopo reduzido em silêncio. Detalhado na seção 04.</div></div>
+        <div class="attr"><div class="attr-k">Ganho lateral</div><div class="attr-v">Fecha também a assimetria probatória: com <span class="mono">acr</span> e <span class="mono">auth_time</span> registrados na nossa auditoria, parte da evidência de autoria deixa de depender do log do parceiro.</div></div>
+        <div class="attr"><div class="attr-k">Cláusula</div><div class="attr-v"><span class="mono">CL-02</span> piso de garantia de autenticação</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">R-03 · Elevation of privilege · sem correção técnica</div>
+          <div class="card-title">O administrador do IdP do parceiro é superusuário sobre todos os clientes dele</div>
+          <div class="card-sub">O vetor não é o login. É o reset de senha e o provisionamento.</div>
+        </div>
+        <div class="card-side"><span class="flag">estrutural</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">O fato</div><div class="attr-v">A força de uma federação é limitada pela <strong>ação administrativa mais fraca</strong> do outro lado. Um atendente do parceiro com permissão de redefinir senha consegue se tornar qualquer cliente daquele parceiro sem quebrar nada. Nenhuma política de MFA do usuário final protege contra isso.</div></div>
+        <div class="attr"><div class="attr-k">Por que é subestimado</div><div class="attr-v">A discussão sobre federação sempre gira em torno do fator de autenticação do usuário. O caminho realmente explorado é o de suporte: reset, desbloqueio, troca de telefone. É o mesmo vetor que tornaria o standalone perigoso — só que ali seria <em>nosso</em> atendente.</div></div>
+        <div class="attr"><div class="attr-k">O que não resolve</div><div class="attr-v">Nada do nosso lado. Não auditamos o console de atendimento do parceiro em tempo real, e não vamos auditar.</div></div>
+        <div class="attr"><div class="attr-k">O que limita</div><div class="attr-v">KYP com pergunta específica sobre <strong>quantas pessoas têm esse poder, com qual autenticação e qual trilha</strong> — a resposta vira parâmetro de tier. Mais a obrigação contratual de registrar e disponibilizar toda ação administrativa sobre conta de cliente. E, de novo, o limite de escopo: reset no parceiro dá acesso a consultar e simular, não a contratar.</div></div>
+        <div class="attr"><div class="attr-k">Cláusula</div><div class="attr-v"><span class="mono">CL-03</span> governança de administradores · <span class="mono">CL-07</span> retenção e fornecimento de evidência</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">R-04 · Elevation of privilege · corrigível</div>
+          <div class="card-title">A revogação não propaga — o acesso sobrevive ao desligamento</div>
+          <div class="card-sub">O parceiro demite o operador às 9h; o token continua válido até expirar.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">aberto hoje</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">O fato</div><div class="attr-v">A sessão no nosso lado nasce de uma asserção pontual. Depois disso, o ciclo de vida corre independente do que acontece no IdP do parceiro. Desligamento, bloqueio por suspeita de fraude e encerramento de vínculo não chegam até nós por nenhum canal.</div></div>
+        <div class="attr"><div class="attr-k">Janela real</div><div class="attr-v">Limitada pelo TTL do UCT (15 min) e pela política de refresh. O risco cresce com a duração da sessão do lado do parceiro — se ele mantém sessão longa e nós renovamos com base nela, a janela deixa de ser 15 minutos e passa a ser a sessão dele inteira.</div></div>
+        <div class="attr"><div class="attr-k">Correção</div><div class="attr-v">Dois padrões prontos e complementares: <strong>OIDC Back-Channel Logout</strong> para o encerramento de sessão, e <strong>Shared Signals Framework + CAEP</strong> — especificações finais da OpenID Foundation desde 2025 — para eventos contínuos de mudança de estado da conta (bloqueio, desligamento, credencial comprometida). Um receptor SSF no lado do Bradesco converte cada evento em revogação de <span class="mono">jti</span>.</div></div>
+        <div class="attr"><div class="attr-k">Realismo</div><div class="attr-v">Parceiro de Tier 3 não vai implementar SSF. Para ele, o controle degrada para <strong>TTL curto sem refresh silencioso</strong> e reconciliação periódica da base — pior, porém explícito e dimensionado.</div></div>
+        <div class="attr"><div class="attr-k">Cláusula</div><div class="attr-v"><span class="mono">CL-05</span> offboarding com SLA</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">R-05 · Spoofing · corrigível</div>
+          <div class="card-title">A chave de assinatura do parceiro é um alvo de alto valor</div>
+          <div class="card-sub">JWKS comprometido ou sequestrado significa emitir asserção para qualquer cliente daquele tenant.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">a especificar</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">O fato</div><div class="attr-v">Se a validação da asserção do parceiro busca o JWKS por URL em runtime, o vetor deixa de ser criptográfico e vira de <strong>infraestrutura</strong>: sequestro de DNS, certificado emitido indevidamente, ou simplesmente uma chave privada vazada em repositório.</div></div>
+        <div class="attr"><div class="attr-k">Agravante</div><div class="attr-v">É silencioso. Uma asserção assinada com chave roubada é criptograficamente perfeita — não há anomalia a detectar no nível do protocolo.</div></div>
+        <div class="attr"><div class="attr-k">Controles</div><div class="attr-v"><strong>Allowlist de <span class="mono">kid</span></strong> registrada no onboarding · JWKS obtido por canal autenticado (mTLS) e com <strong>cache de falha fechada</strong> — chave desconhecida rejeita, não busca de novo · alerta operacional em <strong>toda</strong> mudança de conjunto de chaves · rotação com aviso prévio contratual, nunca surpresa em produção.</div></div>
+        <div class="attr"><div class="attr-k">Armadilha comum</div><div class="attr-v">Buscar o JWKS a cada <span class="mono">kid</span> desconhecido é o comportamento padrão de várias bibliotecas — e transforma o atacante em quem <em>decide</em> quando a plataforma vai buscar chave nova. O padrão precisa ser explicitamente desligado.</div></div>
+        <div class="attr"><div class="attr-k">Cláusula</div><div class="attr-v"><span class="mono">CL-06</span> gestão de chaves criptográficas</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">R-06 · Repudiation · sem correção técnica</div>
+          <div class="card-title">Metade da prova de autoria mora no ambiente do parceiro</div>
+          <div class="card-sub">Em contestação de contratação, a evidência que falta é a que não é nossa.</div>
+        </div>
+        <div class="card-side"><span class="flag">estrutural</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">O fato</div><div class="attr-v">O <span class="mono">exchange_chain</span> prova que o parceiro X originou a operação. Provar que <strong>o cliente dele estava presente</strong> exige o log de autenticação do parceiro — que pode não existir, não ter sido retido, estar em formato inútil, ou simplesmente não ser entregue no prazo de uma contestação.</div></div>
+        <div class="attr"><div class="attr-k">Consequência prática</div><div class="attr-v">Sem cláusula, a ausência de log do parceiro vira ônus do Bradesco — que é quem tem a relação regulada, quem responde no PROCON e quem figura no polo passivo.</div></div>
+        <div class="attr"><div class="attr-k">O que limita</div><div class="attr-v">Retenção, formato e SLA de fornecimento definidos em contrato, com <strong>presunção contratual de falha do parceiro na ausência de trilha</strong> — a inversão do ônus é o que faz a cláusula ter dente. E, no nosso lado, o registro do <span class="mono">acr</span>/<span class="mono">auth_time</span> recebido (R-02), que reduz a dependência.</div></div>
+        <div class="attr"><div class="attr-k">A âncora</div><div class="attr-v">O que efetivamente resolve não é probatório, é arquitetural: a assinatura do contrato acontece com atestação do Bradesco no dispositivo do cliente. Essa evidência é nossa, ponta a ponta, e independe do login. Seção 05.</div></div>
+        <div class="attr"><div class="attr-k">Cláusula</div><div class="attr-v"><span class="mono">CL-07</span> retenção e fornecimento de evidência</div></div>
+      </div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ CONTROLES ═══ -->
+<div class="wrap" id="controles">
+  <div class="eyebrow">04 · Controles</div>
+  <h2 class="sec">Como risco herdado vira risco declarado e limitado</h2>
+  <p class="sec-desc">Risco herdado só é assustador enquanto é invisível. Os quatro controles abaixo não eliminam a delegação — eles a tornam <strong>mensurável, contratada e revogável</strong>. Nenhum deles depende de tecnologia nova: todos têm especificação publicada e implementação de mercado.</p>
+
+  <h3 class="sub">4.1 · O piso de garantia, aplicado no Token Exchange</h3>
+  <p class="sec-desc" style="margin-bottom:18px">O KYP produz um nível de garantia por parceiro. Esse nível não vira slide — vira configuração no Auth. A asserção que não alcança o piso <strong>falha explicitamente</strong>, para que a tentativa apareça na trilha; nunca é silenciosamente rebaixada, que é como se acumula dívida invisível de segurança.</p>
+
+  <div class="code">
+    <div class="code-bar"><span class="code-lang">Token Exchange · RFC 8693 — avaliação do piso</span><span class="code-tag">recusa explícita</span></div>
+<pre><span class="c-com">// Asserção recebida do IdP do parceiro</span>
+{
+  <span class="c-key">"sub"</span>: <span class="c-str">"u-88213"</span>,
+  <span class="c-key">"iss"</span>: <span class="c-str">"https://login.cacaushow.com.br"</span>,
+  <span class="c-key">"amr"</span>: [<span class="c-str">"pwd"</span>],                    <span class="c-com">// ← só senha</span>
+  <span class="c-key">"acr"</span>: <span class="c-str">"urn:parceiro:loa1"</span>,
+  <span class="c-key">"auth_time"</span>: 1755512400
+}
+
+<span class="c-com">// Contrato do parceiro, derivado do KYP — lado do Auth, nunca do pedido</span>
+partner_policy = {
+  <span class="c-key">"acr_floor"</span>: <span class="c-str">"urn:baas:loa2"</span>,        <span class="c-com">// mínimo contratado</span>
+  <span class="c-key">"max_auth_age"</span>: 900,                 <span class="c-com">// asserção mais velha que isso não serve</span>
+  <span class="c-key">"scopes_max"</span>: [<span class="c-str">"credit:read"</span>, <span class="c-str">"credit:simulate"</span>, <span class="c-str">"credit:draft"</span>]
+}
+
+<span class="c-com">// Resultado — 400, e não um UCT de escopo menor</span>
+{
+  <span class="c-key">"error"</span>: <span class="c-warn">"insufficient_user_authentication"</span>,
+  <span class="c-key">"error_description"</span>: <span class="c-str">"acr abaixo do piso contratual do parceiro"</span>,
+  <span class="c-key">"acr_values"</span>: <span class="c-str">"urn:baas:loa2"</span>,
+  <span class="c-key">"max_age"</span>: <span class="c-num">900</span>
+}</pre>
+  </div>
+
+  <div class="ctrl-list">
+    <div class="ctrl"><span class="ctrl-dot">✓</span><span><strong>O piso vem do contrato, não do pedido.</strong> Mesmo princípio já adotado para escopo em A-05: o Auth calcula contra a política do PAT autenticado. Um parceiro nunca se autopromove.</span></div>
+    <div class="ctrl"><span class="ctrl-dot">✓</span><span><strong>Falha explícita gera sinal.</strong> Um parceiro que passa a falhar o piso em massa mudou alguma coisa no IdP dele — e isso precisa acordar alguém, não degradar em silêncio.</span></div>
+    <div class="ctrl"><span class="ctrl-dot part">!</span><span><strong>Parceiro que não emite <span class="mono">acr</span> não fica de fora.</strong> Ele entra com piso declarado no KYP e revalidado na recertificação — a garantia passa a ser afirmada por contrato em vez de por token. É pior, e por isso limita tier e escopo; mas é honesto, e fica registrado.</span></div>
+  </div>
+
+  <h3 class="sub">4.2 · Step-up no ato sensível — RFC 9470</h3>
+  <p class="sec-desc" style="margin-bottom:18px">O padrão que resolve o problema de forma elegante: em vez de exigir autenticação forte em <em>todo</em> login — o que quebra a experiência e não é negociável com o parceiro —, o recurso protegido <strong>desafia</strong> quando a ação exige mais do que a sessão tem. É a mesma mecânica de <span class="mono">insufficient_user_authentication</span>, agora na fronteira do BFF.</p>
+
+  <div class="code">
+    <div class="code-bar"><span class="code-lang">BFF · desafio de step-up na assinatura</span><span class="code-tag">RFC 9470</span></div>
+<pre><span class="c-com">// Cliente tenta o ato com efeito financeiro com uma sessão fraca</span>
+<span class="c-fn">POST</span> /v1/propostas/PRP-4471/assinar
+<span class="c-key">Authorization</span>: DPoP eyJhbGciOiJFUzI1NiIs...
+
+<span class="c-com">// O BFF recusa e diz exatamente o que falta</span>
+<span class="c-fn">HTTP/1.1 401</span> Unauthorized
+<span class="c-key">WWW-Authenticate</span>: DPoP error=<span class="c-warn">"insufficient_user_authentication"</span>,
+   error_description=<span class="c-str">"assinatura exige autenticação forte e recente"</span>,
+   acr_values=<span class="c-str">"urn:baas:loa3"</span>, max_age=<span class="c-num">300</span>
+
+<span class="c-com">// O Shell não devolve o usuário ao IdP do parceiro:</span>
+<span class="c-com">// abre a atestação do próprio Bradesco no dispositivo do cliente.</span></pre>
+  </div>
+
+  <div class="callout good">
+    <div class="callout-t">Por que este é o controle que muda o jogo</div>
+    <p>O step-up desacopla <strong>a garantia do login</strong> da <strong>garantia do ato</strong>. O parceiro continua dono da porta de entrada — leve, sem atrito, com a marca dele. O Bradesco fica dono do momento que tem efeito financeiro. Nenhum dos dois precisa ceder, e o risco de R-01, R-03 e R-06 deixa de alcançar dinheiro.</p>
+  </div>
+
+  <h3 class="sub">4.3 · Sinais contínuos, no lugar de confiança pontual</h3>
+  <div class="cards two">
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">OpenID SSF + CAEP</div>
+          <div class="card-title">Receptor de eventos de sessão do parceiro</div>
+          <div class="card-sub">Transforma a revogação de “aviso por e-mail” em evento de máquina.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-blue">Tier 1 e 2</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">O que é</div><div class="attr-v">O <em>Shared Signals Framework</em> define o transporte assíncrono de eventos de segurança assinados; o <em>CAEP</em> define os tipos de evento sobre sessões vivas — <span class="mono">session-revoked</span>, <span class="mono">credential-change</span>, <span class="mono">assurance-level-change</span>. Ambos são Especificação Final da OpenID Foundation desde 2025, com interoperabilidade testada entre implementações de mercado.</div></div>
+        <div class="attr"><div class="attr-k">Uso aqui</div><div class="attr-v">Um receptor no lado do Bradesco assina o fluxo do parceiro; cada evento vira revogação de <span class="mono">jti</span> e derrubada da sessão do MFE. Resolve R-04 sem depender de o parceiro lembrar de avisar.</div></div>
+        <div class="attr"><div class="attr-k">Degradação</div><div class="attr-v">Onde não houver SSF: TTL curto, sem refresh silencioso, e reconciliação da base de elegíveis com frequência definida por tier.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Telemetria por parceiro</div>
+          <div class="card-title">A linha de base que denuncia R-01</div>
+          <div class="card-sub">Identidade fabricada não parece ataque — parece um dia atípico.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-blue">todos os tiers</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Sinais</div><div class="attr-v">Volume de <em>exchange</em> por hora contra a linha de base do parceiro · proporção de <span class="mono">sub</span> vistos pela primeira vez · dispersão de documento fora do perfil da carteira · exchange fora da janela comercial declarada · taxa de falha do piso de <span class="mono">acr</span> · razão entre simulações e propostas.</div></div>
+        <div class="attr"><div class="attr-k">Resposta</div><div class="attr-v">Escalonada e automática: alerta → <em>rate limit</em> reduzido → suspensão cautelar do PAT. A suspensão precisa estar amparada em <span class="mono">CL-09</span>, ou vira discussão comercial no meio de um incidente.</div></div>
+        <div class="attr"><div class="attr-k">Por que importa</div><div class="attr-v">É o único controle que enxerga R-01 e R-03 em operação. Os dois são invisíveis no protocolo e só aparecem como <strong>desvio de comportamento</strong>.</div></div>
+      </div></div>
+    </div>
+  </div>
+
+  <h3 class="sub">4.4 · O nível de federação declarado por parceiro</h3>
+  <p class="sec-desc" style="margin-bottom:18px">O NIST SP 800-63C-4 separa a garantia da <em>federação</em> (FAL) da garantia da <em>autenticação</em> (AAL) e da <em>identificação</em> (IAL). Essa separação é útil aqui porque o white label mistura as três em conversas diferentes: o parceiro responde por AAL, a esteira de KYC responde por IAL, e o desenho do Token Exchange responde por FAL.</p>
+
+  <div class="matrix tri">
+    <div class="mx-row head">
+      <div class="mx-c">Camada de garantia</div>
+      <div class="mx-c">Quem responde</div>
+      <div class="mx-c">Como fica registrado</div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c dim">IAL — identificação<small>Quem é essa pessoa no mundo real</small></div>
+      <div class="mx-c"><span class="mx-v">Bradesco</span><span class="mx-note">Funil de KYC do não-correntista, na contratação. Nunca herdado do parceiro.</span></div>
+      <div class="mx-c"><span class="mx-note">Pacote de evidências do KYC · ver Originação do Cliente Final</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c dim">AAL — autenticação<small>Quão forte foi o ato de login</small></div>
+      <div class="mx-c"><span class="mx-v part">Parceiro</span><span class="mx-note">Herdado, com piso contratado e verificado a cada exchange.</span></div>
+      <div class="mx-c"><span class="mx-note"><span class="mono">acr</span>, <span class="mono">amr</span>, <span class="mono">auth_time</span> na asserção e na nossa auditoria</span></div>
+    </div>
+    <div class="mx-row">
+      <div class="mx-c dim">FAL — federação<small>Quão robusto é o transporte da identidade</small></div>
+      <div class="mx-c"><span class="mx-v yes">Bradesco</span><span class="mx-note">É desenho nosso: assinatura, criptografia e vinculação da asserção ao portador.</span></div>
+      <div class="mx-c"><span class="mx-note">Perfil do Token Exchange · alvo FAL2 como piso, com o UCT vinculado ao dispositivo por DPoP</span></div>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-t">O erro conceitual que essa separação evita</div>
+    <p>“O parceiro autentica, então a identificação do cliente é responsabilidade dele” — <strong>não é</strong>. Autenticar é reconhecer alguém que já está cadastrado; identificar é estabelecer quem a pessoa é. O crédito exige IAL, e IAL nunca é delegado neste modelo, em nenhum dos dois cenários. Confundir os dois é o que faz a discussão parecer mais perigosa do que é.</p>
+  </div>
+</div>
+
+<!-- ═══ A ÂNCORA ═══ -->
+<div class="band" id="ancora">
+  <div class="noise"></div>
+  <div class="band-in">
+    <div class="eyebrow on-dark">05 · A âncora</div>
+    <h2>A autoridade do login é delegada. A autoridade de contratar, nunca.</h2>
+    <p class="band-desc">Esta é a tese que fecha a discussão — e a melhor notícia é que ela não é uma proposta: <strong>já está construída</strong> nos protótipos. O modelo nunca dependeu de confiar no login do parceiro, porque nunca deixou o login do parceiro autorizar nada com efeito financeiro. Quem olha só a camada de identidade não enxerga isso, e é por isso que a objeção parece imbatível.</p>
+
+    <div class="gap-track">
+      <div class="gapr">
+        <div><div class="gapr-q">Nenhum papel do portal do parceiro carrega <span class="mono">credit:apply</span></div><div class="gapr-w">Nem o gerente. O operador monta a proposta; a contratação não é dele — está no RBAC do protótipo B2B</div></div>
+        <div><span class="badge badge-green">construído</span></div>
+      </div>
+      <div class="gapr">
+        <div><div class="gapr-q">A contratação exige um token de sessão de assinatura à parte</div><div class="gapr-w"><span class="mono">aud: sign-session</span> · uso único · 15 min · emitido para o dispositivo do cliente, não para a sessão do operador</div></div>
+        <div><span class="badge badge-green">construído</span></div>
+      </div>
+      <div class="gapr">
+        <div><div class="gapr-q">O cliente reconfere os dados imputados antes de assinar</div><div class="gapr-w">“Preenchidos pelo atendente. Algo errado? Recuse.” — a conferência é do titular, no aparelho dele</div></div>
+        <div><span class="badge badge-green">construído</span></div>
+      </div>
+      <div class="gapr">
+        <div><div class="gapr-q">O desembolso só vai para chave PIX de mesma titularidade</div><div class="gapr-w">Dinheiro não muda de dono por decisão de quem operou a tela — o destino é verificado contra o contrato</div></div>
+        <div><span class="badge badge-green">construído</span></div>
+      </div>
+      <div class="gapr">
+        <div><div class="gapr-q">O KYC do não-correntista acontece na contratação, com atestação nossa</div><div class="gapr-w">Identificação, documento, prova de vida e triagem — no funil do Bradesco, nunca herdado do parceiro</div></div>
+        <div><span class="badge badge-green">construído</span></div>
+      </div>
+      <div class="gapr">
+        <div><div class="gapr-q">O desafio de step-up formaliza isso no protocolo</div><div class="gapr-w">Hoje o fluxo faz na prática o que a RFC 9470 padroniza — falta declarar como contrato de interface</div></div>
+        <div><span class="badge badge-amber">a formalizar</span></div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:30px;background:rgba(191,30,45,.14);border-left-color:var(--red-br)">
+      <div class="callout-t" style="color:var(--red-br)">O argumento, em uma frase</div>
+      <p style="color:var(--cream)">Um parceiro totalmente comprometido — IdP tomado, administrador desonesto, asserções fabricadas à vontade — consegue <strong style="color:var(--cream)">consultar dados daquele tenant, simular e rascunhar propostas</strong>. Não consegue contratar crédito, não consegue mover dinheiro e não consegue escolher o destino do desembolso. Isso não é consequência de confiarmos no parceiro: é consequência de <strong style="color:var(--cream)">termos desenhado para não precisar confiar</strong>.</p>
+    </div>
+
+    <div class="callout warn" style="background:rgba(224,169,95,.14);border-left-color:var(--amber)">
+      <div class="callout-t" style="color:var(--amber)">O que ainda incomoda — e com razão</div>
+      <p style="color:var(--cream)">O dano residual não é zero. Dado cadastral e de faturamento daquele tenant vaza, e vazamento de dado de cliente é incidente com dever de comunicação, dano reputacional e exposição sob a LGPD — mesmo sem um centavo movimentado. É por isso que a seção seguinte existe: o resíduo que a arquitetura não elimina é <strong style="color:var(--cream)">exatamente o que o KYP e o contrato precisam cobrir</strong>.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ KYP ═══ -->
+<div class="wrap" id="kyp">
+  <div class="eyebrow">06 · Know Your Partner</div>
+  <h2 class="sec">KYP não é boa prática — é obrigação, e aqui vira parâmetro</h2>
+  <p class="sec-desc">A primeira coisa a dizer numa reunião com Compliance é que isto não é uma sugestão de arquitetura: conhecer o parceiro é exigência normativa expressa. A segunda — e é a que gera valor — é que o resultado da diligência <strong>não pode terminar em parecer arquivado</strong>. Neste modelo ele termina em configuração da plataforma.</p>
+
+  <div class="callout neutral">
+    <div class="callout-t">Enquadramento — validar com Jurídico e Compliance</div>
+    <p>A <strong>Circular BCB nº 3.978/2020</strong>, no capítulo dedicado aos procedimentos de conhecimento de funcionários, parceiros e prestadores de serviços terceirizados (art. 56 e seguintes), obriga a instituição a implementar procedimentos de identificação e qualificação de <em>parceiros</em>, compatíveis com a política de PLD/FT e com a avaliação interna de risco, formalizados em documento aprovado pela alta administração e com registros arquivados por <strong>10 anos</strong> contados do encerramento do relacionamento.</p>
+    <p>A citação de artigo é leitura de arquitetura, não parecer. O enquadramento formal, os prazos e a redação final são do Jurídico e do Compliance do Bradesco — o que este documento faz é mostrar <em>o que a arquitetura precisa receber</em> desse processo para virar controle.</p>
+  </div>
+
+  <h3 class="sub">6.1 · A regra de ouro</h3>
+  <div class="callout good">
+    <div class="callout-t">O que separa diligência de teatro</div>
+    <p>Todo item do questionário de KYP deve terminar em um <strong>valor de configuração</strong>, não em uma nota. O piso de <span class="mono">acr</span>, o escopo máximo do PAT, o teto de valor por operação, a frequência de reconciliação da base, o TTL do token e o tier do parceiro saem de lá. Se a resposta a uma pergunta não muda nenhum parâmetro do sistema, <strong>a pergunta não deveria estar no questionário</strong> — e se um parâmetro não vem de nenhuma pergunta, ele está sendo arbitrado sem base.</p>
+  </div>
+
+  <h3 class="sub">6.2 · Tiering — o que cada parceiro destrava</h3>
+  <p class="sec-desc" style="margin-bottom:18px">O tier é função de três variáveis: maturidade de identidade apurada no questionário, poder do escopo pretendido e exposição financeira esperada. Ele é atribuído no onboarding, revisto na recertificação e pode ser <strong>rebaixado automaticamente</strong> por telemetria — o rebaixamento é operação de segurança, não renegociação comercial.</p>
+
+  <div class="tiers">
+    <div class="tier t1">
+      <div class="tier-n">1</div>
+      <div class="tier-t">Integrado · maturidade alta</div>
+      <div class="tier-l">
+        <div><b>Perfil</b>IdP próprio ou SaaS corporativo, MFA obrigatória, equipe de segurança, certificação vigente</div>
+        <div><b>Exige</b>Emissão de <span class="mono">acr</span>/<span class="mono">amr</span> · back-channel logout ou SSF · trilha de ação administrativa · pentest anual</div>
+        <div><b>Destrava</b>Piso <span class="mono">loa2</span> · escopo completo de leitura, simulação e rascunho · operação assistida · maior teto por operação</div>
+        <div><b>Reavaliação</b>Anual, com evidência</div>
+      </div>
+    </div>
+    <div class="tier t2">
+      <div class="tier-n">2</div>
+      <div class="tier-t">Padrão · maturidade média</div>
+      <div class="tier-l">
+        <div><b>Perfil</b>Tem IdP e alguma TI, sem certificação formal; MFA parcial ou só para administradores</div>
+        <div><b>Exige</b>Questionário aprovado · inventário e MFA de administradores · retenção de log declarada · SLA de offboarding</div>
+        <div><b>Destrava</b>Piso <span class="mono">loa2</span> com step-up mais frequente · escopo padrão · teto menor · reconciliação de base quinzenal</div>
+        <div><b>Reavaliação</b>Anual + a cada mudança de IdP</div>
+      </div>
+    </div>
+    <div class="tier t3">
+      <div class="tier-n">3</div>
+      <div class="tier-t">Assistido · sem TI</div>
+      <div class="tier-l">
+        <div><b>Perfil</b>Sem IdP e sem equipe — candidato natural ao modelo standalone e à escada de canais</div>
+        <div><b>Exige</b>Diligência cadastral e reputacional completa · identificação nominal dos operadores · treinamento e termo de responsabilidade</div>
+        <div><b>Destrava</b>Sem Token Exchange · acesso por login servido pelo Bradesco · escopo mínimo · teto conservador · toda contratação com <em>handoff</em> obrigatório</div>
+        <div><b>Reavaliação</b>Semestral, com foco em operador ativo</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-t">A leitura que inverte o senso comum</div>
+    <p>O parceiro de Tier 3 — o que “não tem tecnologia” e por isso parece o mais arriscado — é o que <strong>menos depende de confiança técnica</strong>, porque nele não existe federação a confiar: a autenticação é nossa e o risco migra para a esteira de originação e para a operação assistida, que já estão modeladas. O parceiro que exige atenção real é o <strong>Tier 2</strong>: tem IdP suficiente para federar, mas não tem maturidade para sustentar as garantias que a federação pressupõe. É nele que R-02, R-03 e R-04 se materializam.</p>
+  </div>
+
+  <h3 class="sub">6.3 · O questionário de identidade</h3>
+  <p class="sec-desc" style="margin-bottom:18px">Doze perguntas. Não é o questionário de segurança corporativo — esse continua existindo em paralelo. Estas são as que <strong>alteram parâmetro de plataforma</strong>, e a coluna da direita diz qual.</p>
+
+  <div class="qz">
+    <div class="qz-r"><div class="qz-n">01</div><div class="qz-q">Qual é o provedor de identidade, versão e modelo de hospedagem?<small>Produto de mercado, SaaS ou implementação própria — e quem opera</small></div><div class="qz-o">tier · perfil de risco</div></div>
+    <div class="qz-r"><div class="qz-n">02</div><div class="qz-q">MFA é obrigatória? Para quais populações e com qual fator?<small>Distinguir usuário final, operador e administrador; SMS conta como fator fraco</small></div><div class="qz-o">acr_floor</div></div>
+    <div class="qz-r"><div class="qz-n">03</div><div class="qz-q">O IdP emite <span class="mono">acr</span>, <span class="mono">amr</span> e <span class="mono">auth_time</span>? Se não, consegue passar a emitir?<small>Se não emite nem consegue, a garantia passa a ser afirmada por contrato — e o tier cai</small></div><div class="qz-o">acr_floor · tier</div></div>
+    <div class="qz-r"><div class="qz-n">04</div><div class="qz-q">Como funciona a recuperação de senha? Há verificação de identidade e quem pode executá-la?<small>O vetor real de tomada de conta — R-03</small></div><div class="qz-o">teto de valor · step-up</div></div>
+    <div class="qz-r"><div class="qz-n">05</div><div class="qz-q">Quantas pessoas têm poder de alterar ou assumir a conta de um cliente? Com qual autenticação e qual trilha?<small>Número absoluto, não percentual. Se a resposta for “não sabemos”, isso é a resposta</small></div><div class="qz-o">tier · escopo máximo</div></div>
+    <div class="qz-r"><div class="qz-n">06</div><div class="qz-q">Quem cria usuário na base, com qual aprovação, e qual é a prova do vínculo com o cliente?<small>Conecta com a escada de canais de originação</small></div><div class="qz-o">nível de garantia da base</div></div>
+    <div class="qz-r"><div class="qz-n">07</div><div class="qz-q">Qual o SLA entre encerramento do vínculo e revogação efetiva do acesso?<small>Em horas. “Imediato” sem processo por trás é resposta a ser desafiada</small></div><div class="qz-o">TTL · frequência de reconciliação</div></div>
+    <div class="qz-r"><div class="qz-n">08</div><div class="qz-q">Suporta back-channel logout ou Shared Signals? Em qual prazo?<small>Define se a revogação é evento ou é expiração</small></div><div class="qz-o">TTL · refresh</div></div>
+    <div class="qz-r"><div class="qz-n">09</div><div class="qz-q">Qual a política de rotação das chaves de assinatura e o prazo de aviso prévio?<small>Rotação sem aviso derruba produção — e mascara comprometimento</small></div><div class="qz-o">allowlist de kid · alerta</div></div>
+    <div class="qz-r"><div class="qz-n">10</div><div class="qz-q">Por quanto tempo o log de autenticação é retido, em qual formato, e qual o prazo de entrega quando solicitado?<small>É a pergunta que decide quem perde a contestação — R-06</small></div><div class="qz-o">CL-07 · presunção contratual</div></div>
+    <div class="qz-r"><div class="qz-n">11</div><div class="qz-q">Há certificação vigente ou teste de intrusão recente? Qual a data e o escopo?<small>Escopo importa mais que o selo: certificação que não cobre o IdP não vale para esta análise</small></div><div class="qz-o">tier · periodicidade</div></div>
+    <div class="qz-r"><div class="qz-n">12</div><div class="qz-q">Qual o canal e o prazo de notificação de incidente de segurança, e quem é o responsável nomeado?<small>Nome e telefone, não caixa postal genérica</small></div><div class="qz-o">CL-08 · runbook</div></div>
+  </div>
+
+  <h3 class="sub">6.4 · Ciclo de vida da relação</h3>
+  <div class="cards two">
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Contínuo</div>
+          <div class="card-title">Monitoramento e gatilhos de reavaliação</div>
+          <div class="card-sub">Diligência anual não enxerga o que muda em março.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-blue">operação</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Gatilhos</div><div class="attr-v">Mudança de controle societário · troca ou atualização relevante do IdP · incidente de segurança declarado ou noticiado · desvio sustentado na telemetria · queda na taxa de conversão do piso de <span class="mono">acr</span> · pedido de ampliação de escopo · entrada em operação assistida</div></div>
+        <div class="attr"><div class="attr-k">Fontes externas</div><div class="attr-v">Além do que a plataforma observa: mídia adversa, listas restritivas e sanções, e o compartilhamento de indícios de fraude entre instituições previsto na <strong>Resolução Conjunta nº 6/2023</strong> — que é caminho relevante quando o parceiro também origina.</div></div>
+        <div class="attr"><div class="attr-k">Recertificação</div><div class="attr-v">Anual para Tier 1 e 2, semestral para Tier 3. O que se recertifica não é o questionário inteiro — são os <strong>parâmetros que ele gerou</strong>, item a item, com evidência nova.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">Saída</div>
+          <div class="card-title">Offboarding e o botão de desligar</div>
+          <div class="card-sub">A hora em que ninguém quer descobrir que falta cláusula.</div>
+        </div>
+        <div class="card-side"><span class="flag">a construir</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="attr"><div class="attr-k">Suspensão cautelar</div><div class="attr-v">Revogação do PAT, invalidação dos <span class="mono">jti</span> em voo, bloqueio de novo exchange e derrubada das sessões de MFE daquele tenant. Precisa ser <strong>acionável em minutos por quem está de plantão</strong>, sem depender de aprovação comercial — e é isso que <span class="mono">CL-09</span> sustenta juridicamente.</div></div>
+        <div class="attr"><div class="attr-k">Contratos vivos</div><div class="attr-v">Suspender o parceiro não suspende o crédito já contratado: a obrigação do cliente continua, o pagamento precisa continuar possível, e o canal de atendimento passa a ser direto. Este caminho não existe hoje em nenhum artefato — é lacuna real, e vira <span class="mono">G-05</span>.</div></div>
+        <div class="attr"><div class="attr-k">Dados</div><div class="attr-v">Prazos de eliminação por categoria, com a ressalva dos 5 anos de auditoria financeira e dos 10 anos dos registros de KYP. Conciliar isso com o princípio da necessidade da LGPD é trabalho do RIPD, não do contrato sozinho.</div></div>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CLÁUSULAS ═══ -->
+<div class="wrap" id="clausulas">
+  <div class="eyebrow">07 · Cláusulas</div>
+  <h2 class="sec">Doze cláusulas — o que cada uma cobre e por que ela existe</h2>
+  <p class="sec-desc">Minuta de trabalho para o Jurídico, escrita a partir do modelo de ameaças — não parecer e não redação final. O valor está no encadeamento: cada cláusula nasce de uma fragilidade nomeada na seção 03 e termina em um parâmetro apurado no KYP. Uma cláusula sem ameaça de origem é peso morto no contrato; uma ameaça sem cláusula é risco aceito sem que ninguém tenha decidido aceitá-lo.</p>
+
+  <div class="callout neutral">
+    <div class="callout-t">Referência de estrutura</div>
+    <p>A organização por blocos — obrigações de segurança, direito de auditoria, notificação de incidente, subcontratação, estratégia de saída — segue o padrão consolidado de contratação de terceiros em serviços financeiros (diretrizes de <em>outsourcing</em> da EBA e, mais recentemente, o <strong>DORA</strong> na União Europeia, art. 30). Não se aplicam ao Bradesco, mas são o melhor gabarito público disponível de <em>o que não pode faltar</em>, e ajudam a antecipar o que um regulador procuraria.</p>
+  </div>
+
+  <div class="cards">
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">CL-01 · cobre R-01</div>
+          <div class="card-title">Responsabilidade pela autenticação dos próprios usuários</div>
+          <div class="card-sub">A cláusula que atribui dono ao risco que não conseguimos verificar.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">essencial</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="draft"><div class="draft-t">Minuta</div>O PARCEIRO declara e garante que toda asserção de identidade transmitida à PLATAFORMA corresponde a um evento de autenticação efetivamente realizado por pessoa natural titular da credencial, e responde integralmente pelos danos decorrentes de asserção emitida sem autenticação válida, inclusive quando originada por ação de seus prepostos, administradores ou sistemas.</div>
+        <div class="attr"><div class="attr-k">Por que existe</div><div class="attr-v">Nenhum controle técnico distingue asserção legítima de fabricada dentro do tenant. Se o contrato é silente, o ônus recai sobre quem tem a relação regulada — o Bradesco.</div></div>
+        <div class="attr"><div class="attr-k">Cuidado</div><div class="attr-v">Cláusula de responsabilidade sem trilha que a instrua é inexequível. Ela só funciona acoplada a <span class="mono">CL-07</span>.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">CL-02 · cobre R-02</div>
+          <div class="card-title">Piso de garantia de autenticação e emissão de claims</div>
+          <div class="card-sub">Transforma “confio que ele autentica bem” em requisito verificável a cada requisição.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">essencial</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="draft"><div class="draft-t">Minuta</div>O PARCEIRO manterá, para os usuários abrangidos por este contrato, mecanismo de autenticação de nível não inferior ao definido no Anexo Técnico, e transmitirá em cada asserção os atributos <em>acr</em>, <em>amr</em> e <em>auth_time</em>. A redução do nível de autenticação, ainda que temporária, será comunicada previamente e faculta à PLATAFORMA a suspensão do escopo correspondente.</div>
+        <div class="attr"><div class="attr-k">Elegância</div><div class="attr-v">O nível fica no <strong>Anexo Técnico</strong>, não no corpo do contrato — assim ele acompanha o tier e a recertificação sem aditivo. O corpo do contrato prende a obrigação; o anexo carrega o número.</div></div>
+        <div class="attr"><div class="attr-k">Aplicação</div><div class="attr-v">Verificada a cada exchange, com recusa explícita. Uma cláusula que só é checada em auditoria anual é uma cláusula que ninguém cumpre em março.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">CL-03 · cobre R-03</div>
+          <div class="card-title">Governança de acesso administrativo</div>
+          <div class="card-sub">Sobre quem, do lado do parceiro, consegue virar um cliente.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">essencial</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="draft"><div class="draft-t">Minuta</div>O PARCEIRO manterá inventário atualizado dos usuários com permissão de criar, alterar, redefinir credencial ou assumir sessão de clientes abrangidos, exigirá autenticação multifator para tais perfis, vedará contas compartilhadas e registrará em trilha inviolável toda ação administrativa sobre conta de cliente, disponibilizando-a nos termos da cláusula de evidência.</div>
+        <div class="attr"><div class="attr-k">Item mais importante</div><div class="attr-v">A <strong>vedação de conta compartilhada</strong>. Sem ela, toda a trilha aponta para um usuário genérico e nenhuma investigação chega a uma pessoa.</div></div>
+        <div class="attr"><div class="attr-k">Verificável</div><div class="attr-v">O inventário é entregável concreto na recertificação — número de contas privilegiadas por período, comparável ano a ano.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">CL-04 · cobre R-01</div>
+          <div class="card-title">Veracidade e atualidade do vínculo</div>
+          <div class="card-sub">Só entra na base quem tem relação real com o parceiro.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">essencial</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="draft"><div class="draft-t">Minuta</div>O PARCEIRO responde pela existência, veracidade e atualidade do vínculo comercial que fundamenta a inclusão de cada pessoa na base de elegíveis, obriga-se a removê-la no prazo do Anexo Técnico após o encerramento do vínculo, e declara ciência de que a inclusão de pessoa sem vínculo real caracteriza inadimplemento grave.</div>
+        <div class="attr"><div class="attr-k">Conecta com</div><div class="attr-v">A escada de canais de originação — cada canal permite afirmar um nível de garantia diferente sobre o vínculo, e esta cláusula é o que dá consequência a essa afirmação.</div></div>
+        <div class="attr"><div class="attr-k">Por que “grave”</div><div class="attr-v">Qualificar o inadimplemento é o que habilita rescisão e suspensão imediata sem discussão sobre proporcionalidade no meio do incidente.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">CL-05 · cobre R-04</div>
+          <div class="card-title">Offboarding com prazo e canal técnico</div>
+          <div class="card-sub">A revogação precisa ser um evento, não um e-mail.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-blue">importante</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="draft"><div class="draft-t">Minuta</div>O PARCEIRO comunicará à PLATAFORMA, pelo canal técnico previsto no Anexo, o encerramento de vínculo, o bloqueio e a suspeita de comprometimento de credencial de qualquer usuário abrangido, no prazo máximo ali definido, contado do evento e não de sua constatação administrativa.</div>
+        <div class="attr"><div class="attr-k">Detalhe que decide</div><div class="attr-v">“Contado do evento, não da constatação” — sem isso, o prazo começa a correr quando o RH lembra de avisar a TI, e a cláusula perde efeito prático.</div></div>
+        <div class="attr"><div class="attr-k">Implementação</div><div class="attr-v">Tier 1 e 2 cumprem por SSF/CAEP ou back-channel logout. Tier 3 cumpre por reconciliação periódica da base — e o contrato precisa dizer qual dos dois se aplica.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">CL-06 · cobre R-05</div>
+          <div class="card-title">Gestão de chaves criptográficas</div>
+          <div class="card-sub">Rotação com aviso, chave por ambiente, comprometimento comunicado na hora.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-blue">importante</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="draft"><div class="draft-t">Minuta</div>O PARCEIRO manterá chaves de assinatura distintas por ambiente, não reutilizará material criptográfico entre produção e homologação, comunicará rotação com antecedência mínima definida no Anexo, e notificará imediatamente qualquer suspeita de comprometimento, autorizando desde já a revogação unilateral da chave afetada pela PLATAFORMA.</div>
+        <div class="attr"><div class="attr-k">Cláusula gêmea técnica</div><div class="attr-v">Allowlist de <span class="mono">kid</span> com falha fechada. A cláusula sem o controle não impede nada; o controle sem a cláusula gera indisponibilidade que vira disputa contratual.</div></div>
+        <div class="attr"><div class="attr-k">Erro clássico</div><div class="attr-v">Chave de homologação em produção é uma das causas mais comuns de comprometimento em integração federada — e é a mais barata de proibir por escrito.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">CL-07 · cobre R-06</div>
+          <div class="card-title">Retenção, formato e fornecimento de evidência</div>
+          <div class="card-sub">Com inversão do ônus — a cláusula com mais efeito prático de todas.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">essencial</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="draft"><div class="draft-t">Minuta</div>O PARCEIRO reterá os registros de autenticação e de ação administrativa sobre contas de clientes abrangidos pelo prazo definido no Anexo, em formato que permita correlação por identificador de usuário e por janela temporal, e os fornecerá em até <em>N</em> horas úteis mediante solicitação fundamentada. <strong>Na ausência, insuficiência ou intempestividade da trilha, presume-se, para fins de repartição de responsabilidade entre as partes, que a autenticação não ocorreu nos termos contratados.</strong></div>
+        <div class="attr"><div class="attr-k">O dente</div><div class="attr-v">A presunção. Sem ela, a cláusula obriga a guardar log mas não cria consequência por não guardar — e o incentivo do parceiro em uma contestação é justamente não encontrar o registro.</div></div>
+        <div class="attr"><div class="attr-k">Alcance</div><div class="attr-v">A redação limita a presunção à <strong>repartição de responsabilidade entre as partes</strong>. Ela não pode ser oposta ao cliente final, que tem proteção própria e não participa desta negociação.</div></div>
+        <div class="attr"><div class="attr-k">Formato importa</div><div class="attr-v">“Fornecerá os logs” sem definir formato costuma resultar em captura de tela. Correlação por identificador e por janela é o mínimo utilizável em investigação.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">CL-08 · transversal</div>
+          <div class="card-title">Notificação de incidente</div>
+          <div class="card-sub">Prazo em horas, conteúdo mínimo, responsável com nome.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-blue">importante</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="draft"><div class="draft-t">Minuta</div>O PARCEIRO notificará a PLATAFORMA em até <em>N</em> horas da detecção de incidente de segurança que afete, ainda que potencialmente, credenciais, dados ou sessões de usuários abrangidos, informando escopo estimado, janela temporal, medidas adotadas e ponto focal, e cooperará com a apuração conjunta, inclusive para fins de comunicação a autoridades.</div>
+        <div class="attr"><div class="attr-k">“ainda que potencialmente”</div><div class="attr-v">Expressão deliberada: sem ela, o parceiro notifica só quando tem certeza — e a certeza costuma chegar semanas depois do momento em que a informação seria útil.</div></div>
+        <div class="attr"><div class="attr-k">Encadeia com</div><div class="attr-v">Os prazos regulatórios de comunicação do próprio Bradesco. O prazo do parceiro precisa ser <strong>mais curto</strong> que o nosso, ou o nosso é impossível de cumprir.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">CL-09 · habilita a resposta</div>
+          <div class="card-title">Auditoria e suspensão cautelar unilateral</div>
+          <div class="card-sub">O direito de desligar primeiro e discutir depois.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">essencial</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="draft"><div class="draft-t">Minuta</div>A PLATAFORMA poderá auditar, diretamente ou por terceiro independente, os controles objeto deste contrato, e poderá <strong>suspender cautelarmente</strong>, no todo ou em parte, as credenciais e o acesso do PARCEIRO diante de indício fundado de comprometimento, sem que tal suspensão configure inadimplemento contratual ou gere dever de indenizar, comunicando a motivação em até <em>N</em> horas.</div>
+        <div class="attr"><div class="attr-k">Por que é a mais importante na prática</div><div class="attr-v">É a única que age <strong>durante</strong> o incidente. Todas as outras produzem efeito depois. Sem ela, a decisão de desligar um parceiro grande às duas da manhã sobe para a mesa comercial — e não desce a tempo.</div></div>
+        <div class="attr"><div class="attr-k">Contrapartida justa</div><div class="attr-v">Prazo curto para fundamentar, critério objetivo de restabelecimento e escalonamento nomeado dos dois lados. Direito unilateral sem contrapartida não sobrevive à negociação.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">CL-10 · cobre A-05</div>
+          <div class="card-title">Escopo máximo e finalidade</div>
+          <div class="card-sub">O que o parceiro pode pedir, e o que ele não pode fazer com o que recebe.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-blue">importante</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="draft"><div class="draft-t">Minuta</div>O acesso concedido limita-se aos escopos discriminados no Anexo Técnico e à finalidade de originação dos produtos contratados. É vedado ao PARCEIRO ceder, revender, compartilhar ou disponibilizar a terceiros as credenciais, os tokens ou o acesso à interface embarcada, bem como utilizar os dados obtidos para finalidade diversa da prevista.</div>
+        <div class="attr"><div class="attr-k">Cenário real</div><div class="attr-v">Um parceiro com rede de franqueados ou de representantes que repassa o acesso adiante — sem má-fé, apenas por conveniência operacional. A cláusula precisa nomear isso, porque a interface embarcada torna o repasse tecnicamente trivial.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">CL-11 · cadeia</div>
+          <div class="card-title">Subcontratação e cadeia de fornecedores</div>
+          <div class="card-sub">O IdP do parceiro quase nunca é do parceiro.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-blue">importante</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="draft"><div class="draft-t">Minuta</div>O PARCEIRO declarará os terceiros envolvidos na operação da autenticação e no tratamento dos dados abrangidos, submeterá à aprovação prévia a substituição ou inclusão de tais terceiros, e estenderá a eles, por instrumento próprio, as obrigações de segurança, auditoria, notificação e evidência assumidas neste contrato.</div>
+        <div class="attr"><div class="attr-k">Por que não é formalidade</div><div class="attr-v">Na prática, a maior parte dos parceiros de Tier 2 usa IdP de terceiro. Sem esta cláusula, todas as obrigações das outras onze param na fronteira de quem, de fato, opera a autenticação.</div></div>
+        <div class="attr"><div class="attr-k">Simetria</div><div class="attr-v">O mesmo raciocínio se aplica a nós, se a Aarin desenvolver ou hospedar parte da plataforma — a decisão estrutural sobre isso está na Arquitetura de Segurança, seção 09.</div></div>
+      </div></div>
+    </div>
+
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main">
+          <div class="card-kicker">CL-12 · LGPD</div>
+          <div class="card-title">Papéis, instruções e ciclo de vida do dado pessoal</div>
+          <div class="card-sub">Depende de qualificação formal — mas o contrato precisa carregar a resposta.</div>
+        </div>
+        <div class="card-side"><span class="badge badge-amber">a definir</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in">
+        <div class="draft"><div class="draft-t">Minuta</div>As partes qualificam seus papéis nos termos do Anexo de Proteção de Dados, no qual constam as finalidades, as bases legais por finalidade, o fluxo de atendimento aos direitos do titular quando a solicitação ingressar por qualquer das partes, as hipóteses de comunicação de incidente à ANPD e ao titular, e os prazos de eliminação por categoria de dado.</div>
+        <div class="attr"><div class="attr-k">Pendência declarada</div><div class="attr-v">A qualificação — controlador, operador ou controladoria conjunta na etapa de originação — depende de posição formal do Jurídico e do Encarregado. A arquitetura já favorece a leitura de <strong>controladoria conjunta na originação</strong>, por minimização em cada fronteira, mas isso é leitura técnica.</div></div>
+        <div class="attr"><div class="attr-k">Detalhe operacional</div><div class="attr-v">O fluxo de direitos do titular “quando a solicitação ingressar por qualquer das partes” é o que costuma faltar: o cliente pede exclusão ao parceiro, e ninguém sabe quem responde em qual prazo.</div></div>
+      </div></div>
+    </div>
+
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-t">O que este conjunto não faz</div>
+    <p>Nenhuma cláusula impede um parceiro determinado a fraudar de fabricar uma identidade dentro do próprio tenant. O que elas fazem é <strong>atribuir consequência, produzir evidência e habilitar reação rápida</strong>. A contenção do dano continua sendo arquitetural — a âncora da seção 05. Vender contrato como se fosse controle técnico é o erro simétrico ao de vender controle técnico como se resolvesse um problema de confiança.</p>
+  </div>
+</div>
+
+<!-- ═══ REFERÊNCIAS ═══ -->
+<div class="wrap" id="referencias">
+  <div class="eyebrow">08 · Referências</div>
+  <h2 class="sec">A bibliografia que faltava na discussão</h2>
+  <p class="sec-desc">Nada aqui é invenção nossa. Cada fragilidade da seção 03 e cada controle da seção 04 tem norma, RFC ou especificação publicada por trás — e essa é a diferença entre defender o modelo por convicção e defendê-lo por referência. A coluna da esquerda é o que se cita; a da direita é <strong>qual afirmação daquele documento sustenta</strong>.</p>
+
+  <h3 class="sub">Garantia de identidade e federação</h3>
+  <div class="refs">
+    <div class="ref"><div class="ref-id">NIST SP 800-63C-4<small>Federation and Assertions · final jul/2025</small></div><div class="ref-w">O framework de <strong>Federation Assurance Level</strong> (FAL1–FAL3). É a referência canônica para a afirmação central: a parte confiante <em>herda</em> a garantia do provedor, e por isso o nível precisa ser declarado e verificado, não presumido. Sustenta R-02 e o desenho do piso de <span class="mono">acr</span>.</div></div>
+    <div class="ref"><div class="ref-id">NIST SP 800-63B-4<small>Authentication and Authenticator Management</small></div><div class="ref-w">Os níveis <strong>AAL1–AAL3</strong> e, mais útil aqui, os requisitos sobre <strong>recuperação de conta e vinculação de autenticador</strong> — a base técnica do argumento de que o vetor dominante de tomada de conta é o reset, não o login. Sustenta R-03.</div></div>
+    <div class="ref"><div class="ref-id">OpenID Connect Core 1.0<small>seções de claims de autenticação</small></div><div class="ref-w">Define <span class="mono">acr</span>, <span class="mono">amr</span>, <span class="mono">auth_time</span> e <span class="mono">max_age</span>. É o vocabulário concreto em que o piso de garantia é expresso e verificado — o que torna CL-02 uma cláusula implementável e não uma declaração de intenção.</div></div>
+  </div>
+
+  <h3 class="sub">Delegação, step-up e posse do token</h3>
+  <div class="refs">
+    <div class="ref"><div class="ref-id">RFC 8693<small>OAuth 2.0 Token Exchange</small></div><div class="ref-w">A base do modelo federado. Importa aqui a distinção entre <strong>delegação e personificação</strong> e os claims <span class="mono">act</span>/<span class="mono">may_act</span>: é o que permite registrar que o parceiro agiu <em>em nome de</em> um usuário — origem conceitual do <span class="mono">exchange_chain</span>.</div></div>
+    <div class="ref"><div class="ref-id">RFC 9470<small>Step Up Authentication Challenge · set/2023</small></div><div class="ref-w">O padrão que sustenta a tese da seção 05: o recurso protegido responde <span class="mono">insufficient_user_authentication</span> com <span class="mono">acr_values</span> e <span class="mono">max_age</span>, exigindo autenticação mais forte <strong>no ato</strong> em vez de em todo login. É a referência mais diretamente útil para responder à objeção.</div></div>
+    <div class="ref"><div class="ref-id">RFC 9449<small>DPoP · prova de posse no nível da aplicação</small></div><div class="ref-w">Vincula o token ao dispositivo. Reduz o valor de um UCT exfiltrado a praticamente zero e move o desenho na direção de asserção vinculada ao portador — o conceito de FAL3 aplicado à camada de recurso.</div></div>
+    <div class="ref"><div class="ref-id">RFC 9126<small>Pushed Authorization Requests</small></div><div class="ref-w">Tira os parâmetros de autorização do canal do navegador. Relevante para o modelo standalone e exigido pelos perfis de grau financeiro.</div></div>
+    <div class="ref"><div class="ref-id">FAPI 2.0 Security Profile<small>OpenID Foundation</small></div><div class="ref-w">Consolida <em>sender-constrained tokens</em> e PAR, e traz um <strong>modelo de atacante explícito</strong> — útil porque descreve o que o perfil assume que o adversário consegue fazer. Confirmar a versão vigente exigida pelo Open Finance Brasil antes de fixar requisito em contrato.</div></div>
+  </div>
+
+  <h3 class="sub">Sinais contínuos e revogação</h3>
+  <div class="refs">
+    <div class="ref"><div class="ref-id">OIDC Back-Channel Logout 1.0<small>OpenID Foundation</small></div><div class="ref-w">Encerramento de sessão iniciado pelo provedor, por canal servidor a servidor. O mínimo exigível de um parceiro de Tier 1 para que R-04 saia do estado de fragilidade aberta.</div></div>
+    <div class="ref"><div class="ref-id">OpenID Shared Signals Framework 1.0<small>Especificação Final · 2025</small></div><div class="ref-w">Transporte assíncrono de <em>Security Event Tokens</em> entre domínios, com negociação e gestão de fluxo. É a infraestrutura que permite ao parceiro nos contar que algo mudou, sem que precisemos perguntar.</div></div>
+    <div class="ref"><div class="ref-id">OpenID CAEP 1.0<small>Especificação Final · 2025</small></div><div class="ref-w">Os tipos de evento sobre sessões vivas — revogação de sessão, mudança de credencial, mudança de nível de garantia. Interoperabilidade entre implementações independentes demonstrada publicamente em 2025, o que torna a exigência contratual realista para Tier 1.</div></div>
+  </div>
+
+  <h3 class="sub">Terceiros, cadeia e contrato</h3>
+  <div class="refs">
+    <div class="ref"><div class="ref-id">ISO/IEC 27036<small>Segurança em relações com fornecedores</small></div><div class="ref-w">A norma que estrutura o ciclo completo — seleção, acordo, operação e encerramento. É o esqueleto do programa de KYP da seção 06, e o vocabulário que uma auditoria reconhece.</div></div>
+    <div class="ref"><div class="ref-id">NIST SP 800-161r1<small>C-SCRM · cadeia de suprimentos cibernética</small></div><div class="ref-w">Complementa o 27036 com práticas de <strong>monitoramento contínuo</strong> e critérios de criticidade — a base do tiering e dos gatilhos de reavaliação, em vez da diligência única de onboarding.</div></div>
+    <div class="ref"><div class="ref-id">DORA · Reg. (UE) 2022/2554, art. 30<small>e as diretrizes de outsourcing da EBA</small></div><div class="ref-w">Não se aplicam ao Bradesco, e por isso são úteis: são o <strong>gabarito público mais completo</strong> de disposições contratuais obrigatórias em serviços de TIC no setor financeiro — auditoria, subcontratação, notificação, saída. Serviram de estrutura para as doze cláusulas.</div></div>
+  </div>
+
+  <h3 class="sub">Regulação brasileira — validar com Jurídico e Compliance</h3>
+  <div class="refs">
+    <div class="ref"><div class="ref-id">Circular BCB nº 3.978/2020<small>art. 56 e seguintes · KYE, KYP e KYS</small></div><div class="ref-w"><strong>A referência que faltava.</strong> Torna o conhecimento de parceiros obrigação normativa expressa, com procedimentos de identificação e qualificação proporcionais ao risco, formalizados em documento aprovado pela alta administração e com registros retidos por <strong>10 anos</strong>. É o que transforma o programa da seção 06 de proposta em requisito.</div></div>
+    <div class="ref"><div class="ref-id">Res. CMN nº 4.893/2021<small>política de segurança cibernética e nuvem</small></div><div class="ref-w">Sucede a 4.658/2018. Traz a avaliação prévia de prestador de serviço relevante, os requisitos contratuais e a comunicação de incidente. É o enquadramento aplicável se a Aarin — ou o provedor de identidade de um parceiro — operar parte da cadeia.</div></div>
+    <div class="ref"><div class="ref-id">Res. CMN nº 4.935/2021<small>correspondentes no País</small></div><div class="ref-w">Aplicável quando o parceiro passa a atuar de forma assistida — que é a direção decidida para a contratação. Traz responsabilidade da instituição contratante, treinamento e certificação de prepostos, e limites do que o correspondente pode fazer.</div></div>
+    <div class="ref"><div class="ref-id">Res. Conjunta nº 6/2023<small>compartilhamento de indícios de fraude</small></div><div class="ref-w">Habilita o compartilhamento de dados sobre indícios de fraude entre instituições. Relevante para o monitoramento contínuo do KYP e para a mesa de fraude do modelo standalone.</div></div>
+    <div class="ref"><div class="ref-id">LGPD · Lei nº 13.709/2018<small>papéis, incidente e direitos do titular</small></div><div class="ref-w">A qualificação de papéis entre Bradesco e parceiro é a pendência mais sensível do modelo e condiciona CL-12. A arquitetura já favorece controladoria conjunta na originação por minimização em cada fronteira — mas a posição formal é do Jurídico e do Encarregado.</div></div>
+  </div>
+</div>
+
+<!-- ═══ A DECIDIR ═══ -->
+<div class="wrap" id="abertas">
+  <div class="eyebrow">09 · A decidir</div>
+  <h2 class="sec">Seis decisões que fecham a lacuna</h2>
+  <p class="sec-desc">Nenhuma depende de tecnologia nova — todas dependem de alguém decidir e assumir. Estão ordenadas por quanto travam as demais: as duas primeiras precisam sair antes do primeiro contrato assinado.</p>
+
+  <div class="cards two">
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main"><div class="card-kicker">G-01 · Segurança + Arquitetura</div><div class="card-title">Qual é o piso de <span class="mono">acr</span>, e o que fazer com quem não emite</div>
+        <div class="card-sub">Sem essa tabela, CL-02 não tem número e o Token Exchange não tem o que verificar.</div></div>
+        <div class="card-side"><span class="flag">bloqueia contrato</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in"><div class="attr"><div class="attr-k">Consequência</div><div class="attr-v">Define a tabela de tiers, o Anexo Técnico de todo contrato e o comportamento do Auth. A recomendação deste documento é <strong><span class="mono">loa2</span> como piso e recusa explícita abaixo dele</strong>, com o parceiro que não emite <span class="mono">acr</span> entrando por declaração contratual, tier reduzido e escopo menor — nunca por rebaixamento silencioso.</div></div></div></div>
+    </div>
+
+    <div class="card acc-red" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main"><div class="card-kicker">G-02 · Jurídico</div><div class="card-title">A presunção contratual de CL-07 se sustenta?</div>
+        <div class="card-sub">É a cláusula com mais efeito prático — e a mais provável de ser contestada na negociação.</div></div>
+        <div class="card-side"><span class="flag">bloqueia contrato</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in"><div class="attr"><div class="attr-k">Consequência</div><div class="attr-v">Se a inversão do ônus na ausência de trilha não for sustentável na redação proposta, é preciso um substituto com efeito equivalente — multa por indisponibilidade de evidência, ou repartição de perda por operação contestada sem log. O que <strong>não</strong> pode acontecer é a obrigação de reter ficar sem consequência por não reter.</div></div></div></div>
+    </div>
+
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main"><div class="card-kicker">G-03 · Segurança + Operações</div><div class="card-title">Quem aperta o botão de suspensão cautelar, e em qual plantão</div>
+        <div class="card-sub">CL-09 sem dono nomeado é uma cláusula que nunca vai ser usada.</div></div>
+        <div class="card-side"><span class="badge badge-amber">antes do go-live</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in"><div class="attr"><div class="attr-k">Consequência</div><div class="attr-v">Exige papel nomeado, critério objetivo de acionamento, canal de escalonamento dos dois lados e um runbook — que hoje não existe entre os três da Arquitetura de Segurança. Sem isso, a decisão de desligar um parceiro grande sobe para a mesa comercial no meio do incidente e não desce a tempo.</div></div></div></div>
+    </div>
+
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main"><div class="card-kicker">G-04 · Arquitetura</div><div class="card-title">SSF/CAEP no MVP para Tier 1, ou fase 2?</div>
+        <div class="card-sub">A resposta define o TTL e a política de refresh de todo mundo, não só do Tier 1.</div></div>
+        <div class="card-side"><span class="badge badge-amber">antes do go-live</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in"><div class="attr"><div class="attr-k">Consequência</div><div class="attr-v">Sem canal de sinal, a única defesa contra R-04 é token curto sem refresh silencioso — o que tem custo direto de experiência para o usuário do parceiro. É uma troca entre engenharia agora e atrito permanente depois, e precisa ser decidida com esse enquadramento.</div></div></div></div>
+    </div>
+
+    <div class="card acc-amber" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main"><div class="card-kicker">G-05 · Produto + Jurídico</div><div class="card-title">O que acontece com os contratos vivos quando o parceiro sai</div>
+        <div class="card-sub">Lacuna real — não existe em nenhum artefato do repositório.</div></div>
+        <div class="card-side"><span class="flag">não modelado</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in"><div class="attr"><div class="attr-k">Consequência</div><div class="attr-v">Suspender o parceiro não suspende o crédito contratado. É preciso um caminho de atendimento direto ao cliente, uma via de pagamento que não dependa do canal do parceiro, e uma comunicação que não pareça incidente. Afeta produto, atendimento e a estratégia de saída do contrato.</div></div></div></div>
+    </div>
+
+    <div class="card acc-blue" onclick="toggleCard(this)">
+      <div class="card-head">
+        <div class="card-head-main"><div class="card-kicker">G-06 · Compliance + Arquitetura</div><div class="card-title">Quem é dono do parâmetro que sai do KYP</div>
+        <div class="card-sub">O questionário de identidade é anexo do processo corporativo ou processo próprio?</div></div>
+        <div class="card-side"><span class="badge badge-blue">estrutural</span><span class="card-chev">›</span></div>
+      </div>
+      <div class="card-body"><div class="card-body-in"><div class="attr"><div class="attr-k">Consequência</div><div class="attr-v">É o que decide se a regra de ouro da seção 6.1 sobrevive. Se a resposta do questionário não tiver um caminho formal até a configuração da plataforma — e um dono para mantê-la atualizada na recertificação —, o KYP volta a ser parecer arquivado e o piso de <span class="mono">acr</span> vira número escolhido por engenharia sem base.</div></div></div></div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-t">O resumo para levar à reunião</div>
+    <p>A sensação de fragilidade do federado é legítima e aponta para <strong>três coisas reais</strong> — garantia herdada e hoje não medida, poder administrativo do parceiro sobre as contas dele, e prova de autoria dependente de log de terceiro. Nenhuma delas se resolve trazendo o login para dentro: o standalone troca isso por um raio de explosão transversal, pelo canal de recuperação de conta como responsabilidade nossa e por uma operação inteira. O que resolve é o que já está construído — <strong>login delegado, contratação atestada por nós</strong> — somado ao que ainda não está: piso de <span class="mono">acr</span> verificado, sinais contínuos de revogação e doze cláusulas que dão consequência ao que nenhum controle técnico alcança.</p>
+  </div>
+</div>
+
+<div class="foot">
+  <div class="foot-in">
+    BaaS White Label · Bradesco — Confiança na Federação, KYP e Cláusulas de Parceria<br>
+    Documento técnico de prototipagem · dados, parceiros e endpoints são fictícios<br>
+    Minuta de cláusulas para trabalho conjunto com Jurídico e Compliance — não constitui parecer jurídico
+    <div class="foot-links">
+      <a href="index.html">← Voltar ao showcase</a>
+      <a href="baas-modelos-identidade.html">Modelos de Identidade</a>
+      <a href="baas-seguranca-arquitetura.html">Arquitetura de Segurança</a>
+      <a href="baas-originacao-cliente-final.html">Originação do Cliente Final</a>
+      <a href="login-white-label-standalone.html">Login White Label Standalone</a>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── HELPERS ──────────────────────────────────────────
+function toggleCard(el) {
+  el.classList.toggle('open');
+}
+</script>
+
+</body>
+</html>

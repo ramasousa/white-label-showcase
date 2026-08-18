@@ -510,7 +510,7 @@ h3.sub{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;letter-spaci
       <div class="card-body"><div class="card-body-in">
         <div class="attr"><div class="attr-k">Impacto</div><div class="attr-v">Vazamento cruzado entre parceiros — o cenário de maior dano reputacional do modelo white label</div></div>
         <div class="attr"><div class="attr-k">Controle</div><div class="attr-v">O <span class="mono">partner_tenant</span> do UCT é derivado do <strong>PAT autenticado</strong>, não do token apresentado. O BFF valida <span class="mono">partner_match</span> em toda chamada.</div></div>
-        <div class="attr"><div class="attr-k">Lacuna</div><div class="attr-v">Falta especificar a validação de que o <span class="mono">subject_token</span> foi emitido pelo próprio parceiro — exige que o parceiro registre seu emissor (JWKS ou segredo compartilhado) no onboarding. Sem isso, o parceiro pode inventar identidades <em>dentro do próprio tenant</em>, o que é aceitável, mas o limite precisa estar documentado no contrato.</div></div>
+        <div class="attr"><div class="attr-k">Lacuna</div><div class="attr-v">Falta especificar a validação de que o <span class="mono">subject_token</span> foi emitido pelo próprio parceiro — exige que o parceiro registre seu emissor (JWKS ou segredo compartilhado) no onboarding. Sem isso, o parceiro pode inventar identidades <em>dentro do próprio tenant</em>, o que é aceitável, mas o limite precisa estar documentado no contrato. Esse limite — por que é aceitável, o que custa e quais cláusulas o sustentam — está desenvolvido em <a href="baas-confianca-federacao-kyp.html" style="color:var(--red);font-weight:600">Confiança na Federação, KYP e Cláusulas</a>.</div></div>
       </div></div>
     </div>
     <div class="card acc-blue" onclick="toggleCard(this)">
@@ -1188,6 +1188,7 @@ h3.sub{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;letter-spaci
       <div class="card-body"><div class="card-body-in">
         <div class="attr"><div class="attr-k">Racional</div><div class="attr-v">A fronteira F1 é contratual, não técnica. Um parceiro com postura fraca é um risco que nenhum controle no lado do Bradesco elimina — ele autentica os usuários que recebem UCT.</div></div>
         <div class="attr"><div class="attr-k">Onboarding mínimo</div><div class="attr-v">Certificação vigente ou questionário de segurança aprovado · declaração de responsabilidade sobre a autenticação dos próprios usuários · canal e SLA de notificação de incidente · direito de auditoria · escopo contratual explícito e limitado</div></div>
+        <div class="attr"><div class="attr-k">Programa completo</div><div class="attr-v">O <strong>KYP</strong> não é boa prática opcional: a Circular BCB nº 3.978/2020 o exige de forma expressa. O programa — tiering de parceiro, questionário de identidade que vira parâmetro de plataforma, monitoramento contínuo e doze cláusulas de contrato — está em <a href="baas-confianca-federacao-kyp.html" style="color:var(--red);font-weight:600">Confiança na Federação, KYP e Cláusulas</a>.</div></div>
       </div></div>
     </div>
 
@@ -1515,6 +1516,7 @@ h3.sub{font-family:'Syne',sans-serif;font-weight:700;font-size:19px;letter-spaci
       <a href="bff-token-flow.html">Fluxo de Tokens</a>
       <a href="api-flow-tokens-registry-mfe.html">API Flow</a>
       <a href="baas-modelos-identidade.html">Modelos de Identidade</a>
+      <a href="baas-confianca-federacao-kyp.html">Confiança na Federação &amp; KYP</a>
     </div>
   </div>
 </div>
